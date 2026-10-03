@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: MIT */
 /*
  * Phoenix-8086 — Kernel Entry Point (GAS, 8086 only)
  *

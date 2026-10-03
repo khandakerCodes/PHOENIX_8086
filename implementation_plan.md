@@ -44,7 +44,7 @@ The tree was built with the existing Makefile (gcc 13.3, NASM 2.16) and booted h
 
 **Status update (2026-10-03, after the toolchain switch):** B3, B4, B5 and B6 are fixed, and B10 is fixed for the near heap (now ~42 KB, reported accurately). From B16, the warnings are gone and the dead assembly is archived in `docs/archive/legacy/`. 
 
-**Status update (Phase 2 core):** B1, B2, B7, B8 and B9 are fixed: threads really run, the shell works, context-switch telemetry is true, INT 80h dispatches and returns values, yield has its own vector, and sleep is 32-bit and wrap-safe. B11 and B12 are fixed as well: `mbox_broadcast` exists, and panic shows the live registers captured at the fault. B10 is fully fixed (far arena above `30000h`, `memory` reports the real layout). Still open: B13 (telemetry design), B14 (dashboard), B15 (launch scripts). `make test` boots the image three times and drives the shell through 26 checks, including a 35-assertion in-kernel self-test.
+**Status update (Phase 2 core):** B1, B2, B7, B8 and B9 are fixed: threads really run, the shell works, context-switch telemetry is true, INT 80h dispatches and returns values, yield has its own vector, and sleep is 32-bit and wrap-safe. B11 and B12 are fixed as well: `mbox_broadcast` exists, and panic shows the live registers captured at the fault. B10 is fully fixed (far arena above `30000h`, `memory` reports the real layout). B15 is fixed (`phoenix.sh` only stops what it started; the broken `tools/run.sh` is gone) and so is the rest of B16. B17 is fixed: Git, licence, README and CI exist. Still open: B13 (telemetry design) and B14 (dashboard). `make test` boots the image three times and drives the shell through 26 checks, including a 35-assertion in-kernel self-test.
 
 **Conclusion:** boot, console, and interrupt plumbing are a usable starting point. Threads, scheduling, syscalls, memory layout, and telemetry accuracy must be rebuilt, and that work is the core of this plan.
 
@@ -52,14 +52,14 @@ The tree was built with the existing Makefile (gcc 13.3, NASM 2.16) and booted h
 
 ## 2. Decisions Needed From the Maintainer
 
-D1 and D4 were decided on 2026-10-03. D2 and D3 are open; work proceeds on the recommended option unless changed.
+D1, D2 and D4 were decided on 2026-10-03. D3 is open.
 
 | ID | Decision | Recommendation | Why |
 | --- | --- | --- | --- |
 | D1 | **Decided: true 8086.** Be a true 8086 kernel, or rename to "16-bit real-mode x86 (386+)"? | **True 8086**, using the `ia16-elf-gcc` toolchain (the one ELKS uses). | The 8086 claim is the project's identity. It also gives 16-bit pointers, removing the pointer-size hacks. Cost: a toolchain that must be containerised, and all assembly rewritten once. |
-| D2 | Licence | **MIT** | Lowest friction for classrooms and forks. |
+| D2 | **Decided: MIT** (the repository's `LICENSE`). Licence | **MIT** | Lowest friction for classrooms and forks. |
 | D3 | Public name | Keep **Phoenix-8086** only after a trademark search. | "Phoenix" is also the name of a long-established PC BIOS vendor, which is the same product space. |
-| D4 | **Decided: directory renamed to `phoenix-8086`.** Repository name and host | Rename directory/repo from `visage` to `phoenix-8086`; host on GitHub. | Discoverability. |
+| D4 | **Decided: directory renamed to `phoenix-8086`; hosted at `github.com/khandakerCodes/PHOENIX_8086`.** Repository name and host | Rename directory/repo from `visage` to `phoenix-8086`; host on GitHub. | Discoverability. |
 
 ---
 
@@ -69,16 +69,16 @@ D1 and D4 were decided on 2026-10-03. D2 and D3 are open; work proceeds on the r
 
 Goal: a clean, honest, buildable public repository.
 
-- [ ] `git init`; `.gitignore` for `build/`; first commit of the current tree as the v0.1 prototype
-- [ ] Add `LICENSE`, SPDX headers, `README.md` (status badge: *pre-alpha*, with the known-issues list from §1)
-- [ ] Add `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `CHANGELOG.md`, issue/PR templates
-- [ ] Remove dead files: `kernel/entry.asm`, `kernel/isr.asm`, `kernel/context_switch.asm`, root `index.html`, root `styles.css`, `.kombai/`, `plan.md`; fold `tools/*.sh` and `phoenix.sh` into Make targets
-- [ ] Replace process-killing in the launch script with tracked PIDs only; choose free ports or fail with a clear message
+- [x] `git init`; `.gitignore` for `build/` and `.toolchain/`; pushed to GitHub
+- [x] `LICENSE` (MIT), SPDX headers, `README.md` (status: pre-alpha, with known limitations)
+- [x] `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `CHANGELOG.md`, issue/PR templates
+- [x] Remove dead files: the unused kernel `.asm` duplicates (archived), root `index.html`, root `styles.css`, `.kombai/`, `plan.md`, `tools/build.sh`, `tools/run.sh`
+- [x] Replace process-killing in the launch script with tracked PIDs only; fail with a clear message if a port is busy
 - [/] Makefile: `-Werror`, header dependency tracking (`-MMD`), `make run-headless`, `make test` — `-MMD` and `make test` done
 - [x] Build guard: fail if any image exceeds its region (fixes the class of bug B4) — linker `ASSERT`s and `tools/mkimage.py`
 - [ ] Container image / devcontainer with pinned NASM, compiler, QEMU, Python
-- [ ] CI: build + boot smoke test (headless QEMU, assert "boot complete" on serial)
-- [ ] Move docs into `docs/`: architecture, memory map, boot flow; keep `visual.md` as `docs/observatory.md`
+- [x] CI: GitHub Actions runs `make all` and `make test` (instruction check, boot smoke test, shell integration tests) on every push and pull request
+- [/] Move docs into `docs/`: `visual.md` is now `docs/observatory.md`; architecture, memory-map and boot-flow pages not written yet
 
 **Exit test:** fresh clone → `make test` passes in CI on a clean container.
 

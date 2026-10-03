@@ -1,17 +1,18 @@
 #!/bin/bash
+# SPDX-License-Identifier: MIT
 # ============================================================================
 # Phoenix-8086 — Master Launch Script
 # ============================================================================
 #
 # Single script that builds and launches all project components:
-#   1. Builds the kernel floppy image (if needed)
+#   1. Builds the kernel floppy image (incremental)
 #   2. Starts the Visual Dashboard (HTTP server on port 8080)
 #   3. Starts the Telemetry Bridge (WebSocket on port 9090)
 #   4. Launches QEMU with the Phoenix-8086 floppy image
 #
 # Usage:
-#   ./phoenix.sh          — Build (if needed) and launch everything
-#   ./phoenix.sh build    — Force rebuild only
+#   ./phoenix.sh          — Build and launch everything
+#   ./phoenix.sh build    — Build only
 #   ./phoenix.sh clean    — Clean build artifacts
 #
 # Press Ctrl+C to shut down all components gracefully.
@@ -59,10 +60,6 @@ cleanup() {
         wait "$DASHBOARD_PID" 2>/dev/null || true
     fi
 
-    # Kill any lingering http servers on our port
-    fuser -k 8080/tcp 2>/dev/null || true
-    rm -f /tmp/phoenix_serial.fifo 2>/dev/null || true
-
     echo -e "${GREEN}[DONE]${RESET} All services stopped. Goodbye."
     exit 0
 }
@@ -104,14 +101,36 @@ check_deps() {
     fi
 }
 
+# ── Check ports ─────────────────────────────────
+# Only processes started by this script are ever stopped. If a port
+# is already taken, say so and let the user decide what to do.
+check_ports() {
+    local busy=0
+
+    for port in 8080 9090 9876; do
+        if (exec 3<>"/dev/tcp/127.0.0.1/$port") 2>/dev/null; then
+            echo -e "  ${RED}✗${RESET} Port $port is already in use"
+            busy=1
+        fi
+    done
+
+    if [ "$busy" -eq 1 ]; then
+        echo ""
+        echo -e "${RED}[ERROR]${RESET} Free the ports above (dashboard 8080, bridge 9090, serial 9876) and try again."
+        exit 1
+    fi
+}
+
 # ── Build ───────────────────────────────────────
 build_project() {
     echo -e "${CYAN}[BUILD]${RESET} Compiling Phoenix-8086..."
 
-    make clean 2>/dev/null || true
-    if make image 2>&1 | tail -5; then
+    local output
+    if output=$(make image 2>&1); then
+        echo "$output" | tail -5
         echo -e "${GREEN}[BUILD]${RESET} Build successful!"
     else
+        echo "$output" | tail -20
         echo -e "${RED}[BUILD]${RESET} Build failed. Check errors above."
         exit 1
     fi
@@ -120,10 +139,6 @@ build_project() {
 
 # ── Start Dashboard ─────────────────────────────
 start_dashboard() {
-    # Kill any existing server on port 8080
-    fuser -k 8080/tcp 2>/dev/null || true
-    sleep 0.3
-
     python3 -m http.server 8080 --directory dashboard &>/dev/null &
     DASHBOARD_PID=$!
     sleep 0.5
@@ -136,14 +151,8 @@ start_dashboard() {
     fi
 }
 
-FIFO_PIPE="/tmp/phoenix_serial.fifo"
-
 # ── Start Telemetry Bridge ──────────────────────
 start_bridge() {
-    fuser -k 9090/tcp 2>/dev/null || true
-    fuser -k 9876/tcp 2>/dev/null || true
-    sleep 0.2
-
     python3 bridge/serial_ws_bridge.py &>/dev/null &
     BRIDGE_PID=$!
     sleep 0.5
@@ -158,9 +167,6 @@ start_bridge() {
 
 # ── Start QEMU ──────────────────────────────────
 start_qemu() {
-    killall -9 qemu-system-i386 2>/dev/null || true
-    sleep 0.2
-
     echo ""
     echo -e "${CYAN}[LAUNCH]${RESET} Starting QEMU emulator..."
     echo -e "  ${BLUE}→${RESET} Floppy image: build/phoenix8086.img"
@@ -209,19 +215,17 @@ echo -e "${CYAN}[CHECK]${RESET} Verifying toolchain..."
 check_deps
 echo ""
 
-# ── Step 2: Build if needed ────────────────────
-if [ ! -f "build/phoenix8086.img" ]; then
-    build_project
-else
-    echo -e "${GREEN}[BUILD]${RESET} Floppy image exists ($(wc -c < build/phoenix8086.img) bytes). Use '${BOLD}./phoenix.sh build${RESET}' to force rebuild."
-    echo ""
-fi
+# ── Step 2: Build (incremental) ────────────────
+build_project
 
-# ── Step 3: Launch services ────────────────────
+# ── Step 3: Make sure our ports are free ───────
+check_ports
+
+# ── Step 4: Launch services ────────────────────
 echo -e "${CYAN}[SERVICES]${RESET} Starting background services..."
 start_dashboard
 start_bridge
 echo ""
 
-# ── Step 4: Launch QEMU (foreground) ───────────
+# ── Step 5: Launch QEMU (foreground) ───────────
 start_qemu

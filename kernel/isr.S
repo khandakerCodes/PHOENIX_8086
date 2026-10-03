@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: MIT */
 /*
  * Phoenix-8086 — ISR Stubs and Context Switch (GAS, 8086 only)
  *
