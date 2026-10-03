@@ -2,7 +2,7 @@
 
 A small preemptive operating system kernel for the Intel 8086 that explains itself while it runs. It boots from a floppy image without DOS, runs threads under a timer-driven scheduler, and streams telemetry to a web dashboard.
 
-**Status: pre-alpha.** The kernel works and is tested in QEMU. It has not yet been run on an 8086-only emulator or on real hardware, and the dashboard is not yet trustworthy (see [Known limitations](#known-limitations)).
+**Status: pre-alpha.** The kernel works and is tested in QEMU. It has not yet been run on an 8086-only emulator or on real hardware (see [Known limitations](#known-limitations)).
 
 ## What works
 
@@ -24,7 +24,7 @@ Requirements: Linux on x86-64 (developed on Ubuntu 24.04, including WSL2), with 
 sudo apt install make nasm python3 curl qemu-system-x86
 
 make toolchain   # fetch the ia16-elf-gcc cross compiler into .toolchain/ (about 200 MB, no root needed)
-make test        # build, check the instruction set, boot in QEMU and run the shell tests
+make test        # build, check the instruction set, run the unit tests, boot in QEMU and drive the shell
 make run         # boot in a QEMU window
 ```
 
@@ -45,12 +45,33 @@ At the `phoenix>` prompt, type `help`. Good first commands:
 
 ## Dashboard
 
+The kernel streams telemetry over its serial port: context switches with the resumed registers, thread states, counters, memory, system calls, console text, and faults. A bridge relays it to a web dashboard.
+
 ```sh
 pip install -r bridge/requirements.txt
 ./phoenix.sh
 ```
 
-This starts QEMU, the serial-to-WebSocket bridge, and a web server for the dashboard at <http://localhost:8080>.
+This starts QEMU, the bridge, and a web server for the dashboard at <http://localhost:8080>. The console tab can type into the kernel's shell.
+
+The dashboard always says where its data comes from:
+
+| Badge | Meaning |
+| --- | --- |
+| LIVE | A running kernel, relayed by the bridge |
+| REPLAY | A recorded session being played back |
+| DEMO | Simulated data, only after you press "Run demo" |
+| OFFLINE | No bridge; panels show "no data" or the last data received |
+
+To record a session and replay it later without a kernel:
+
+```sh
+python3 tools/record_session.py build/phoenix8086.img session.jsonl
+python3 bridge/serial_ws_bridge.py --replay session.jsonl --speed 2
+make dashboard        # in another terminal, then open http://localhost:8080
+```
+
+The protocol is documented in [docs/telemetry.md](docs/telemetry.md). `make TELEMETRY=0` builds a kernel without it.
 
 ## Repository layout
 
@@ -61,22 +82,23 @@ This starts QEMU, the serial-to-WebSocket bridge, and a web server for the dashb
 | `include/` | Shared types and the memory layout |
 | `linker/` | Kernel linker script |
 | `tools/` | Toolchain fetcher, image finalizer, instruction-set check, tests |
-| `bridge/` | Serial-to-WebSocket telemetry bridge (Python) |
+| `bridge/` | Telemetry decoder, capture files, and the serial-to-WebSocket bridge (Python) |
 | `dashboard/` | Web dashboard |
-| `docs/` | System-call reference, dashboard design, archived documents |
+| `docs/` | System-call and telemetry references, dashboard design, archived documents |
 
 ## Documentation
 
 * [Project specification](projectdetails.md) — what the project is and what v1.0 means
 * [Implementation plan](implementation_plan.md) — audit findings, phases, and current progress
 * [System calls](docs/syscalls.md)
+* [Telemetry protocol](docs/telemetry.md)
 * [Dashboard design](docs/observatory.md)
 
 ## Known limitations
 
 * Verified only in QEMU, which emulates a 386 or later. The instruction-set check covers the code, but nothing has yet confirmed a boot on an 8086-only machine.
-* The dashboard falls back to simulated data when it has no connection, and parts of the scheduler view are not driven by real data.
-* Telemetry frames and console text share one serial stream without escaping.
+* The dashboard's rendering has not been checked in a real browser yet. Its data model is tested against a recorded kernel session, and the rendering code was exercised against a stand-in page, but nobody has looked at it.
+* Under heavy load (the `bench` command) the kernel's telemetry buffer fills and records are dropped. The drops are counted and shown, never hidden.
 * Real mode has no memory protection: any thread can overwrite any memory.
 * No file system or program loader yet.
 

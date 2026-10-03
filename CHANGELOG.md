@@ -18,6 +18,13 @@ All notable changes to this project are recorded here. The project follows [Sema
 * Stack red zone: a thread is stopped before a stack overflow reaches another stack.
 * Shell commands: `ipc`, `syscall`, `nice`, `sleep`, `bench`, `selftest`, `overflow`, `divzero`.
 * README, contribution guide, and continuous integration.
+* Telemetry protocol v1 (`docs/telemetry.md`): framed, CRC-checked records buffered in the kernel and sent by a telemetry thread; console text is a record type; dropped records are counted.
+* New telemetry records: thread create/exit/state, context switch with registers, counters, memory, system calls, faults, benchmark results, per-thread statistics.
+* Serial input: the dashboard can type into the shell.
+* Bridge: capture to file, replay, backlog for late-joining dashboards.
+* Dashboard: Live / Replay / Demo / Offline modes that are always labelled; scheduler timeline, CPU shares, registers, memory map and thread inspector driven only by kernel data.
+* `tools/record_session.py` records a kernel session to a capture file.
+* `make TELEMETRY=0` builds a kernel without telemetry.
 
 ### Changed
 * Memory layout: kernel code at `1000:0000`, kernel data and stacks at `2000:0000`.
@@ -25,6 +32,8 @@ All notable changes to this project are recorded here. The project follows [Sema
 * `phoenix.sh` no longer kills other processes; it reports busy ports and stops.
 
 ### Fixed
+* Dashboard no longer falls back to random data or draws random bar heights.
+* Telemetry no longer does serial I/O inside the timer interrupt, and no longer reports context switches that did not happen.
 * Kernel image was silently truncated when it grew past 32 sectors.
 * Thread stacks overlapped the interrupt vector table.
 * Stage 2 overlapped the kernel load address.

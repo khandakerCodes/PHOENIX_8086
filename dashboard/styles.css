@@ -57,8 +57,8 @@
     --shadow-glow:      0 0 20px rgba(59, 130, 246, 0.15);
 
     /* Typography */
-    --font-sans:        'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-mono:        'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    --font-sans:        system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-mono:        ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, 'DejaVu Sans Mono', 'Liberation Mono', Menlo, monospace;
 
     /* Spacing */
     --gap-xs:           4px;
@@ -1056,5 +1056,170 @@ body {
 
     .panel__section {
         min-width: 200px;
+    }
+}
+
+/* ── Data source: mode badge and banner ─────── */
+.logo-badge--live    { background: var(--accent-green); animation: none; }
+.logo-badge--replay  { background: var(--accent-purple); color: #fff; animation: none; }
+.logo-badge--demo    { background: var(--accent-amber); animation: none; }
+.logo-badge--offline { background: var(--accent-red); color: #fff; animation: none; }
+
+.mode-banner {
+    padding: 6px var(--gap-md);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    letter-spacing: 0.04em;
+}
+
+.mode-banner[hidden] { display: none; }
+.mode-banner--demo    { background: var(--accent-amber); color: #000; }
+.mode-banner--replay  { background: var(--accent-purple); color: #fff; }
+.mode-banner--offline { background: var(--accent-red); color: #fff; }
+.mode-banner--waiting { background: var(--bg-tertiary); color: var(--text-secondary); }
+
+.demo-toggle {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--border-accent);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.demo-toggle:hover,
+.demo-toggle:focus-visible { color: var(--text-primary); border-color: var(--accent-blue); }
+.demo-toggle[hidden] { display: none; }
+
+.metric__value--warn { color: var(--accent-amber); }
+
+/* ── Notes under a view ─────────────────────── */
+.view-note {
+    margin-top: var(--gap-sm);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+/* ── Scheduler timeline: width is real duration ─ */
+.gantt-seg {
+    align-self: stretch;
+    flex-basis: 0;
+    min-width: 1px;
+    border-radius: 1px;
+    opacity: 0.85;
+}
+
+.sched-empty {
+    align-self: center;
+    margin: 0 auto;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.sched-timeline__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap-sm) var(--gap-md);
+    margin-top: var(--gap-sm);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
+.thread-card--selected { outline: 1px solid var(--accent-blue); }
+.thread-card:focus-visible { outline: 2px solid var(--accent-blue); }
+
+/* ── Memory map usage ───────────────────────── */
+.mem-region--far { border-color: var(--accent-cyan); background: rgba(6, 182, 212, 0.06); }
+.mem-region--metered { flex-wrap: wrap; }
+
+.mem-usage {
+    flex-basis: 100%;
+    height: 3px;
+    margin-top: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 2px;
+}
+
+.mem-usage__fill {
+    height: 100%;
+    background: currentColor;
+    border-radius: 2px;
+}
+
+/* ── Console input ──────────────────────────── */
+.console-form { margin-top: var(--gap-sm); }
+
+.console-input {
+    width: 100%;
+    padding: 6px var(--gap-sm);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: #00ff41;
+    background: #000;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+}
+
+.console-input:disabled { color: var(--text-muted); cursor: not-allowed; }
+.console-input:focus-visible { outline: 1px solid var(--accent-green); }
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* ── Event filter ───────────────────────────── */
+.event-filter {
+    display: block;
+    margin-bottom: var(--gap-xs);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+}
+
+.event-item--state   { color: var(--text-muted); }
+.event-item--state::before { background: var(--accent-purple); }
+.event-item--syscall { color: var(--accent-amber); }
+.event-item--syscall::before { background: var(--accent-amber); }
+
+/* ── Fault overlay details ──────────────────── */
+.fault-thread {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--gap-md);
+}
+
+.fault-registers {
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    gap: 4px var(--gap-md);
+}
+
+.fault-dismiss {
+    margin-top: var(--gap-lg);
+    padding: 6px 16px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-primary);
+    background: transparent;
+    border: 1px solid var(--accent-red);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+/* ── Reduced motion ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
     }
 }
