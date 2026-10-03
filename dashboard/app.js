@@ -11,6 +11,8 @@
  *   REPLAY   — the bridge is playing back a recorded capture
  *   DEMO     — simulated data (demo.js), only when the user starts it
  *   OFFLINE  — no bridge; panels keep whatever was last received
+ *
+ * Every visible string comes from the locale files through t().
  */
 (function () {
     'use strict';
@@ -24,6 +26,9 @@
     const SCHEDULE_WINDOW = 300;        // ticks shown in the scheduler timeline
     const EVENTS_SHOWN = 80;
     const NO_DATA = '—';
+    const LOCALE_STORAGE_KEY = 'phoenix-locale';
+
+    const t = PhoenixI18n.t;
 
     /* Thread colors for visualization */
     const THREAD_COLORS = [
@@ -75,9 +80,25 @@
         return THREAD_COLORS[tid % THREAD_COLORS.length];
     }
 
-    function threadName(tid) {
-        const t = model.threads[tid];
-        return '[' + tid + '] ' + (t && t.name ? t.name : '?');
+    function threadName(tid, fallbackName) {
+        const thread = model.threads[tid];
+        const name = thread && thread.name ? thread.name : fallbackName;
+        return '[' + tid + '] ' + (name || '?');
+    }
+
+    function stateName(state) {
+        return t('state.' + (state || 'UNKNOWN'));
+    }
+
+    /* Turn an event's key and parameters into text in the current language */
+    function eventText(event) {
+        const p = event.params;
+        const params = Object.assign({}, p);
+        if (p.tid !== undefined) params.thread = threadName(p.tid, p.name);
+        if (p.from !== undefined) params.from = threadName(p.from);
+        if (p.to !== undefined) params.to = threadName(p.to);
+        if (p.state !== undefined) params.state = stateName(p.state);
+        return t(event.key, params);
     }
 
     function seconds(tick) {
@@ -188,33 +209,29 @@
         const current = mode();
         const waiting = current === 'live' && !model.link.serial;
 
-        const labels = { live: 'LIVE', replay: 'REPLAY', demo: 'DEMO', offline: 'OFFLINE' };
-        badge.textContent = labels[current];
+        badge.textContent = t('mode.' + current);
         badge.className = 'logo-badge logo-badge--' + current;
 
         let text = '';
         if (current === 'demo') {
-            text = 'DEMO MODE — simulated data, not a running kernel';
+            text = t('banner.demo');
         } else if (current === 'replay') {
-            text = 'REPLAY — recorded session, not live';
+            text = t('banner.replay');
         } else if (current === 'offline') {
-            text = model.received
-                ? 'OFFLINE — bridge disconnected; showing the last data received'
-                : 'OFFLINE — no telemetry bridge at ' + WS_URL + '. Nothing to show yet.';
+            text = model.received ? t('banner.offlineStale') : t('banner.offlineEmpty', { url: WS_URL });
         } else if (waiting) {
-            text = 'Bridge connected — waiting for the kernel';
+            text = t('banner.waiting');
         }
         banner.textContent = text;
         banner.className = 'mode-banner mode-banner--' + (waiting ? 'waiting' : current);
         banner.hidden = text === '';
 
         $('demo-toggle').hidden = wsOpen;
-        $('demo-toggle').textContent = stopDemo ? 'Stop demo' : 'Run demo';
+        $('demo-toggle').textContent = stopDemo ? t('demo.stop') : t('demo.run');
 
         const live = current === 'live' && model.link.serial;
         $('console-input').disabled = !live;
-        $('console-input').placeholder = live ? 'Type a shell command and press Enter'
-                                              : 'Input is available in live mode only';
+        $('console-input').placeholder = live ? t('console.placeholderLive') : t('console.placeholderOff');
     }
 
     function renderMetrics() {
@@ -231,10 +248,11 @@
         if (!model.received) {
             linkEl.textContent = NO_DATA;
         } else if (problems === 0) {
-            linkEl.textContent = 'clean';
+            linkEl.textContent = t('link.clean');
         } else {
-            linkEl.textContent = (c ? c.drops : 0) + ' dropped, ' + link.lostFrames + ' lost, ' +
-                                 link.badFrames + ' bad';
+            linkEl.textContent = t('link.problems', {
+                drops: c ? c.drops : 0, lost: link.lostFrames, bad: link.badFrames,
+            });
         }
         linkEl.classList.toggle('metric__value--warn', problems > 0);
     }
@@ -250,10 +268,8 @@
             }
         });
         $('boot-note').textContent = !model.received
-            ? 'No boot records received.'
-            : model.bootInferred
-                ? 'Connected after boot: the stages are inferred from the kernel being up, not observed.'
-                : 'Stages before kernel entry cannot report themselves; they are implied by the kernel starting.';
+            ? t('boot.note.none')
+            : model.bootInferred ? t('boot.note.inferred') : t('boot.note.implied');
     }
 
     function renderThreadList() {
@@ -263,31 +279,32 @@
 
         if (threads.length === 0) {
             const card = el('div', 'thread-card thread-card--empty');
-            card.appendChild(el('span', 'thread-card__msg', 'No thread data'));
+            card.appendChild(el('span', 'thread-card__msg', t('threads.none')));
             container.appendChild(card);
             return;
         }
 
-        threads.forEach(function (t) {
-            const stateClass = (t.state || 'unknown').toLowerCase();
-            const card = el('div', 'thread-card' + (t.state === 'RUNNING' ? ' thread-card--active' : '') +
-                                   (t.tid === selectedThread ? ' thread-card--selected' : ''));
+        threads.forEach(function (thread) {
+            const stateClass = (thread.state || 'unknown').toLowerCase();
+            const card = el('div', 'thread-card' + (thread.state === 'RUNNING' ? ' thread-card--active' : '') +
+                                   (thread.tid === selectedThread ? ' thread-card--selected' : ''));
             card.tabIndex = 0;
-            card.onclick = function () { selectedThread = t.tid; render(); };
+            card.onclick = function () { selectedThread = thread.tid; render(); };
             card.onkeydown = function (e) { if (e.key === 'Enter') card.onclick(); };
 
             const dot = el('div', 'thread-card__dot thread-card__dot--' + stateClass);
-            dot.style.background = threadColor(t.tid);
+            dot.style.background = threadColor(thread.tid);
             card.appendChild(dot);
 
             const info = el('div', 'thread-card__info');
-            info.appendChild(el('div', 'thread-card__name', threadName(t.tid)));
-            info.appendChild(el('div', 'thread-card__meta',
-                'Pri: ' + (t.priority === null ? NO_DATA : t.priority) +
-                ' | CPU: ' + (t.cpuTicks === null ? NO_DATA : t.cpuTicks)));
+            info.appendChild(el('div', 'thread-card__name', threadName(thread.tid)));
+            info.appendChild(el('div', 'thread-card__meta', t('threads.meta', {
+                priority: thread.priority === null ? NO_DATA : thread.priority,
+                cpu: thread.cpuTicks === null ? NO_DATA : thread.cpuTicks,
+            })));
             card.appendChild(info);
             card.appendChild(el('span', 'thread-card__state thread-card__state--' + stateClass,
-                                t.state || 'UNKNOWN'));
+                                stateName(thread.state)));
             container.appendChild(card);
         });
     }
@@ -295,21 +312,21 @@
     function renderReadyQueue() {
         const container = $('sched-queue');
         const ready = PhoenixModel.liveThreads(model)
-            .filter(function (t) { return t.state === 'READY'; })
+            .filter(function (thread) { return thread.state === 'READY'; })
             .sort(function (a, b) { return b.priority - a.priority; });
         container.replaceChildren();
 
         if (ready.length === 0) {
             container.appendChild(el('div', 'sched-queue__empty',
-                model.received ? 'No threads ready' : 'No thread data'));
+                model.received ? t('queue.empty') : t('threads.none')));
             return;
         }
-        ready.forEach(function (t) {
+        ready.forEach(function (thread) {
             const item = el('div', 'sched-queue__item');
             const dot = el('span', null, '● ');
-            dot.style.color = threadColor(t.tid);
+            dot.style.color = threadColor(thread.tid);
             item.appendChild(dot);
-            item.appendChild(document.createTextNode(threadName(t.tid) + ' (pri: ' + t.priority + ')'));
+            item.appendChild(document.createTextNode(threadName(thread.tid) + ' ' + t('queue.priority', { priority: thread.priority })));
             container.appendChild(item);
         });
     }
@@ -324,7 +341,7 @@
         bars.replaceChildren();
 
         if (view.blocks.length === 0) {
-            gantt.appendChild(el('div', 'sched-empty', 'No context switches received'));
+            gantt.appendChild(el('div', 'sched-empty', t('sched.empty')));
             $('sched-window').textContent = '';
             return;
         }
@@ -337,8 +354,10 @@
             seg.title = threadName(block.tid) + ': ticks ' + block.start + '–' + block.end;
             gantt.appendChild(seg);
         });
-        $('sched-window').textContent =
-            'Ticks ' + view.blocks[0].start + '–' + view.end + ' (' + seconds(view.end - view.blocks[0].start) + ')';
+        $('sched-window').textContent = t('sched.window', {
+            start: view.blocks[0].start, end: view.end,
+            duration: seconds(view.end - view.blocks[0].start),
+        });
 
         view.shares.forEach(function (share) {
             const item = el('span', 'sched-legend__item');
@@ -365,8 +384,8 @@
         const sw = model.lastSwitch;
         $('ctx-from-name').textContent = sw ? threadName(sw.from) : NO_DATA;
         $('ctx-to-name').textContent = sw ? threadName(sw.to) : NO_DATA;
-        $('ctx-tick').textContent = sw ? 'Last switch at tick ' + sw.tick + ' (' + seconds(sw.tick) + ')'
-                                       : 'No context switch received';
+        $('ctx-tick').textContent = sw ? t('ctx.last', { tick: sw.tick, time: seconds(sw.tick) })
+                                       : t('ctx.none');
 
         /* Pulse the phases once per new switch, not on every redraw */
         if (sw && sw.tick !== lastAnimatedSwitch) {
@@ -392,9 +411,8 @@
         $('reg-ss').querySelector('.register__val').textContent =
             model.hello ? hex16(model.hello.dataSeg) : '----';
         $('register-caption').textContent = sw
-            ? 'Registers ' + threadName(sw.to) + ' resumed with at tick ' + sw.tick +
-              '. Highlighted: differs from the previous switch.'
-            : 'No register data received';
+            ? t('reg.caption', { thread: threadName(sw.to), tick: sw.tick })
+            : t('reg.none');
     }
 
     function renderMemoryMap() {
@@ -403,12 +421,12 @@
         container.replaceChildren();
 
         if (regions.length === 0) {
-            container.appendChild(el('div', 'sched-queue__empty', 'No memory layout received'));
+            container.appendChild(el('div', 'sched-queue__empty', t('mem.none')));
             return;
         }
         regions.forEach(function (region) {
             const row = el('div', 'mem-region mem-region--' + region.key);
-            row.appendChild(el('span', 'mem-region__label', region.label));
+            row.appendChild(el('span', 'mem-region__label', t('mem.region.' + region.key)));
             row.appendChild(el('span', 'mem-region__range',
                 hex20(region.start) + '–' + hex20(region.end - 1)));
             if (region.total) {
@@ -418,7 +436,7 @@
                 fill.style.width = percent + '%';
                 usage.appendChild(fill);
                 row.appendChild(usage);
-                row.title = region.used + ' of ' + region.total + ' bytes used (' + percent + '%)';
+                row.title = t('mem.usage', { used: region.used, total: region.total, percent: percent });
                 row.classList.add('mem-region--metered');
             }
             container.appendChild(row);
@@ -427,30 +445,30 @@
 
     function renderInspector() {
         const inspector = $('thread-inspector');
-        const t = selectedThread === null ? null : model.threads[selectedThread];
+        const thread = selectedThread === null ? null : model.threads[selectedThread];
         inspector.replaceChildren();
 
-        if (!t || t.exited) {
+        if (!thread || thread.exited) {
             inspector.appendChild(el('p', 'inspector-placeholder',
-                t ? 'Thread has exited' : 'Select a thread to inspect'));
+                thread ? t('inspector.exited') : t('inspector.select')));
             return;
         }
 
-        const used = PhoenixModel.stackUsed(t);
+        const used = PhoenixModel.stackUsed(thread);
         const fields = [
-            ['TID', String(t.tid)],
-            ['Name', t.name || NO_DATA],
-            ['State', t.state || NO_DATA],
-            ['Priority', t.priority === null ? NO_DATA : String(t.priority)],
-            ['CPU ticks', t.cpuTicks === null ? NO_DATA : String(t.cpuTicks)],
-            ['Stack', t.stackBase === null ? NO_DATA
-                : hex16(t.stackBase) + '–' + hex16(t.stackBase + t.stackSize - 1)],
-            ['Stack used', used === null ? NO_DATA
-                : used + ' / ' + t.stackSize + ' bytes (at last switch-out)'],
+            ['inspector.tid', String(thread.tid)],
+            ['inspector.name', thread.name || NO_DATA],
+            ['inspector.state', thread.state ? stateName(thread.state) : NO_DATA],
+            ['inspector.priority', thread.priority === null ? NO_DATA : String(thread.priority)],
+            ['inspector.cpu', thread.cpuTicks === null ? NO_DATA : String(thread.cpuTicks)],
+            ['inspector.stack', thread.stackBase === null ? NO_DATA
+                : hex16(thread.stackBase) + '–' + hex16(thread.stackBase + thread.stackSize - 1)],
+            ['inspector.stackUsed', used === null ? NO_DATA
+                : t('inspector.stackUsedValue', { used: used, size: thread.stackSize })],
         ];
         fields.forEach(function (field) {
             const row = el('div', 'inspector-field');
-            row.appendChild(el('span', 'inspector-field__label', field[0]));
+            row.appendChild(el('span', 'inspector-field__label', t(field[0])));
             row.appendChild(el('span', 'inspector-field__value', field[1]));
             inspector.appendChild(row);
         });
@@ -465,12 +483,17 @@
         $('irq-drops').textContent = c ? c.drops : NO_DATA;
     }
 
+    function isTelemetryThread(tid) {
+        const thread = model.threads[tid];
+        return !!thread && thread.name === 'telemetry';
+    }
+
+    /* The telemetry thread's own sleeping, waking and switching in or out */
     function isTelemetryNoise(event) {
-        if (event.tid === null || (event.kind !== 'state' && event.kind !== 'switch')) {
-            return false;
+        if (event.kind === 'switch') {
+            return isTelemetryThread(event.params.from) || isTelemetryThread(event.params.to);
         }
-        const t = model.threads[event.tid];
-        return !!t && t.name === 'telemetry';
+        return event.kind === 'state' && event.tid !== null && isTelemetryThread(event.tid);
     }
 
     function renderEvents() {
@@ -482,12 +505,12 @@
             .slice(0, EVENTS_SHOWN);
 
         if (events.length === 0) {
-            stream.appendChild(el('div', 'event-item event-item--info', 'No events received'));
+            stream.appendChild(el('div', 'event-item event-item--info', t('events.none')));
             return;
         }
         events.forEach(function (event) {
             stream.appendChild(el('div', 'event-item event-item--' + event.kind,
-                                  '[' + seconds(event.tick) + '] ' + event.text));
+                                  '[' + seconds(event.tick) + '] ' + eventText(event)));
         });
     }
 
@@ -495,7 +518,7 @@
         const output = $('console-output');
         const text = $('console-text');
         const atBottom = output.scrollHeight - output.scrollTop - output.clientHeight < 40;
-        const content = model.received ? model.console.join('\n') : 'No console output received.';
+        const content = model.received ? model.console.join('\n') : t('console.none');
         if (text.textContent !== content) {
             text.textContent = content;
             if (atBottom) {
@@ -512,7 +535,7 @@
             return;
         }
         $('fault-reason').textContent = fault.reason;
-        $('fault-thread').textContent = 'Thread ' + threadName(fault.tid) + ' at tick ' + fault.tick;
+        $('fault-thread').textContent = t('fault.thread', { thread: threadName(fault.tid), tick: fault.tick });
         const regs = $('fault-registers');
         regs.replaceChildren();
         REGISTER_ORDER.forEach(function (name) {
@@ -570,12 +593,46 @@
     }
 
     /* ================================================================
+       Language
+       ================================================================ */
+    function storedLocale() {
+        try {
+            return localStorage.getItem(LOCALE_STORAGE_KEY);
+        } catch (e) {
+            return null;        /* storage can be unavailable (privacy mode, file://) */
+        }
+    }
+
+    function setLanguage(code) {
+        const chosen = PhoenixI18n.setLocale(code);
+        try {
+            localStorage.setItem(LOCALE_STORAGE_KEY, chosen);
+        } catch (e) {
+            /* not remembered; nothing else to do */
+        }
+        PhoenixI18n.apply(document);
+        $('language').value = chosen;
+        render();
+    }
+
+    function setupLanguage() {
+        const select = $('language');
+        PhoenixI18n.available().forEach(function (entry) {
+            const option = el('option', null, entry.name);
+            option.value = entry.code;
+            select.appendChild(option);
+        });
+        select.addEventListener('change', function () { setLanguage(select.value); });
+        setLanguage(storedLocale() || PhoenixI18n.match(navigator.language));
+    }
+
+    /* ================================================================
        Initialization
        ================================================================ */
     document.addEventListener('DOMContentLoaded', function () {
         setupViewTabs();
         setupControls();
-        render();
+        setupLanguage();        /* also draws the page for the first time */
         connectWebSocket();
 
         /* ?demo in the URL asks for the demo explicitly */

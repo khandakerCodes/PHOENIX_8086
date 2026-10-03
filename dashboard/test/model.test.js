@@ -152,7 +152,7 @@ test('system calls are counted and named', () => {
     assert.strictEqual(model.syscalls, capture.filter((m) => m.type === 'SYSCALL').length);
     const upTo = capture.map((m) => m.type).lastIndexOf('SYSCALL') + 1;
     const during = replay(capture.slice(0, upTo));
-    assert.ok(during.events.some((e) => e.kind === 'syscall' && /INT 80h thread_exit/.test(e.text)));
+    assert.ok(during.events.some((e) => e.key === 'event.syscall' && e.params.name === 'thread_exit'));
 });
 
 test('stack usage is computed from saved SP and bounds', () => {
@@ -177,7 +177,7 @@ test('dropped records are surfaced as an event', () => {
     Model.apply(model, { type: 'COUNTERS', tick: 10, timer: 10, keyboard: 0, syscall: 0, context_switches: 1, drops: 0 });
     Model.apply(model, { type: 'COUNTERS', tick: 30, timer: 30, keyboard: 0, syscall: 0, context_switches: 2, drops: 4 });
     assert.strictEqual(model.counters.drops, 4);
-    assert.ok(model.events.some((e) => /dropped 4 telemetry records/.test(e.text)));
+    assert.ok(model.events.some((e) => e.key === 'event.drops' && e.params.count === 4));
 });
 
 test('unknown and malformed messages are ignored', () => {

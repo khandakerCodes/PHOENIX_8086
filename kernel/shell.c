@@ -225,6 +225,7 @@ static void cmd_help(void)
     con_println("  ls         - List files on the boot disk");
     con_println("  cat <file> - Print a text file");
     con_println("  run <file> - Load and run a program");
+    con_println("  keymap [name]    - Show or set the keyboard layout");
     con_println("  cpu        - Identify the processor");
     con_println("  about      - About Phoenix-8086");
 }
@@ -479,6 +480,30 @@ static void cmd_run(const char *name)
     con_putchar('\n');
 }
 
+static void cmd_keymap(const char *name)
+{
+    const char *layout, *description;
+    uint8_t i;
+
+    if (name[0] != '\0') {
+        if (!kb_set_keymap(name)) {
+            con_print("Unknown keymap: ");
+            con_println(name);
+            return;
+        }
+        con_print("Keymap: ");
+        con_println(kb_keymap_name());
+        return;
+    }
+
+    for (i = 0; kb_keymap_info(i, &layout, &description); i++) {
+        con_print(str_eq(layout, kb_keymap_name()) ? "* " : "  ");
+        con_print(layout);
+        con_print("  ");
+        con_println(description);
+    }
+}
+
 static void cmd_cpu(void)
 {
     static const char *const names[] = {
@@ -603,6 +628,8 @@ static void process_command(char *cmd)
         cmd_cat(arg);
     } else if (str_eq(cmd, "run")) {
         cmd_run(arg);
+    } else if (str_eq(cmd, "keymap")) {
+        cmd_keymap(arg);
     } else if (str_eq(cmd, "cpu")) {
         cmd_cpu();
     } else if (str_eq(cmd, "divzero")) {

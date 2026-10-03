@@ -189,6 +189,16 @@ def run(machine):
     else:
         check("kill command", False, "no thread created")
 
+    # Keyboard layouts: QEMU's "y" key is the key a German keyboard labels Z
+    machine.type("keymap de")
+    check("keymap command", machine.wait_for(r"Keymap: de") is not None)
+    machine.type("y")
+    check("German layout: the Y key types z", machine.wait_for(r"Unknown command: z\n") is not None)
+    machine.type("kezmap us")       # typed on the German layout: its Z key gives y
+    machine.wait_for(r"Keymap: us")
+    machine.type("y")
+    check("US layout restored", machine.wait_for(r"Unknown command: y\n") is not None)
+
     # QEMU is a 386 or later. The 8086 fidelity test expects the opposite answer.
     machine.type("cpu")
     text = machine.wait_for(r"CPU: [^\n]+\n") or ""
@@ -278,7 +288,7 @@ def run(machine):
     text = machine.wait_for(r"selftest: \d+ passed, \d+ failed") or ""
     result = re.search(r"selftest: (\d+) passed, (\d+) failed", text)
     check("kernel self-tests pass",
-          result is not None and int(result.group(1)) >= 45 and result.group(2) == "0", text)
+          result is not None and int(result.group(1)) >= 60 and result.group(2) == "0", text)
 
     # 10. Memory map reports the real layout
     machine.type("memory")

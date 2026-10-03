@@ -1,0 +1,38 @@
+name: Soak
+
+# One hour of thread, IPC and program churn, every night and on request.
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+    inputs:
+      seconds:
+        description: "How long to run, in seconds"
+        default: "3600"
+
+jobs:
+  soak:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools and QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make nasm python3 curl qemu-system-x86 libgmp10 libmpc3 libmpfr6
+
+      - name: Cache the ia16-elf toolchain
+        uses: actions/cache@v4
+        with:
+          path: .toolchain
+          key: toolchain-${{ hashFiles('tools/get-toolchain.sh') }}
+
+      - name: Fetch the ia16-elf toolchain
+        run: make toolchain
+
+      - name: Build
+        run: make all
+
+      - name: Soak
+        run: make soak SOAK_SECONDS=${{ github.event.inputs.seconds || '3600' }}

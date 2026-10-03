@@ -97,7 +97,8 @@ def decode_payload(type_name, p):
         return {"tid": p[0], "regs": _registers(p, 1),
                 "reason": p[23:].decode("ascii", errors="replace")}
     if type_name == "CONSOLE":
-        return {"text": p.decode("ascii", errors="replace")}
+        # The console uses the PC text-mode character set
+        return {"text": p.decode("cp437")}
     if type_name == "SYSCALL":
         return {"tid": p[0], "func": p[1]}
     if type_name == "BENCH":
