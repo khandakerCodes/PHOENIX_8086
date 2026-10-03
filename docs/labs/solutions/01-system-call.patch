@@ -1,18 +1,18 @@
 diff --git a/Makefile b/Makefile
-index fc64d81..ecd4661 100644
+index 1010146..802f9a3 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -110,7 +110,7 @@ KERNEL_BIN = $(BUILD_DIR)/kernel.bin
+@@ -111,7 +111,7 @@ KERNEL_BIN = $(BUILD_DIR)/kernel.bin
  FLOPPY_IMG = $(BUILD_DIR)/phoenix8086.img
  
  # Example programs built with the SDK (sdk/examples/NAME.c → NAME.BIN)
--PROGRAM_NAMES = hello primes clock threads where
-+PROGRAM_NAMES = hello primes clock threads where whoami
+-PROGRAM_NAMES = hello primes clock threads where greet
++PROGRAM_NAMES = hello primes clock threads where greet whoami
  PROGRAM_DIR   = $(BUILD_DIR)/programs
  PROGRAMS      = $(foreach name,$(PROGRAM_NAMES),$(PROGRAM_DIR)/$(shell echo $(name) | tr a-z A-Z).BIN)
  
 diff --git a/docs/syscalls.md b/docs/syscalls.md
-index 995cdc0..9e9cb85 100644
+index dab7af9..e0821b9 100644
 --- a/docs/syscalls.md
 +++ b/docs/syscalls.md
 @@ -39,6 +39,7 @@ A call marked **blocks** may suspend the calling thread until it can complete. T
@@ -24,10 +24,10 @@ index 995cdc0..9e9cb85 100644
  | 19h | `read` | BX = handle, CX = length, DX = buffer pointer | AX = bytes read | 0 at end of file; may stop the scheduler briefly (see docs/programs.md) |
  | 1Ah | `close` | BX = handle | — | Files are also closed when their thread ends |
 diff --git a/kernel/selftest.c b/kernel/selftest.c
-index e25b1f0..4ae37a8 100644
+index b0a2005..d747367 100644
 --- a/kernel/selftest.c
 +++ b/kernel/selftest.c
-@@ -192,6 +192,9 @@ static void test_syscalls(void)
+@@ -197,6 +197,9 @@ static void test_syscalls(void)
      expect((uint16_t)sys_call(SYS_AX(0x7F, 0), 0, 0, 0) == SYS_ERROR,
             "syscall: unknown call returns error");
  
@@ -92,14 +92,14 @@ index 0000000..a9a39c9
 +    return 0;
 +}
 diff --git a/sdk/include/phoenix.h b/sdk/include/phoenix.h
-index 3aaa25f..ee4c6de 100644
+index a385173..bf0ae85 100644
 --- a/sdk/include/phoenix.h
 +++ b/sdk/include/phoenix.h
-@@ -28,6 +28,7 @@ static inline char px_getc(void)                { return (char)PX_CALL(0x03, 0,
+@@ -43,6 +43,7 @@ static inline char px_getc(void)
  
  /* Threads and time */
- static inline unsigned px_version(void)         { return (unsigned)PX_CALL(0x00, 0, 0, 0, 0); }
-+static inline unsigned px_gettid(void)          { return (unsigned)PX_CALL(0x13, 0, 0, 0, 0); }
+ static inline unsigned px_version(void)         { return PX_CALL(0x00, 0, 0, 0, 0); }
++static inline unsigned px_gettid(void)          { return PX_CALL(0x13, 0, 0, 0, 0); }
  static inline void px_exit(void)                { PX_CALL(0x05, 0, 0, 0, 0); }
  
  /*
