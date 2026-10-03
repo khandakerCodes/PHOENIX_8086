@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools and QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make nasm python3 curl qemu-system-x86 libgmp10 libmpc3 libmpfr6
+
+      - name: Cache the ia16-elf toolchain
+        uses: actions/cache@v4
+        with:
+          path: .toolchain
+          key: toolchain-${{ hashFiles('tools/get-toolchain.sh') }}
+
+      - name: Fetch the ia16-elf toolchain
+        run: make toolchain
+
+      - name: Build
+        run: make all
+
+      - name: Test
+        run: make test

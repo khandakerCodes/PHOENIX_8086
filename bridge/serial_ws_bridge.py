@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
 """
 Phoenix-8086 — Serial-to-WebSocket Telemetry Bridge
 

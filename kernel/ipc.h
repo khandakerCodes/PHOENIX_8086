@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: MIT */
 /*
  * Phoenix-8086 — IPC (Inter-Process Communication) Header
  */
