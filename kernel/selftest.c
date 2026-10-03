@@ -17,6 +17,8 @@
 #include "interrupts.h"
 #include "syscall.h"
 #include "hal.h"
+#include "fat12.h"
+#include "exec.h"
 
 static uint16_t passed;
 static uint16_t failed;
@@ -179,11 +181,53 @@ static void test_syscalls(void)
     kfree((void *)mbox);
 }
 
+/* ── File system and loader ─────────────────── */
+
+static void test_files(void)
+{
+    static const char readme[] = "README.TXT";
+    static const char missing[] = "MISSING.BIN";
+    fat_file_t file;
+    uint8_t buffer[8];
+    uint8_t error = EXEC_OK;
+    uint16_t handle;
+
+    if (!fat_mounted()) {
+        con_println("  (no file system: file tests skipped)");
+        return;
+    }
+
+    expect(fat_open("readme.txt", &file), "fat: open is case-insensitive");
+    expect(fat_read(&file, buffer, 7) == 7 && buffer[0] == 'P' && buffer[6] == 'x',
+           "fat: read returns the file's bytes");
+    file.position = file.size;
+    expect(fat_read(&file, buffer, 7) == 0, "fat: read at end of file returns nothing");
+    expect(!fat_open("NOPE.TXT", &file), "fat: missing file is not found");
+
+    handle = (uint16_t)sys_call(SYS_AX(SYS_OPEN, 0), (uint16_t)readme, 0, 0);
+    expect(handle != SYS_ERROR, "syscall: open");
+    expect((uint16_t)sys_call(SYS_AX(SYS_READ, 0), handle, 4, (uint16_t)buffer) == 4 &&
+           buffer[0] == 'P' && buffer[3] == 'e', "syscall: read");
+    sys_call(SYS_AX(SYS_CLOSE, 0), handle, 0, 0);
+    expect((uint16_t)sys_call(SYS_AX(SYS_READ, 0), handle, 4, (uint16_t)buffer) == SYS_ERROR,
+           "syscall: read on a closed handle fails");
+    expect((uint16_t)sys_call(SYS_AX(SYS_OPEN, 0), (uint16_t)missing, 0, 0) == SYS_ERROR,
+           "syscall: open of a missing file fails");
+
+    expect(exec_program("MISSING.BIN", &error) < 0 && error == EXEC_NOT_FOUND,
+           "exec: missing program is reported");
+    expect(exec_program("README.TXT", &error) < 0 && error == EXEC_BAD_FORMAT,
+           "exec: a file that is not a program is rejected");
+    expect((uint16_t)sys_call(SYS_AX(SYS_EXEC, 0), (uint16_t)missing, 0, 0) == SYS_ERROR,
+           "syscall: exec of a missing program fails");
+}
+
 /* ── Entry point ────────────────────────────── */
 
 uint16_t selftest_run(void)
 {
     uint16_t heap_before = mem_free();
+    uint16_t far_before = far_free_paras();
 
     passed = 0;
     failed = 0;
@@ -194,8 +238,10 @@ uint16_t selftest_run(void)
     test_mailbox();
     test_sleep();
     test_syscalls();
+    test_files();
 
     expect(mem_free() == heap_before, "selftest: no heap leak");
+    expect(far_free_paras() == far_before, "selftest: no far memory leak");
 
     con_print("selftest: ");
     con_print_dec(passed);

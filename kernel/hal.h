@@ -26,6 +26,11 @@ void     hal_irq_restore(uint16_t flags);
 /* Issue INT 80h from kernel-mode test code; result in DX:AX */
 uint32_t sys_call(uint16_t ax, uint16_t bx, uint16_t cx, uint16_t dx);
 
+/* BIOS disk services (hal.S); see disk.c for the conditions */
+uint16_t bios_disk_read(uint16_t drive, uint16_t cylinder, uint16_t head,
+                        uint16_t sector, void *buffer);
+void     bios_disk_reset(uint16_t drive);
+
 /* Processor family, detected at run time (see hal.S) */
 #define CPU_8086        0   /* 8086 or 8088 */
 #define CPU_80186       1   /* 80186/80188 or NEC V20/V30 */

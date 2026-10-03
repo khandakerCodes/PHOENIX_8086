@@ -68,6 +68,10 @@ typedef struct {
     uint32_t cpu_ticks;     /* CPU time consumed (in timer ticks) */
     uint32_t last_scheduled;/* Tick when last scheduled */
 
+    /* Memory owned by a loaded program; freed when the thread ends */
+    uint16_t prog_segment;  /* Far segment holding the code, or 0 */
+    void    *prog_data;     /* Near heap block holding data + bss, or NULL */
+
     char     name[12];      /* Human-readable thread name */
 
     bool     active;        /* Is this TCB slot in use? */

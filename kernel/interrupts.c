@@ -133,30 +133,76 @@ extern void keyboard_isr(void);
 extern void syscall_isr(void);
 extern void yield_isr(void);
 
-/* ── Initialize interrupt system ────────────── */
-void irq_init(void)
+/* ── Timer and interrupt controller setup ───── */
+
+/* What the BIOS had installed before the kernel took over */
+static uint16_t bios_timer_vector[2];
+static uint16_t bios_keyboard_vector[2];
+static uint8_t  bios_pic_mask;
+
+static void ivt_read(uint8_t vector, uint16_t *saved)
 {
-    uint16_t divisor = (uint16_t)(PIT_FREQUENCY / HZ);
+    uint16_t __far *entry = (uint16_t __far *)MK_FP(0x0000, (uint16_t)vector * 4);
 
-    irq_disable();
+    saved[0] = entry[0];
+    saved[1] = entry[1];
+}
 
-    /* Program PIT channel 0: mode 3 (square wave), HZ ticks per second */
+static void ivt_write(uint8_t vector, const uint16_t *saved)
+{
+    uint16_t __far *entry = (uint16_t __far *)MK_FP(0x0000, (uint16_t)vector * 4);
+
+    entry[0] = saved[0];
+    entry[1] = saved[1];
+}
+
+static void pit_set_divisor(uint16_t divisor)
+{
+    /* PIT channel 0, mode 3 (square wave); divisor 0 means 65536 */
     outb(PIT_COMMAND, 0x36);
     outb(PIT_CHANNEL0, (uint8_t)(divisor & 0xFF));
     outb(PIT_CHANNEL0, (uint8_t)(divisor >> 8));
+}
 
-    /* Install our ISR stubs into the IVT */
+/* The kernel's own setup: HZ ticks, our handlers, only IRQ0 and IRQ1 */
+static void kernel_irq_setup(void)
+{
+    pit_set_divisor((uint16_t)(PIT_FREQUENCY / HZ));
+
     idt_install(IRQ0_VECTOR, timer_isr);
     idt_install(IRQ1_VECTOR, keyboard_isr);
-    idt_install(SYSCALL_VECTOR, syscall_isr);
-    idt_install(YIELD_VECTOR, yield_isr);
 
-    /*
-     * Unmask IRQ0 (timer) and IRQ1 (keyboard) on PIC1.
-     * Mask everything else.
-     */
     outb(PIC1_DATA, 0xFC);   /* 11111100 — only IRQ0 and IRQ1 unmasked */
     outb(PIC2_DATA, 0xFF);   /* All masked on PIC2 */
+}
+
+void irq_bios_enter(void)
+{
+    /* BIOS timing expects its 18.2 Hz tick; the floppy needs IRQ6 */
+    pit_set_divisor(0);
+    ivt_write(IRQ0_VECTOR, bios_timer_vector);
+    ivt_write(IRQ1_VECTOR, bios_keyboard_vector);
+    outb(PIC1_DATA, bios_pic_mask & ~0x41);
+}
+
+void irq_bios_leave(void)
+{
+    kernel_irq_setup();
+}
+
+/* ── Initialize interrupt system ────────────── */
+void irq_init(void)
+{
+    irq_disable();
+
+    /* Remember the BIOS setup so disk reads can borrow it back */
+    ivt_read(IRQ0_VECTOR, bios_timer_vector);
+    ivt_read(IRQ1_VECTOR, bios_keyboard_vector);
+    bios_pic_mask = inb(PIC1_DATA);
+
+    kernel_irq_setup();
+    idt_install(SYSCALL_VECTOR, syscall_isr);
+    idt_install(YIELD_VECTOR, yield_isr);
 
     irq_enable();
 }

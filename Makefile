@@ -85,7 +85,11 @@ KERNEL_C_SRCS = $(KERNEL_DIR)/kernel_main.c \
                 $(KERNEL_DIR)/stats.c \
                 $(KERNEL_DIR)/idle.c \
                 $(KERNEL_DIR)/selftest.c \
-                $(KERNEL_DIR)/serial.c
+                $(KERNEL_DIR)/serial.c \
+                $(KERNEL_DIR)/disk.c \
+                $(KERNEL_DIR)/fat12.c \
+                $(KERNEL_DIR)/exec.c \
+                $(KERNEL_DIR)/string.c
 
 ifeq ($(TELEMETRY),1)
 KERNEL_C_SRCS += $(KERNEL_DIR)/telemetry.c
@@ -102,6 +106,14 @@ STAGE2_BIN = $(BUILD_DIR)/stage2.bin
 KERNEL_ELF = $(BUILD_DIR)/kernel.elf
 KERNEL_BIN = $(BUILD_DIR)/kernel.bin
 FLOPPY_IMG = $(BUILD_DIR)/phoenix8086.img
+
+# Example programs built with the SDK (sdk/examples/NAME.c → NAME.BIN)
+PROGRAM_NAMES = hello primes clock
+PROGRAM_DIR   = $(BUILD_DIR)/programs
+PROGRAMS      = $(foreach name,$(PROGRAM_NAMES),$(PROGRAM_DIR)/$(shell echo $(name) | tr a-z A-Z).BIN)
+
+# Files copied onto the floppy's FAT12 file system
+DISK_FILES = disk/README.TXT $(PROGRAMS)
 
 # ── Phony targets ──────────────────────────────
 .PHONY: all toolchain boot kernel image check test test-8086 run debug dashboard clean
@@ -151,30 +163,53 @@ $(KERNEL_BIN): $(KERNEL_ELF) tools/mkimage.py
 # ── Create Floppy Image ────────────────────────
 image: $(FLOPPY_IMG)
 
-$(FLOPPY_IMG): $(STAGE1_BIN) $(STAGE2_BIN) $(KERNEL_BIN) | $(BUILD_DIR)
+# The image is a FAT12 volume: boot sector, then Stage 2 and the kernel in
+# the reserved sectors, then the files in DISK_FILES.
+$(FLOPPY_IMG): $(STAGE1_BIN) $(STAGE2_BIN) $(KERNEL_BIN) $(DISK_FILES) tools/mkfat12.py | $(BUILD_DIR)
 	@echo "=== Creating floppy image ==="
-	# Create a blank 1.44 MB floppy image
-	dd if=/dev/zero of=$@ bs=512 count=2880 2>/dev/null
-	# Write Stage 1 bootloader to sector 1
-	dd if=$(STAGE1_BIN) of=$@ bs=512 count=1 conv=notrunc 2>/dev/null
-	# Write Stage 2 to sectors 2–5 (offset 512)
-	dd if=$(STAGE2_BIN) of=$@ bs=512 seek=1 conv=notrunc 2>/dev/null
-	# Write kernel to sectors 6+ (offset 2560)
-	dd if=$(KERNEL_BIN) of=$@ bs=512 seek=5 conv=notrunc 2>/dev/null
-	@echo "=== Image created: $@ ==="
+	$(PYTHON) tools/mkfat12.py $@ $(STAGE1_BIN) $(STAGE2_BIN) $(KERNEL_BIN) $(DISK_FILES)
 	@echo "  Stage 1: $$(wc -c < $(STAGE1_BIN)) bytes"
 	@echo "  Stage 2: $$(wc -c < $(STAGE2_BIN)) bytes"
 	@echo "  Kernel:  $$(wc -c < $(KERNEL_BIN)) bytes"
 
+# ── Programs (SDK examples) ─────────────────────
+SDK_CFLAGS = $(ARCHFLAGS) -ffreestanding -fno-builtin -Wall -Wextra -Os -Isdk/include -c
+
+$(PROGRAM_DIR):
+	mkdir -p $(PROGRAM_DIR)
+
+$(PROGRAM_DIR)/crt0.o: sdk/lib/crt0.S | $(PROGRAM_DIR)
+	$(CC) $(ARCHFLAGS) -c -o $@ $<
+
+$(PROGRAM_DIR)/%.o: sdk/examples/%.c sdk/include/phoenix.h | $(PROGRAM_DIR)
+	$(CC) $(SDK_CFLAGS) -o $@ $<
+
+# Link with -q so the relocations survive for mkprog.py
+$(PROGRAM_DIR)/%.elf: $(PROGRAM_DIR)/%.o $(PROGRAM_DIR)/crt0.o sdk/program.ld
+	$(LD) -T sdk/program.ld --no-check-sections -q -o $@ $(PROGRAM_DIR)/crt0.o $< \
+	    $$($(CC) $(ARCHFLAGS) -print-libgcc-file-name)
+
+define PROGRAM_RULE
+$(PROGRAM_DIR)/$(shell echo $(1) | tr a-z A-Z).BIN: $(PROGRAM_DIR)/$(1).elf sdk/mkprog.py
+	$(PYTHON) sdk/mkprog.py $$< $$@
+endef
+$(foreach name,$(PROGRAM_NAMES),$(eval $(call PROGRAM_RULE,$(name))))
+
+.SECONDARY: $(foreach name,$(PROGRAM_NAMES),$(PROGRAM_DIR)/$(name).elf $(PROGRAM_DIR)/$(name).o)
+
 # ── Verify 8086-only instructions ──────────────
-check: $(KERNEL_ELF)
+check: $(KERNEL_ELF) $(PROGRAMS)
 	$(PYTHON) tools/check8086.py $(OBJDUMP) $(KERNEL_ELF)
+	@for name in $(PROGRAM_NAMES); do \
+	    $(PYTHON) tools/check8086.py $(OBJDUMP) $(PROGRAM_DIR)/$$name.elf --start 0 || exit 1; \
+	done
 
 # ── Automated tests ─────────────────────────────
 test: check $(FLOPPY_IMG)
 	$(PYTHON) -m unittest discover -q -b -s bridge -t .
 	@if command -v node >/dev/null; then node --test dashboard/test/*.test.js; \
 	 else echo "  node not found: skipping dashboard model tests"; fi
+	$(PYTHON) tools/test_image.py $(FLOPPY_IMG) $(KERNEL_BIN) $(DISK_FILES)
 	$(PYTHON) tools/smoke_test.py $(FLOPPY_IMG)
 	$(PYTHON) tools/integration_test.py $(FLOPPY_IMG)
 

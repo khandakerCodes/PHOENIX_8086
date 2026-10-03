@@ -15,6 +15,7 @@ Usage: integration_test.py build/phoenix8086.img
 
 import os
 import re
+import shutil
 import socket
 import subprocess
 import sys
@@ -25,7 +26,7 @@ import time
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from bridge.protocol import Decoder  # noqa: E402
 
-KEYS = {" ": "spc", "\n": "ret"}
+KEYS = {" ": "spc", "\n": "ret", ".": "dot", "-": "minus", "/": "slash"}
 
 
 class Machine:
@@ -231,12 +232,53 @@ def run(machine):
     machine.send_serial("ticks")
     check("serial input reaches the shell", machine.wait_for(r"Ticks: \d+") is not None)
 
-    # 9. In-kernel unit tests: heap, far arena, semaphore, mutex, mailbox, sleep, syscalls
+    # FAT12 boot disk: directory, text file, programs built with the SDK
+    machine.type("memory")
+    text = machine.wait_for(r"Far free:\s+\d+ KB.*phoenix> ") or ""
+    before = re.search(r"Heap free:\s+(\d+).*Far free:\s+(\d+) KB", text, re.S)
+
+    machine.type("ls")
+    text = machine.wait_for(r"\d+ file\(s\)", timeout=30) or ""
+    check("ls lists the files on the FAT12 disk",
+          all(name in text for name in ("README.TXT", "HELLO.BIN", "PRIMES.BIN", "CLOCK.BIN")), text)
+    machine.type("cat readme.txt")
+    check("cat prints a file", machine.wait_for(r"Phoenix-8086 boot disk.*docs/programs\.md", timeout=30) is not None)
+
+    machine.type("run hello.bin")
+    check("program: hello", machine.wait_for(r"Hello from a program loaded off the disk!.*ABI version 1\n",
+                                             timeout=30) is not None)
+    machine.type("run primes.bin")
+    text = machine.wait_for(r"last digit \w+\n", timeout=30) or ""
+    check("program: primes (bss, data, pointer table, jump table)",
+          "primes below 1000: 168" in text and "largest 997" in text and "last digit seven" in text, text)
+    machine.type("run clock.bin")
+    text = machine.wait_for(r"first line of README\.TXT: [^\n]*\n", timeout=30) or ""
+    elapsed = re.search(r"elapsed ticks: (\d+)", text)
+    check("program: clock (sleep, ticks, file calls)",
+          elapsed is not None and 75 <= int(elapsed.group(1)) <= 80 and
+          "first line of README.TXT: Phoenix-8086 boot disk" in text, text)
+
+    machine.type("run readme.txt")
+    check("a non-program file is rejected", machine.wait_for(r"not a Phoenix-8086 program") is not None)
+    machine.type("run missing.bin")
+    check("a missing program is reported", machine.wait_for(r"file not found") is not None)
+
+    time.sleep(0.5)
+    machine.type("memory")
+    text = machine.wait_for(r"Far free:\s+\d+ KB.*phoenix> ") or ""
+    after = re.search(r"Heap free:\s+(\d+).*Far free:\s+(\d+) KB", text, re.S)
+    check("programs give their memory back",
+          before is not None and after is not None and before.groups() == after.groups(),
+          f"{before and before.groups()} → {after and after.groups()}")
+    programs = {m["name"] for m in machine.telemetry("THREAD_CREATE")}
+    check("telemetry: program threads", {"hello", "primes", "clock"} <= programs, str(programs))
+
+    # 9. In-kernel unit tests: heap, far arena, semaphore, mutex, mailbox, sleep, syscalls, files
     machine.type("selftest")
     text = machine.wait_for(r"selftest: \d+ passed, \d+ failed") or ""
     result = re.search(r"selftest: (\d+) passed, (\d+) failed", text)
     check("kernel self-tests pass",
-          result is not None and int(result.group(1)) >= 30 and result.group(2) == "0", text)
+          result is not None and int(result.group(1)) >= 45 and result.group(2) == "0", text)
 
     # 10. Memory map reports the real layout
     machine.type("memory")
@@ -307,6 +349,37 @@ def run_panic(machine, command, reason):
           str(faults))
 
 
+def run_outside_program(image, program):
+    """
+    Copy a program onto a copy of the image with mtools, an independent
+    FAT implementation, and run it. Shows the disk is an ordinary FAT12
+    volume that tools other than ours can write to.
+    """
+    mcopy = shutil.which("mcopy")
+    if not mcopy:
+        print("  skip  mcopy (mtools) not installed: outside-tool test not run")
+        return
+    with tempfile.TemporaryDirectory() as tmp:
+        copy = os.path.join(tmp, "floppy.img")
+        shutil.copyfile(image, copy)
+        result = subprocess.run([mcopy, "-i", copy, program, "::OUTSIDE.BIN"],
+                                capture_output=True, text=True)
+        check("mcopy adds a file to the image", result.returncode == 0, result.stderr)
+        if result.returncode != 0:
+            return
+        machine = Machine(copy, tmp)
+        try:
+            machine.wait_for(r"phoenix> ")
+            machine.type("ls")
+            text = machine.wait_for(r"\d+ file\(s\)", timeout=30) or ""
+            check("kernel sees the file added by mcopy", "OUTSIDE.BIN" in text, text)
+            machine.type("run outside.bin")
+            check("kernel runs the program added by mcopy",
+                  machine.wait_for(r"Hello from a program loaded off the disk!", timeout=30) is not None)
+        finally:
+            machine.stop()
+
+
 def main():
     image = sys.argv[1]
     scenarios = [
@@ -321,6 +394,9 @@ def main():
                 scenario(machine)
             finally:
                 machine.stop()
+
+    program = os.path.join(os.path.dirname(image), "programs", "HELLO.BIN")
+    run_outside_program(image, program)
 
     if failures:
         print(f"Integration test FAILED ({len(failures)}):")

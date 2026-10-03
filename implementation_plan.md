@@ -169,14 +169,18 @@ Goal: the dashboard shows only the truth, and sessions can be replayed.
 
 Goal: run separately built programs from disk.
 
-- [ ] Floppy image becomes FAT12 (BPB in Stage 1; kernel and Stage 2 located as files or reserved sectors)
-- [ ] Disk read layer and read-only FAT12 driver; `ls`, `cat`, `run`
-- [ ] Program format (header + flat binary), loader into the far arena, thread creation with its own data segment
-- [ ] File and `exec` syscalls
-- [ ] `sdk/`: headers, startup code, linker script, three example programs, build instructions
-- [ ] Host unit tests for FAT12 parsing; integration test that runs an SDK program
+- [x] Floppy image is FAT12: BPB in Stage 1, Stage 2 and the kernel in the reserved sectors (`tools/mkfat12.py`); `fsck.fat` accepts it
+- [x] Disk read layer through BIOS INT 13h with the timer and keyboard handed back for the duration (`kernel/disk.c`); read-only FAT12 driver (`kernel/fat12.c`); `ls`, `cat`, `run`
+- [x] Program format (header + text + data + relocations) and loader (`kernel/exec.c`): code in the far arena, data on the near heap, thread owns and frees both
+- [x] File and `exec` system calls (18h–1Bh)
+- [x] `sdk/`: header, startup code, linker script, `mkprog.py`, three example programs; `docs/programs.md`
+- [x] Tests: independent image and program-file check (`tools/test_image.py`), file and loader assertions in `selftest`, programs run in the QEMU integration test and on the emulated 8086
+- [ ] Programs get their own data segment. They currently share the kernel's (DS = SS = kernel data), which keeps the interrupt path simple but limits their data to the kernel heap; separate segments need a stack switch on every interrupt
+- [ ] Native floppy driver, so disk reads do not pause the scheduler
+- [ ] Subdirectories, long file names, and writing
+- [ ] `thread_create` for programs (entry in the caller's code segment)
 
-**Exit test:** a program built outside the kernel tree is copied onto the image with standard host tools and runs from the shell.
+**Exit test:** a program built outside the kernel tree is copied onto the image with standard host tools and runs from the shell. *(Met on 2026-10-03: the integration test copies a program onto the image with `mcopy` from mtools and the kernel lists and runs it; CI installs mtools so this runs on every push. The SDK examples also run on the emulated 8086. The program itself was built by the project Makefile, not in a separate tree.)*
 
 ### Phase 5 — Hardening and Internationalisation (release v0.9)
 

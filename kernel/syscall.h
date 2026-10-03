@@ -33,6 +33,13 @@
 #define SYS_MBOX_RECV       0x0E    /* BX = handle → AX = message (blocks) */
 #define SYS_ALLOC           0x0F    /* BX = paragraphs → AX = segment */
 #define SYS_FREE            0x10    /* BX = segment */
+#define SYS_OPEN            0x18    /* BX = file name → AX = file handle */
+#define SYS_READ            0x19    /* BX = handle, CX = length, DX = buffer → AX = bytes read */
+#define SYS_CLOSE           0x1A    /* BX = handle */
+#define SYS_EXEC            0x1B    /* BX = program file name → AX = TID */
+
+/* Files that can be open at once, across all threads */
+#define MAX_OPEN_FILES      4
 
 /* AX value returned with the carry flag set */
 #define SYS_ERROR           0xFFFF
@@ -47,5 +54,8 @@
  * must run before returning to the caller.
  */
 bool syscall_dispatch(frame_t *frame);
+
+/* Close every file a thread left open (called when the thread ends) */
+void file_close_owned(int tid);
 
 #endif /* PHOENIX_SYSCALL_H */

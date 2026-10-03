@@ -52,6 +52,14 @@ void irq_eoi(uint8_t irq);
 void irq_enable(void);
 void irq_disable(void);
 
+/*
+ * Hand the timer and keyboard back to the BIOS so a BIOS service can
+ * run, and take them again afterwards. Interrupts must be off around
+ * both calls; nothing is scheduled in between.
+ */
+void irq_bios_enter(void);
+void irq_bios_leave(void);
+
 /* Read the 32-bit tick counter atomically (for use outside ISRs) */
 uint32_t irq_ticks(void);
 
