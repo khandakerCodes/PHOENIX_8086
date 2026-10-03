@@ -1,0 +1,76 @@
+diff --git a/kernel/keyboard.c b/kernel/keyboard.c
+index e3d196a..0b3fe9c 100644
+--- a/kernel/keyboard.c
++++ b/kernel/keyboard.c
+@@ -109,6 +109,14 @@ typedef struct {
+ #define CP_DEGREE       0xF8    /* ° */
+ #define CP_SQUARED      0xFD    /* ² */
+ #define CP_SECTION      0x15    /* § */
++#define CP_C_CEDILLA_UP 0x80    /* Ç */
++#define CP_N_TILDE      0xA4    /* ñ */
++#define CP_N_TILDE_UP   0xA5    /* Ñ */
++#define CP_FEM_ORDINAL  0xA6    /* ª */
++#define CP_MASC_ORDINAL 0xA7    /* º */
++#define CP_INV_QUESTION 0xA8    /* ¿ */
++#define CP_INV_EXCLAIM  0xAD    /* ¡ */
++#define CP_MIDDLE_DOT   0xFA    /* · */
+ 
+ static const key_override_t uk_keys[] = {
+     { 0x03, '2',  '"',      0 },
+@@ -175,6 +183,30 @@ static const key_override_t fr_keys[] = {
+     { 0x56, '<',  '>',  0 },
+ };
+ 
++static const key_override_t es_keys[] = {
++    { 0x02, '1',  '!',  '|' },
++    { 0x03, '2',  '"',  '@' },
++    { 0x04, '3',  CP_MIDDLE_DOT, '#' },
++    { 0x05, '4',  '$',  '~' },
++    { 0x07, '6',  '&',  CP_NOT },
++    { 0x08, '7',  '/',  0 },
++    { 0x09, '8',  '(',  0 },
++    { 0x0A, '9',  ')',  0 },
++    { 0x0B, '0',  '=',  0 },
++    { 0x0C, '\'', '?',  0 },
++    { 0x0D, CP_INV_EXCLAIM, CP_INV_QUESTION, 0 },
++    { 0x1A, '`',  '^',  '[' },
++    { 0x1B, '+',  '*',  ']' },
++    { 0x27, CP_N_TILDE, CP_N_TILDE_UP, 0 },
++    { 0x28, '\'', '"',  '{' },
++    { 0x29, CP_MASC_ORDINAL, CP_FEM_ORDINAL, '\\' },
++    { 0x2B, CP_C_CEDILLA, CP_C_CEDILLA_UP, '}' },
++    { 0x33, ',',  ';',  0 },
++    { 0x34, '.',  ':',  0 },
++    { 0x35, '-',  '_',  0 },
++    { 0x56, '<',  '>',  0 },
++};
++
+ #define KEYS(table) table, sizeof(table) / sizeof(table[0])
+ 
+ static const keymap_t keymaps[] = {
+@@ -182,6 +214,7 @@ static const keymap_t keymaps[] = {
+     { "uk", "United Kingdom (QWERTY)", KEYS(uk_keys) },
+     { "de", "German (QWERTZ)",         KEYS(de_keys) },
+     { "fr", "French (AZERTY)",         KEYS(fr_keys) },
++    { "es", "Spanish (QWERTY)",        KEYS(es_keys) },
+ };
+ 
+ #define KEYMAP_COUNT (sizeof(keymaps) / sizeof(keymaps[0]))
+diff --git a/kernel/selftest.c b/kernel/selftest.c
+index 8701df3..dc934bb 100644
+--- a/kernel/selftest.c
++++ b/kernel/selftest.c
+@@ -235,6 +235,13 @@ static void test_keymaps(void)
+            "keymap fr: digits need shift");
+     expect(kb_translate(0x0B, false, true) == '@', "keymap fr: AltGr-0 is @");
+ 
++    expect(kb_set_keymap("es"), "keymap: es exists");
++    expect(kb_translate(0x27, false, false) == 0xA4 && kb_translate(0x27, true, false) == 0xA5,
++           "keymap es: n-tilde key");
++    expect(kb_translate(0x0D, true, false) == 0xA8, "keymap es: inverted question mark");
++    expect(kb_translate(0x03, false, true) == '@', "keymap es: AltGr-2 is @");
++    expect(kb_translate(0x15, false, false) == 'y', "keymap es: letters fall back to us");
++
+     expect(!kb_set_keymap("xx"), "keymap: unknown name is rejected");
+     expect(kb_translate(0x7F, false, false) == 0, "keymap: out-of-range scan code gives nothing");
+ 

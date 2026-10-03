@@ -43,6 +43,7 @@ All notable changes to this project are recorded here. The project follows [Sema
 * System calls 11h–12h: `sem_destroy`, `mbox_destroy`. Far memory is reclaimed when the thread that allocated it ends.
 * Kernel version string (`0.6-dev`) in the banner and `about`.
 * Integration checks for `about`, `uptime`, `interrupts`, `scheduler`, `registers`, `clear` and `reboot`.
+* Worked solutions for the three labs, as patches that CI checks still apply.
 * `tools/test_dashboard_browser.mjs`: the dashboard and the in-browser demo tested in headless Chromium, with screenshots kept by CI.
 
 ### Changed

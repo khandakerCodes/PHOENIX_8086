@@ -27,4 +27,4 @@ Read the [architecture guide](../architecture.md), at least the sections on thre
 * Protect shared data with `hal_irq_save()` / `hal_irq_restore()`.
 * `make test` must still pass when you are done, unless the lab says a specific check is expected to change.
 
-Worked solutions are not published yet.
+Worked solutions are in [solutions/](solutions/README.md). Try the lab first.
