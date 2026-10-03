@@ -35,6 +35,14 @@
 #define RECORD_HEADER       6       /* length, type, tick[4] */
 #define CONSOLE_CHUNK       48      /* Console characters per record */
 
+/*
+ * High-volume records (context switches, state changes, system calls)
+ * may only fill the ring this far. The rest is kept for everything
+ * else, so a flood of switches cannot crowd out console text or a
+ * fault report.
+ */
+#define RING_BULK_LIMIT     (RING_SIZE * 3 / 4)
+
 #define THREAD_PRIORITY     12      /* Above the shell, so the buffer drains under load */
 #define WAKE_PERIOD         (HZ / 10)
 #define COUNTERS_EVERY      2       /* wake-ups between COUNTERS records */
@@ -100,7 +108,12 @@ static void record(uint8_t type, const void *payload, uint8_t len)
     const uint8_t *bytes = (const uint8_t *)payload;
     uint16_t flags = hal_irq_save();
     uint8_t header[RECORD_HEADER];
+    uint16_t limit = RING_SIZE;
     uint8_t i;
+
+    if (type == TEL_CONTEXT_SWITCH || type == TEL_THREAD_STATE || type == TEL_SYSCALL) {
+        limit = RING_BULK_LIMIT;
+    }
 
     /*
      * Build the header in memory first. Passing (uint8_t)(tick >> 8)
@@ -111,7 +124,7 @@ static void record(uint8_t type, const void *payload, uint8_t len)
     header[1] = type;
     put32(&header[2], tick_count);
 
-    if (ring_used + RECORD_HEADER + len > RING_SIZE) {
+    if (ring_used + RECORD_HEADER + len > limit) {
         if (dropped < 0xFFFF) {
             dropped++;
         }

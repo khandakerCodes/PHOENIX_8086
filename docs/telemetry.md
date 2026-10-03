@@ -7,6 +7,7 @@ Protocol version 1 (not frozen until v0.9). Kernel side: `kernel/telemetry.c`. H
 * The kernel **records** events into a 4 KB ring buffer. That is all an interrupt handler ever does.
 * A kernel thread (`telemetry`, priority 12) wakes ten times a second, frames the buffered records, and sends them over COM1 (115200 8N1). It also sends the periodic records.
 * If the ring is full, a record is **dropped and counted**. The count is reported in `COUNTERS`. The kernel never invents data.
+* High-volume records (`CONTEXT_SWITCH`, `THREAD_STATE`, `SYSCALL`) may fill only three quarters of the ring, so a flood of them cannot crowd out console text or a fault report.
 * Console output is a record type (`CONSOLE`), not raw text mixed into the stream.
 * On a panic the buffer is flushed synchronously before the machine halts.
 * Building with `make TELEMETRY=0` compiles all of this out; the console is then mirrored to the serial port as plain text.

@@ -44,7 +44,7 @@ The tree was built with the existing Makefile (gcc 13.3, NASM 2.16) and booted h
 
 **Status update (2026-10-03, after the toolchain switch):** B3, B4, B5 and B6 are fixed, and B10 is fixed for the near heap (now ~42 KB, reported accurately). From B16, the warnings are gone and the dead assembly is archived in `docs/archive/legacy/`. 
 
-**Status update (Phase 2 core):** B1, B2, B7, B8 and B9 are fixed: threads really run, the shell works, context-switch telemetry is true, INT 80h dispatches and returns values, yield has its own vector, and sleep is 32-bit and wrap-safe. B11 and B12 are fixed as well: `mbox_broadcast` exists, and panic shows the live registers captured at the fault. B10 is fully fixed (far arena above `30000h`, `memory` reports the real layout). B15 is fixed (`phoenix.sh` only stops what it started; the broken `tools/run.sh` is gone) and so is the rest of B16. B17 is fixed: Git, licence, README and CI exist. Still open: B13 (telemetry design) and B14 (dashboard). `make test` boots the image three times and drives the shell through 26 checks, including a 35-assertion in-kernel self-test.
+**Status update (Phase 2 core):** B1, B2, B7, B8 and B9 are fixed: threads really run, the shell works, context-switch telemetry is true, INT 80h dispatches and returns values, yield has its own vector, and sleep is 32-bit and wrap-safe. B11 and B12 are fixed as well: `mbox_broadcast` exists, and panic shows the live registers captured at the fault. B10 is fully fixed (far arena above `30000h`, `memory` reports the real layout). B15 is fixed (`phoenix.sh` only stops what it started; the broken `tools/run.sh` is gone) and so is the rest of B16. B17 is fixed: Git, licence, README and CI exist. B13 and B14 are fixed by the Phase 3 work: telemetry is framed, buffered and sent outside interrupt handlers, and the dashboard shows kernel data only. Every finding in the table is now closed. `make test` boots the image three times and drives the shell through 26 checks, including a 35-assertion in-kernel self-test.
 
 **Conclusion:** boot, console, and interrupt plumbing are a usable starting point. Threads, scheduling, syscalls, memory layout, and telemetry accuracy must be rebuilt, and that work is the core of this plan.
 
@@ -148,17 +148,21 @@ Goal: preemptive multitasking that actually runs threads. This is the largest ph
 
 Goal: the dashboard shows only the truth, and sessions can be replayed.
 
-- [ ] `docs/telemetry.md`: protocol v1 (framing with escaping, version, sequence, tick, CRC)
-- [ ] Kernel: ring buffer filled by events, drained by a low-priority thread; drop counter; compile-time off switch (fixes B13)
-- [ ] Console output as a packet type; no raw text on the telemetry port
-- [ ] Emit every record type: thread state changes, context switch with register frame, memory summary, syscall, fault, benchmark (fixes B2)
-- [ ] Bridge: protocol v1 decoder, capture to file, replay with speed control, input channel to the kernel, `pyproject.toml` with pinned deps, pytest suite
-- [ ] Dashboard: split `app.js` into modules; Live / Replay / Demo modes with a permanent on-screen label; remove random data from Live (fixes B14)
-- [ ] Dashboard: real memory map, register diff on switch, fault view, console input
-- [ ] Vendor fonts and assets; no external requests
-- [ ] Dashboard tests driven by recorded captures
+- [x] `docs/telemetry.md`: protocol v1 (framing with escaping, version, sequence, tick, CRC)
+- [x] Kernel: ring buffer filled by events, drained by a telemetry thread; drop counter; compile-time off switch `TELEMETRY=0` (fixes B13)
+- [x] Console output as a packet type; no raw text on the telemetry port
+- [x] Emit every record type: thread create/exit/state, context switch with register frame, counters, memory summary, syscall, fault, benchmark, per-thread statistics, HELLO (fixes B2)
+- [x] Bridge: protocol v1 decoder, capture to file, replay with speed control, input channel to the kernel, backlog for late joiners, unit and end-to-end tests
+- [ ] Bridge packaging (`pyproject.toml`)
+- [x] Dashboard: state model split from rendering (`model.js`); Live / Replay / Demo / Offline modes with a permanent on-screen label; no random data anywhere (fixes B14)
+- [x] Dashboard: real memory map, register diff on switch, fault view, console input
+- [x] No external requests: system font stacks instead of a font CDN
+- [x] Dashboard model tests driven by a recorded capture (`node --test dashboard/test/`)
+- [ ] Look at the dashboard in a real browser and fix what is wrong; add a browser-based rendering test
+- [ ] Replay controls in the dashboard (pause, seek); replay is currently controlled from the bridge command line
+- [x] A flood of events such as `bench` overflows the 4 KB ring; high-volume records are limited to three quarters of it so console text and faults still get through, and the drops are counted
 
-**Exit test:** a recorded capture replays to an identical dashboard state; with the bridge disconnected, Live mode shows "no data" rather than simulated values.
+**Exit test:** a recorded capture replays to an identical dashboard state; with the bridge disconnected, Live mode shows "no data" rather than simulated values. *(2026-10-03: both hold for the data model — replaying the capture twice gives identical state, and an empty model yields empty panels — and are tested. The rendered page has not been viewed in a browser.)*
 
 ### Phase 4 — Programs (release v0.6)
 

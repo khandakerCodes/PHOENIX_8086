@@ -1,0 +1,1006 @@
+{"capture": 1, "created": "2026-10-03T09:31:49+00:00"}
+{"t": 0.0, "msg": {"type": "BOOT_STAGE", "seq": 0, "tick": 0, "stage": 1}}
+{"t": 0.0, "msg": {"type": "BOOT_STAGE", "seq": 1, "tick": 0, "stage": 2}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 2, "tick": 0, "text": "  ____  _                      _\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 3, "tick": 0, "text": " |  _ \\| |__   ___   ___ _ __ (_)_  __\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 4, "tick": 0, "text": " | |_) | '_ \\ / _ \\ / _ \\ '_ \\| \\ \\/ /\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 5, "tick": 0, "text": " |  __/| | | | (_) |  __/ | | | |>  <\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 6, "tick": 0, "text": " |_|   |_| |_|\\___/ \\___|_| |_|_/_/\\_\\\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 7, "tick": 0, "text": "\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 8, "tick": 0, "text": "Phoenix-8086 Microkernel v0.1\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 9, "tick": 0, "text": "A Bare-Metal Preemptive OS for the Intel 8086\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 10, "tick": 0, "text": "============================================\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 11, "tick": 0, "text": "\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 12, "tick": 0, "text": "[BOOT] Drive: 0x0000  Memory: 639 KB\n"}}
+{"t": 0.0, "msg": {"type": "BOOT_STAGE", "seq": 13, "tick": 0, "stage": 3}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 14, "tick": 0, "text": "[INIT] Memory manager... OK\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 15, "tick": 0, "text": "       Heap free: 36824 bytes\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 16, "tick": 0, "text": "[INIT] Keyboard driver... OK\n"}}
+{"t": 0.0, "msg": {"type": "THREAD_CREATE", "seq": 17, "tick": 0, "tid": 0, "priority": 0, "name": "idle"}}
+{"t": 0.0, "msg": {"type": "BOOT_STAGE", "seq": 18, "tick": 0, "stage": 4}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 19, "tick": 0, "text": "[INIT] Scheduler... OK\n"}}
+{"t": 0.0, "msg": {"type": "BOOT_STAGE", "seq": 20, "tick": 0, "stage": 5}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 21, "tick": 0, "text": "[INIT] Interrupt system... OK\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 22, "tick": 0, "text": "[INIT] IRQ0 (Timer)    -> Installed\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 23, "tick": 0, "text": "[INIT] IRQ1 (Keyboard) -> Installed\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 24, "tick": 0, "text": "[INIT] INT 80h (Syscall) -> Installed\n"}}
+{"t": 0.0, "msg": {"type": "THREAD_CREATE", "seq": 25, "tick": 0, "tid": 1, "priority": 10, "name": "shell"}}
+{"t": 0.0, "msg": {"type": "BOOT_STAGE", "seq": 26, "tick": 0, "stage": 6}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 27, "tick": 0, "text": "[INIT] Creating shell thread... OK (TID=1)\n"}}
+{"t": 0.0, "msg": {"type": "THREAD_CREATE", "seq": 28, "tick": 0, "tid": 2, "priority": 12, "name": "telemetry"}}
+{"t": 0.0, "msg": {"type": "BOOT_STAGE", "seq": 29, "tick": 0, "stage": 7}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 30, "tick": 0, "text": "\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 31, "tick": 0, "text": "============================================\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 32, "tick": 0, "text": "  Phoenix-8086 boot complete.\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 33, "tick": 0, "text": "  All subsystems initialized.\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 34, "tick": 0, "text": "============================================\n"}}
+{"t": 0.0, "msg": {"type": "CONSOLE", "seq": 35, "tick": 0, "text": "\n"}}
+{"t": 0.01, "msg": {"type": "CONTEXT_SWITCH", "seq": 36, "tick": 1, "from_tid": 0, "to_tid": 2, "regs": {"ip": 13223, "cs": 4096, "flags": 514, "sp": 11827, "ax": 0, "bx": 0, "cx": 0, "dx": 0, "si": 0, "di": 0, "bp": 0}}}
+{"t": 0.01, "msg": {"type": "COUNTERS", "seq": 37, "tick": 1, "timer": 1, "keyboard": 0, "syscall": 0, "context_switches": 1, "drops": 0}}
+{"t": 0.01, "msg": {"type": "HELLO", "seq": 38, "tick": 1, "version": 1, "hz": 100, "max_threads": 8, "code_seg": 4096, "data_seg": 8192, "far_start_seg": 12288, "far_end_seg": 40896, "mem_kb": 639, "heap_start": 26664, "heap_end": 63488}}
+{"t": 0.01, "msg": {"type": "MEMORY", "seq": 39, "tick": 1, "heap_free": 36824, "heap_used": 0, "far_free_paras": 28607, "far_total_paras": 28608}}
+{"t": 0.01, "msg": {"type": "THREAD_STATS", "seq": 40, "tick": 1, "tid": 0, "state": "READY", "priority": 0, "cpu_ticks": 1, "sp": 65508, "stack_base": 63488, "stack_size": 2048, "name": "idle"}}
+{"t": 0.01, "msg": {"type": "THREAD_STATS", "seq": 41, "tick": 1, "tid": 1, "state": "READY", "priority": 10, "cpu_ticks": 0, "sp": 9755, "stack_base": 7733, "stack_size": 2048, "name": "shell"}}
+{"t": 0.01, "msg": {"type": "THREAD_STATS", "seq": 42, "tick": 1, "tid": 2, "state": "RUNNING", "priority": 12, "cpu_ticks": 0, "sp": 11803, "stack_base": 9781, "stack_size": 2048, "name": "telemetry"}}
+{"t": 0.01, "msg": {"type": "THREAD_STATE", "seq": 43, "tick": 1, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 0.01, "msg": {"type": "CONTEXT_SWITCH", "seq": 44, "tick": 1, "from_tid": 2, "to_tid": 1, "regs": {"ip": 7180, "cs": 4096, "flags": 514, "sp": 9779, "ax": 0, "bx": 0, "cx": 0, "dx": 0, "si": 0, "di": 0, "bp": 0}}}
+{"t": 0.01, "msg": {"type": "CONSOLE", "seq": 45, "tick": 1, "text": "\n"}}
+{"t": 0.01, "msg": {"type": "CONSOLE", "seq": 46, "tick": 1, "text": "Phoenix-8086 Kernel Shell v1.0\n"}}
+{"t": 0.01, "msg": {"type": "CONSOLE", "seq": 47, "tick": 1, "text": "Type 'help' for available commands.\n"}}
+{"t": 0.01, "msg": {"type": "CONSOLE", "seq": 48, "tick": 1, "text": "\n"}}
+{"t": 0.01, "msg": {"type": "THREAD_STATE", "seq": 49, "tick": 1, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 0.01, "msg": {"type": "CONTEXT_SWITCH", "seq": 50, "tick": 1, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 0.11, "msg": {"type": "THREAD_STATE", "seq": 51, "tick": 11, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 0.11, "msg": {"type": "CONTEXT_SWITCH", "seq": 52, "tick": 11, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1096, "cx": 257, "dx": 1097, "si": 10, "di": 1, "bp": 11769}}}
+{"t": 0.11, "msg": {"type": "CONSOLE", "seq": 53, "tick": 11, "text": "phoenix> "}}
+{"t": 0.11, "msg": {"type": "THREAD_STATE", "seq": 54, "tick": 11, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 0.11, "msg": {"type": "CONTEXT_SWITCH", "seq": 55, "tick": 11, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 0.21, "msg": {"type": "THREAD_STATE", "seq": 56, "tick": 21, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 0.21, "msg": {"type": "CONTEXT_SWITCH", "seq": 57, "tick": 21, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1321, "cx": 257, "dx": 1322, "si": 10, "di": 2, "bp": 11769}}}
+{"t": 0.21, "msg": {"type": "COUNTERS", "seq": 58, "tick": 21, "timer": 21, "keyboard": 0, "syscall": 0, "context_switches": 6, "drops": 0}}
+{"t": 0.21, "msg": {"type": "THREAD_STATE", "seq": 59, "tick": 21, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 0.21, "msg": {"type": "CONTEXT_SWITCH", "seq": 60, "tick": 21, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 0.26, "msg": {"type": "THREAD_STATE", "seq": 61, "tick": 26, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 0.26, "msg": {"type": "CONTEXT_SWITCH", "seq": 62, "tick": 26, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 1228, "cx": 257, "dx": 1229, "si": 582, "di": 5606, "bp": 9683}}}
+{"t": 0.26, "msg": {"type": "THREAD_STATE", "seq": 63, "tick": 26, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 0.26, "msg": {"type": "CONTEXT_SWITCH", "seq": 64, "tick": 26, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 0.31, "msg": {"type": "THREAD_STATE", "seq": 65, "tick": 31, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 0.31, "msg": {"type": "CONTEXT_SWITCH", "seq": 66, "tick": 31, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1399, "cx": 257, "dx": 1400, "si": 10, "di": 3, "bp": 11769}}}
+{"t": 0.31, "msg": {"type": "CONSOLE", "seq": 67, "tick": 31, "text": "c"}}
+{"t": 0.31, "msg": {"type": "THREAD_STATE", "seq": 68, "tick": 31, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 0.31, "msg": {"type": "CONTEXT_SWITCH", "seq": 69, "tick": 31, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 0.34, "msg": {"type": "THREAD_STATE", "seq": 70, "tick": 34, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 0.34, "msg": {"type": "CONTEXT_SWITCH", "seq": 71, "tick": 34, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 1477, "cx": 257, "dx": 1478, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 0.34, "msg": {"type": "THREAD_STATE", "seq": 72, "tick": 34, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 0.34, "msg": {"type": "CONTEXT_SWITCH", "seq": 73, "tick": 34, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 0.41, "msg": {"type": "THREAD_STATE", "seq": 74, "tick": 41, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 0.41, "msg": {"type": "CONTEXT_SWITCH", "seq": 75, "tick": 41, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1562, "cx": 257, "dx": 1563, "si": 10, "di": 4, "bp": 11769}}}
+{"t": 0.41, "msg": {"type": "CONSOLE", "seq": 76, "tick": 41, "text": "r"}}
+{"t": 0.41, "msg": {"type": "COUNTERS", "seq": 77, "tick": 41, "timer": 41, "keyboard": 4, "syscall": 0, "context_switches": 14, "drops": 0}}
+{"t": 0.41, "msg": {"type": "THREAD_STATE", "seq": 78, "tick": 41, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 0.41, "msg": {"type": "CONTEXT_SWITCH", "seq": 79, "tick": 41, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 0.42, "msg": {"type": "THREAD_STATE", "seq": 80, "tick": 42, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 0.42, "msg": {"type": "CONTEXT_SWITCH", "seq": 81, "tick": 42, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 1640, "cx": 257, "dx": 1641, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 0.42, "msg": {"type": "THREAD_STATE", "seq": 82, "tick": 42, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 0.42, "msg": {"type": "CONTEXT_SWITCH", "seq": 83, "tick": 42, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 0.5, "msg": {"type": "THREAD_STATE", "seq": 84, "tick": 50, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 0.5, "msg": {"type": "CONTEXT_SWITCH", "seq": 85, "tick": 50, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 1803, "cx": 257, "dx": 1804, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 0.5, "msg": {"type": "THREAD_STATE", "seq": 86, "tick": 50, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 0.5, "msg": {"type": "CONTEXT_SWITCH", "seq": 87, "tick": 50, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 0.51, "msg": {"type": "THREAD_STATE", "seq": 88, "tick": 51, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 0.51, "msg": {"type": "CONTEXT_SWITCH", "seq": 89, "tick": 51, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1725, "cx": 257, "dx": 1726, "si": 10, "di": 5, "bp": 11769}}}
+{"t": 0.51, "msg": {"type": "CONSOLE", "seq": 90, "tick": 51, "text": "ea"}}
+{"t": 0.51, "msg": {"type": "THREAD_STATE", "seq": 91, "tick": 51, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 0.51, "msg": {"type": "CONTEXT_SWITCH", "seq": 92, "tick": 51, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 0.58, "msg": {"type": "THREAD_STATE", "seq": 93, "tick": 58, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 0.58, "msg": {"type": "CONTEXT_SWITCH", "seq": 94, "tick": 58, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 1881, "cx": 257, "dx": 1882, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 0.58, "msg": {"type": "THREAD_STATE", "seq": 95, "tick": 58, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 0.58, "msg": {"type": "CONTEXT_SWITCH", "seq": 96, "tick": 58, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 0.61, "msg": {"type": "THREAD_STATE", "seq": 97, "tick": 61, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 0.61, "msg": {"type": "CONTEXT_SWITCH", "seq": 98, "tick": 61, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1967, "cx": 257, "dx": 1968, "si": 10, "di": 6, "bp": 11769}}}
+{"t": 0.61, "msg": {"type": "CONSOLE", "seq": 99, "tick": 61, "text": "t"}}
+{"t": 0.61, "msg": {"type": "COUNTERS", "seq": 100, "tick": 61, "timer": 61, "keyboard": 10, "syscall": 0, "context_switches": 24, "drops": 0}}
+{"t": 0.61, "msg": {"type": "THREAD_STATE", "seq": 101, "tick": 61, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 0.61, "msg": {"type": "CONTEXT_SWITCH", "seq": 102, "tick": 61, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 0.66, "msg": {"type": "THREAD_STATE", "seq": 103, "tick": 66, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 0.66, "msg": {"type": "CONTEXT_SWITCH", "seq": 104, "tick": 66, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 2045, "cx": 257, "dx": 2046, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 0.66, "msg": {"type": "THREAD_STATE", "seq": 105, "tick": 66, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 0.66, "msg": {"type": "CONTEXT_SWITCH", "seq": 106, "tick": 66, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 0.71, "msg": {"type": "THREAD_STATE", "seq": 107, "tick": 71, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 0.71, "msg": {"type": "CONTEXT_SWITCH", "seq": 108, "tick": 71, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2130, "cx": 257, "dx": 2131, "si": 10, "di": 7, "bp": 11769}}}
+{"t": 0.71, "msg": {"type": "CONSOLE", "seq": 109, "tick": 71, "text": "e"}}
+{"t": 0.71, "msg": {"type": "THREAD_STATE", "seq": 110, "tick": 71, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 0.71, "msg": {"type": "CONTEXT_SWITCH", "seq": 111, "tick": 71, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 0.74, "msg": {"type": "THREAD_STATE", "seq": 112, "tick": 74, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 0.74, "msg": {"type": "CONTEXT_SWITCH", "seq": 113, "tick": 74, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 2208, "cx": 257, "dx": 2209, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 0.74, "msg": {"type": "CONSOLE", "seq": 114, "tick": 74, "text": "\n"}}
+{"t": 0.74, "msg": {"type": "THREAD_CREATE", "seq": 115, "tick": 74, "tid": 3, "priority": 5, "name": "demo-A"}}
+{"t": 0.74, "msg": {"type": "CONSOLE", "seq": 116, "tick": 74, "text": "Created thread TID=3\n"}}
+{"t": 0.74, "msg": {"type": "THREAD_STATE", "seq": 117, "tick": 74, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 0.74, "msg": {"type": "CONTEXT_SWITCH", "seq": 118, "tick": 74, "from_tid": 1, "to_tid": 3, "regs": {"ip": 6837, "cs": 4096, "flags": 514, "sp": 13875, "ax": 0, "bx": 0, "cx": 0, "dx": 0, "si": 0, "di": 0, "bp": 0}}}
+{"t": 0.81, "msg": {"type": "THREAD_STATE", "seq": 119, "tick": 81, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 0.81, "msg": {"type": "CONTEXT_SWITCH", "seq": 120, "tick": 81, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2293, "cx": 257, "dx": 2294, "si": 10, "di": 8, "bp": 11769}}}
+{"t": 0.81, "msg": {"type": "CONSOLE", "seq": 121, "tick": 81, "text": "phoenix> [A]"}}
+{"t": 0.81, "msg": {"type": "COUNTERS", "seq": 122, "tick": 81, "timer": 81, "keyboard": 14, "syscall": 0, "context_switches": 32, "drops": 0}}
+{"t": 0.81, "msg": {"type": "THREAD_STATE", "seq": 123, "tick": 81, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 0.81, "msg": {"type": "CONTEXT_SWITCH", "seq": 124, "tick": 81, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 80, "di": 74, "bp": 13839}}}
+{"t": 0.91, "msg": {"type": "THREAD_STATE", "seq": 125, "tick": 91, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 0.91, "msg": {"type": "CONTEXT_SWITCH", "seq": 126, "tick": 91, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2521, "cx": 257, "dx": 2522, "si": 10, "di": 9, "bp": 11769}}}
+{"t": 0.91, "msg": {"type": "CONSOLE", "seq": 127, "tick": 91, "text": "[A]"}}
+{"t": 0.91, "msg": {"type": "THREAD_STATE", "seq": 128, "tick": 91, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 0.91, "msg": {"type": "CONTEXT_SWITCH", "seq": 129, "tick": 91, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 90, "di": 84, "bp": 13839}}}
+{"t": 1.01, "msg": {"type": "THREAD_STATE", "seq": 130, "tick": 101, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 1.01, "msg": {"type": "CONTEXT_SWITCH", "seq": 131, "tick": 101, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2608, "cx": 257, "dx": 2609, "si": 10, "di": 10, "bp": 11769}}}
+{"t": 1.01, "msg": {"type": "CONSOLE", "seq": 132, "tick": 101, "text": "[A]"}}
+{"t": 1.01, "msg": {"type": "COUNTERS", "seq": 133, "tick": 101, "timer": 101, "keyboard": 14, "syscall": 0, "context_switches": 36, "drops": 0}}
+{"t": 1.01, "msg": {"type": "HELLO", "seq": 134, "tick": 101, "version": 1, "hz": 100, "max_threads": 8, "code_seg": 4096, "data_seg": 8192, "far_start_seg": 12288, "far_end_seg": 40896, "mem_kb": 639, "heap_start": 26664, "heap_end": 63488}}
+{"t": 1.01, "msg": {"type": "MEMORY", "seq": 135, "tick": 101, "heap_free": 36824, "heap_used": 0, "far_free_paras": 28607, "far_total_paras": 28608}}
+{"t": 1.01, "msg": {"type": "THREAD_STATS", "seq": 136, "tick": 101, "tid": 0, "state": "READY", "priority": 0, "cpu_ticks": 74, "sp": 65508, "stack_base": 63488, "stack_size": 2048, "name": "idle"}}
+{"t": 1.01, "msg": {"type": "THREAD_STATS", "seq": 137, "tick": 101, "tid": 1, "state": "BLOCKED", "priority": 10, "cpu_ticks": 0, "sp": 9651, "stack_base": 7733, "stack_size": 2048, "name": "shell"}}
+{"t": 1.01, "msg": {"type": "THREAD_STATS", "seq": 138, "tick": 101, "tid": 2, "state": "RUNNING", "priority": 12, "cpu_ticks": 0, "sp": 11739, "stack_base": 9781, "stack_size": 2048, "name": "telemetry"}}
+{"t": 1.01, "msg": {"type": "THREAD_STATS", "seq": 139, "tick": 101, "tid": 3, "state": "READY", "priority": 5, "cpu_ticks": 27, "sp": 13815, "stack_base": 11829, "stack_size": 2048, "name": "demo-A"}}
+{"t": 1.01, "msg": {"type": "THREAD_STATE", "seq": 140, "tick": 101, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 1.01, "msg": {"type": "CONTEXT_SWITCH", "seq": 141, "tick": 101, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 100, "di": 94, "bp": 13839}}}
+{"t": 1.11, "msg": {"type": "THREAD_STATE", "seq": 142, "tick": 111, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 1.11, "msg": {"type": "CONTEXT_SWITCH", "seq": 143, "tick": 111, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2695, "cx": 257, "dx": 2696, "si": 10, "di": 11, "bp": 11769}}}
+{"t": 1.11, "msg": {"type": "CONSOLE", "seq": 144, "tick": 111, "text": "[A]"}}
+{"t": 1.11, "msg": {"type": "THREAD_STATE", "seq": 145, "tick": 111, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 1.11, "msg": {"type": "CONTEXT_SWITCH", "seq": 146, "tick": 111, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 110, "di": 104, "bp": 13839}}}
+{"t": 1.12, "msg": {"type": "THREAD_STATE", "seq": 147, "tick": 112, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 1.12, "msg": {"type": "CONTEXT_SWITCH", "seq": 148, "tick": 112, "from_tid": 3, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 2425, "cx": 257, "dx": 2426, "si": 582, "di": 5606, "bp": 9683}}}
+{"t": 1.12, "msg": {"type": "THREAD_STATE", "seq": 149, "tick": 112, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 1.12, "msg": {"type": "CONTEXT_SWITCH", "seq": 150, "tick": 112, "from_tid": 1, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 13839, "ax": 663, "bx": 0, "cx": 8, "dx": 0, "si": 112, "di": 104, "bp": 13839}}}
+{"t": 1.2, "msg": {"type": "THREAD_STATE", "seq": 151, "tick": 120, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 1.2, "msg": {"type": "CONTEXT_SWITCH", "seq": 152, "tick": 120, "from_tid": 3, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 2860, "cx": 257, "dx": 2861, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 1.2, "msg": {"type": "THREAD_STATE", "seq": 153, "tick": 120, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 1.2, "msg": {"type": "CONTEXT_SWITCH", "seq": 154, "tick": 120, "from_tid": 1, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 120, "di": 114, "bp": 13839}}}
+{"t": 1.21, "msg": {"type": "THREAD_STATE", "seq": 155, "tick": 121, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 1.21, "msg": {"type": "CONTEXT_SWITCH", "seq": 156, "tick": 121, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2782, "cx": 257, "dx": 2783, "si": 10, "di": 12, "bp": 11769}}}
+{"t": 1.21, "msg": {"type": "CONSOLE", "seq": 157, "tick": 121, "text": "c[A]r"}}
+{"t": 1.21, "msg": {"type": "COUNTERS", "seq": 158, "tick": 121, "timer": 121, "keyboard": 17, "syscall": 0, "context_switches": 44, "drops": 0}}
+{"t": 1.21, "msg": {"type": "THREAD_STATE", "seq": 159, "tick": 121, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 1.21, "msg": {"type": "CONTEXT_SWITCH", "seq": 160, "tick": 121, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 120, "di": 114, "bp": 13839}}}
+{"t": 1.28, "msg": {"type": "THREAD_STATE", "seq": 161, "tick": 128, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 1.28, "msg": {"type": "CONTEXT_SWITCH", "seq": 162, "tick": 128, "from_tid": 3, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 2938, "cx": 257, "dx": 2939, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 1.28, "msg": {"type": "THREAD_STATE", "seq": 163, "tick": 128, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 1.28, "msg": {"type": "CONTEXT_SWITCH", "seq": 164, "tick": 128, "from_tid": 1, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 4, "dx": 0, "si": 128, "di": 124, "bp": 13839}}}
+{"t": 1.31, "msg": {"type": "THREAD_STATE", "seq": 165, "tick": 131, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 1.31, "msg": {"type": "CONTEXT_SWITCH", "seq": 166, "tick": 131, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3027, "cx": 257, "dx": 3028, "si": 10, "di": 13, "bp": 11769}}}
+{"t": 1.31, "msg": {"type": "CONSOLE", "seq": 167, "tick": 131, "text": "[A]e"}}
+{"t": 1.31, "msg": {"type": "THREAD_STATE", "seq": 168, "tick": 131, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 1.31, "msg": {"type": "CONTEXT_SWITCH", "seq": 169, "tick": 131, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 130, "di": 124, "bp": 13839}}}
+{"t": 1.36, "msg": {"type": "THREAD_STATE", "seq": 170, "tick": 136, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 1.36, "msg": {"type": "CONTEXT_SWITCH", "seq": 171, "tick": 136, "from_tid": 3, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 3105, "cx": 257, "dx": 3106, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 1.36, "msg": {"type": "THREAD_STATE", "seq": 172, "tick": 136, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 1.36, "msg": {"type": "CONTEXT_SWITCH", "seq": 173, "tick": 136, "from_tid": 1, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 13839, "ax": 663, "bx": 0, "cx": 2, "dx": 0, "si": 136, "di": 134, "bp": 13839}}}
+{"t": 1.41, "msg": {"type": "THREAD_STATE", "seq": 174, "tick": 141, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 1.41, "msg": {"type": "CONTEXT_SWITCH", "seq": 175, "tick": 141, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3193, "cx": 257, "dx": 3194, "si": 10, "di": 14, "bp": 11769}}}
+{"t": 1.41, "msg": {"type": "CONSOLE", "seq": 176, "tick": 141, "text": "[A]a"}}
+{"t": 1.41, "msg": {"type": "COUNTERS", "seq": 177, "tick": 141, "timer": 141, "keyboard": 22, "syscall": 0, "context_switches": 52, "drops": 0}}
+{"t": 1.41, "msg": {"type": "THREAD_STATE", "seq": 178, "tick": 141, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 1.41, "msg": {"type": "CONTEXT_SWITCH", "seq": 179, "tick": 141, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 140, "di": 134, "bp": 13839}}}
+{"t": 1.44, "msg": {"type": "THREAD_STATE", "seq": 180, "tick": 144, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 1.44, "msg": {"type": "CONTEXT_SWITCH", "seq": 181, "tick": 144, "from_tid": 3, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 3271, "cx": 257, "dx": 3272, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 1.44, "msg": {"type": "THREAD_STATE", "seq": 182, "tick": 144, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 1.44, "msg": {"type": "CONTEXT_SWITCH", "seq": 183, "tick": 144, "from_tid": 1, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 144, "di": 144, "bp": 13839}}}
+{"t": 1.51, "msg": {"type": "THREAD_STATE", "seq": 184, "tick": 151, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 1.51, "msg": {"type": "CONTEXT_SWITCH", "seq": 185, "tick": 151, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3359, "cx": 257, "dx": 3360, "si": 10, "di": 15, "bp": 11769}}}
+{"t": 1.51, "msg": {"type": "CONSOLE", "seq": 186, "tick": 151, "text": "[A]t"}}
+{"t": 1.51, "msg": {"type": "THREAD_STATE", "seq": 187, "tick": 151, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 1.51, "msg": {"type": "CONTEXT_SWITCH", "seq": 188, "tick": 151, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 150, "di": 144, "bp": 13839}}}
+{"t": 1.52, "msg": {"type": "THREAD_STATE", "seq": 189, "tick": 152, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 1.52, "msg": {"type": "CONTEXT_SWITCH", "seq": 190, "tick": 152, "from_tid": 3, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 3437, "cx": 257, "dx": 3438, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 1.52, "msg": {"type": "THREAD_STATE", "seq": 191, "tick": 152, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 1.52, "msg": {"type": "CONTEXT_SWITCH", "seq": 192, "tick": 152, "from_tid": 1, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 13839, "ax": 663, "bx": 0, "cx": 8, "dx": 0, "si": 152, "di": 144, "bp": 13839}}}
+{"t": 1.6, "msg": {"type": "THREAD_STATE", "seq": 193, "tick": 160, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 1.6, "msg": {"type": "CONTEXT_SWITCH", "seq": 194, "tick": 160, "from_tid": 3, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 3603, "cx": 257, "dx": 3604, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 1.6, "msg": {"type": "CONSOLE", "seq": 195, "tick": 160, "text": "e[A]\n"}}
+{"t": 1.6, "msg": {"type": "THREAD_CREATE", "seq": 196, "tick": 160, "tid": 4, "priority": 3, "name": "demo-B"}}
+{"t": 1.6, "msg": {"type": "CONSOLE", "seq": 197, "tick": 160, "text": "Created thread TID=4\n"}}
+{"t": 1.6, "msg": {"type": "THREAD_STATE", "seq": 198, "tick": 160, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 1.6, "msg": {"type": "CONTEXT_SWITCH", "seq": 199, "tick": 160, "from_tid": 1, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 160, "di": 154, "bp": 13839}}}
+{"t": 1.61, "msg": {"type": "THREAD_STATE", "seq": 200, "tick": 161, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 1.61, "msg": {"type": "CONTEXT_SWITCH", "seq": 201, "tick": 161, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3525, "cx": 257, "dx": 3526, "si": 10, "di": 16, "bp": 11769}}}
+{"t": 1.61, "msg": {"type": "CONSOLE", "seq": 202, "tick": 161, "text": "phoenix> "}}
+{"t": 1.61, "msg": {"type": "COUNTERS", "seq": 203, "tick": 161, "timer": 161, "keyboard": 27, "syscall": 0, "context_switches": 62, "drops": 0}}
+{"t": 1.61, "msg": {"type": "THREAD_STATE", "seq": 204, "tick": 161, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 1.61, "msg": {"type": "CONTEXT_SWITCH", "seq": 205, "tick": 161, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 160, "di": 154, "bp": 13839}}}
+{"t": 1.71, "msg": {"type": "THREAD_STATE", "seq": 206, "tick": 171, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 1.71, "msg": {"type": "CONTEXT_SWITCH", "seq": 207, "tick": 171, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3832, "cx": 257, "dx": 3833, "si": 10, "di": 17, "bp": 11769}}}
+{"t": 1.71, "msg": {"type": "CONSOLE", "seq": 208, "tick": 171, "text": "[A]"}}
+{"t": 1.71, "msg": {"type": "THREAD_STATE", "seq": 209, "tick": 171, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 1.71, "msg": {"type": "CONTEXT_SWITCH", "seq": 210, "tick": 171, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 170, "di": 164, "bp": 13839}}}
+{"t": 1.81, "msg": {"type": "THREAD_STATE", "seq": 211, "tick": 181, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 1.81, "msg": {"type": "CONTEXT_SWITCH", "seq": 212, "tick": 181, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3919, "cx": 257, "dx": 3920, "si": 10, "di": 18, "bp": 11769}}}
+{"t": 1.81, "msg": {"type": "CONSOLE", "seq": 213, "tick": 181, "text": "[A]"}}
+{"t": 1.81, "msg": {"type": "COUNTERS", "seq": 214, "tick": 181, "timer": 181, "keyboard": 28, "syscall": 0, "context_switches": 66, "drops": 0}}
+{"t": 1.81, "msg": {"type": "THREAD_STATE", "seq": 215, "tick": 181, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 1.81, "msg": {"type": "CONTEXT_SWITCH", "seq": 216, "tick": 181, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 180, "di": 174, "bp": 13839}}}
+{"t": 1.86, "msg": {"type": "CONTEXT_SWITCH", "seq": 217, "tick": 186, "from_tid": 3, "to_tid": 4, "regs": {"ip": 6784, "cs": 4096, "flags": 514, "sp": 15923, "ax": 0, "bx": 0, "cx": 0, "dx": 0, "si": 0, "di": 0, "bp": 0}}}
+{"t": 1.87, "msg": {"type": "CONTEXT_SWITCH", "seq": 218, "tick": 187, "from_tid": 4, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 1, "dx": 0, "si": 185, "di": 184, "bp": 13839}}}
+{"t": 1.91, "msg": {"type": "THREAD_STATE", "seq": 219, "tick": 191, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 1.91, "msg": {"type": "CONTEXT_SWITCH", "seq": 220, "tick": 191, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 4006, "cx": 257, "dx": 4007, "si": 10, "di": 19, "bp": 11769}}}
+{"t": 1.91, "msg": {"type": "CONSOLE", "seq": 221, "tick": 191, "text": "[A][B]"}}
+{"t": 1.91, "msg": {"type": "THREAD_STATE", "seq": 222, "tick": 191, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 1.91, "msg": {"type": "CONTEXT_SWITCH", "seq": 223, "tick": 191, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 190, "di": 184, "bp": 13839}}}
+{"t": 1.98, "msg": {"type": "THREAD_STATE", "seq": 224, "tick": 198, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 1.98, "msg": {"type": "CONTEXT_SWITCH", "seq": 225, "tick": 198, "from_tid": 3, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 3739, "cx": 257, "dx": 3740, "si": 582, "di": 5606, "bp": 9683}}}
+{"t": 1.98, "msg": {"type": "THREAD_STATE", "seq": 226, "tick": 198, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 1.98, "msg": {"type": "CONTEXT_SWITCH", "seq": 227, "tick": 198, "from_tid": 1, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 4, "dx": 0, "si": 198, "di": 194, "bp": 13839}}}
+{"t": 2.01, "msg": {"type": "THREAD_STATE", "seq": 228, "tick": 201, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 2.01, "msg": {"type": "CONTEXT_SWITCH", "seq": 229, "tick": 201, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 60, "cx": 257, "dx": 61, "si": 10, "di": 20, "bp": 11769}}}
+{"t": 2.01, "msg": {"type": "CONSOLE", "seq": 230, "tick": 201, "text": "[A]c"}}
+{"t": 2.01, "msg": {"type": "COUNTERS", "seq": 231, "tick": 201, "timer": 201, "keyboard": 30, "syscall": 0, "context_switches": 74, "drops": 0}}
+{"t": 2.01, "msg": {"type": "HELLO", "seq": 232, "tick": 201, "version": 1, "hz": 100, "max_threads": 8, "code_seg": 4096, "data_seg": 8192, "far_start_seg": 12288, "far_end_seg": 40896, "mem_kb": 639, "heap_start": 26664, "heap_end": 63488}}
+{"t": 2.01, "msg": {"type": "MEMORY", "seq": 233, "tick": 201, "heap_free": 36824, "heap_used": 0, "far_free_paras": 28607, "far_total_paras": 28608}}
+{"t": 2.01, "msg": {"type": "THREAD_STATS", "seq": 234, "tick": 201, "tid": 0, "state": "READY", "priority": 0, "cpu_ticks": 74, "sp": 65508, "stack_base": 63488, "stack_size": 2048, "name": "idle"}}
+{"t": 2.01, "msg": {"type": "THREAD_STATS", "seq": 235, "tick": 201, "tid": 1, "state": "BLOCKED", "priority": 10, "cpu_ticks": 0, "sp": 9651, "stack_base": 7733, "stack_size": 2048, "name": "shell"}}
+{"t": 2.01, "msg": {"type": "THREAD_STATS", "seq": 236, "tick": 201, "tid": 2, "state": "RUNNING", "priority": 12, "cpu_ticks": 0, "sp": 11739, "stack_base": 9781, "stack_size": 2048, "name": "telemetry"}}
+{"t": 2.01, "msg": {"type": "THREAD_STATS", "seq": 237, "tick": 201, "tid": 3, "state": "READY", "priority": 5, "cpu_ticks": 126, "sp": 13815, "stack_base": 11829, "stack_size": 2048, "name": "demo-A"}}
+{"t": 2.01, "msg": {"type": "THREAD_STATS", "seq": 238, "tick": 201, "tid": 4, "state": "READY", "priority": 3, "cpu_ticks": 1, "sp": 15863, "stack_base": 13877, "stack_size": 2048, "name": "demo-B"}}
+{"t": 2.01, "msg": {"type": "THREAD_STATE", "seq": 239, "tick": 201, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 2.01, "msg": {"type": "CONTEXT_SWITCH", "seq": 240, "tick": 201, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 200, "di": 194, "bp": 13839}}}
+{"t": 2.06, "msg": {"type": "THREAD_STATE", "seq": 241, "tick": 206, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 2.06, "msg": {"type": "CONTEXT_SWITCH", "seq": 242, "tick": 206, "from_tid": 3, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 138, "cx": 257, "dx": 139, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 2.06, "msg": {"type": "THREAD_STATE", "seq": 243, "tick": 206, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 2.06, "msg": {"type": "CONTEXT_SWITCH", "seq": 244, "tick": 206, "from_tid": 1, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 13839, "ax": 663, "bx": 0, "cx": 2, "dx": 0, "si": 206, "di": 204, "bp": 13839}}}
+{"t": 2.11, "msg": {"type": "THREAD_STATE", "seq": 245, "tick": 211, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 2.11, "msg": {"type": "CONTEXT_SWITCH", "seq": 246, "tick": 211, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 226, "cx": 257, "dx": 227, "si": 10, "di": 21, "bp": 11769}}}
+{"t": 2.11, "msg": {"type": "CONSOLE", "seq": 247, "tick": 211, "text": "[A]r"}}
+{"t": 2.11, "msg": {"type": "THREAD_STATE", "seq": 248, "tick": 211, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 2.11, "msg": {"type": "CONTEXT_SWITCH", "seq": 249, "tick": 211, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 210, "di": 204, "bp": 13839}}}
+{"t": 2.14, "msg": {"type": "THREAD_STATE", "seq": 250, "tick": 214, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 2.14, "msg": {"type": "CONTEXT_SWITCH", "seq": 251, "tick": 214, "from_tid": 3, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 304, "cx": 257, "dx": 305, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 2.14, "msg": {"type": "THREAD_STATE", "seq": 252, "tick": 214, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 2.14, "msg": {"type": "CONTEXT_SWITCH", "seq": 253, "tick": 214, "from_tid": 1, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 214, "di": 214, "bp": 13839}}}
+{"t": 2.17, "msg": {"type": "CONTEXT_SWITCH", "seq": 254, "tick": 217, "from_tid": 3, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 15887, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 186, "di": 186, "bp": 15887}}}
+{"t": 2.18, "msg": {"type": "CONTEXT_SWITCH", "seq": 255, "tick": 218, "from_tid": 4, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 13839, "ax": 663, "bx": 0, "cx": 2, "dx": 0, "si": 216, "di": 214, "bp": 13839}}}
+{"t": 2.21, "msg": {"type": "THREAD_STATE", "seq": 0, "tick": 221, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 2.21, "msg": {"type": "CONTEXT_SWITCH", "seq": 1, "tick": 221, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 392, "cx": 257, "dx": 393, "si": 10, "di": 22, "bp": 11769}}}
+{"t": 2.21, "msg": {"type": "CONSOLE", "seq": 2, "tick": 221, "text": "[A]e[B]"}}
+{"t": 2.21, "msg": {"type": "COUNTERS", "seq": 3, "tick": 221, "timer": 221, "keyboard": 34, "syscall": 0, "context_switches": 84, "drops": 0}}
+{"t": 2.21, "msg": {"type": "THREAD_STATE", "seq": 4, "tick": 221, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 2.21, "msg": {"type": "CONTEXT_SWITCH", "seq": 5, "tick": 221, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 220, "di": 214, "bp": 13839}}}
+{"t": 2.22, "msg": {"type": "THREAD_STATE", "seq": 6, "tick": 222, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 2.22, "msg": {"type": "CONTEXT_SWITCH", "seq": 7, "tick": 222, "from_tid": 3, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 470, "cx": 257, "dx": 471, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 2.22, "msg": {"type": "THREAD_STATE", "seq": 8, "tick": 222, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 2.22, "msg": {"type": "CONTEXT_SWITCH", "seq": 9, "tick": 222, "from_tid": 1, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 13839, "ax": 663, "bx": 0, "cx": 8, "dx": 0, "si": 222, "di": 214, "bp": 13839}}}
+{"t": 2.3, "msg": {"type": "THREAD_STATE", "seq": 10, "tick": 230, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 2.3, "msg": {"type": "CONTEXT_SWITCH", "seq": 11, "tick": 230, "from_tid": 3, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 699, "cx": 257, "dx": 700, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 2.3, "msg": {"type": "THREAD_STATE", "seq": 12, "tick": 230, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 2.3, "msg": {"type": "CONTEXT_SWITCH", "seq": 13, "tick": 230, "from_tid": 1, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 230, "di": 224, "bp": 13839}}}
+{"t": 2.31, "msg": {"type": "THREAD_STATE", "seq": 14, "tick": 231, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 2.31, "msg": {"type": "CONTEXT_SWITCH", "seq": 15, "tick": 231, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 621, "cx": 257, "dx": 622, "si": 10, "di": 23, "bp": 11769}}}
+{"t": 2.31, "msg": {"type": "CONSOLE", "seq": 16, "tick": 231, "text": "a[A]t"}}
+{"t": 2.31, "msg": {"type": "THREAD_STATE", "seq": 17, "tick": 231, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 2.31, "msg": {"type": "CONTEXT_SWITCH", "seq": 18, "tick": 231, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 230, "di": 224, "bp": 13839}}}
+{"t": 2.38, "msg": {"type": "THREAD_STATE", "seq": 19, "tick": 238, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 2.38, "msg": {"type": "CONTEXT_SWITCH", "seq": 20, "tick": 238, "from_tid": 3, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 777, "cx": 257, "dx": 778, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 2.38, "msg": {"type": "THREAD_STATE", "seq": 21, "tick": 238, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 2.38, "msg": {"type": "CONTEXT_SWITCH", "seq": 22, "tick": 238, "from_tid": 1, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 4, "dx": 0, "si": 238, "di": 234, "bp": 13839}}}
+{"t": 2.41, "msg": {"type": "THREAD_STATE", "seq": 23, "tick": 241, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 2.41, "msg": {"type": "CONTEXT_SWITCH", "seq": 24, "tick": 241, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 866, "cx": 257, "dx": 867, "si": 10, "di": 24, "bp": 11769}}}
+{"t": 2.41, "msg": {"type": "CONSOLE", "seq": 25, "tick": 241, "text": "[A]e"}}
+{"t": 2.41, "msg": {"type": "COUNTERS", "seq": 26, "tick": 241, "timer": 241, "keyboard": 40, "syscall": 0, "context_switches": 94, "drops": 0}}
+{"t": 2.41, "msg": {"type": "THREAD_STATE", "seq": 27, "tick": 241, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 2.41, "msg": {"type": "CONTEXT_SWITCH", "seq": 28, "tick": 241, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 240, "di": 234, "bp": 13839}}}
+{"t": 2.46, "msg": {"type": "CONTEXT_SWITCH", "seq": 29, "tick": 246, "from_tid": 3, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 15887, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 217, "di": 217, "bp": 15887}}}
+{"t": 2.46, "msg": {"type": "THREAD_STATE", "seq": 30, "tick": 246, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 2.46, "msg": {"type": "CONTEXT_SWITCH", "seq": 31, "tick": 246, "from_tid": 4, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 944, "cx": 257, "dx": 945, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 2.46, "msg": {"type": "CONSOLE", "seq": 32, "tick": 246, "text": "[A][B]\n"}}
+{"t": 2.47, "msg": {"type": "THREAD_CREATE", "seq": 33, "tick": 247, "tid": 5, "priority": 4, "name": "demo-C"}}
+{"t": 2.47, "msg": {"type": "CONSOLE", "seq": 34, "tick": 247, "text": "Created thread TID=5\n"}}
+{"t": 2.47, "msg": {"type": "THREAD_STATE", "seq": 35, "tick": 247, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 2.47, "msg": {"type": "CONTEXT_SWITCH", "seq": 36, "tick": 247, "from_tid": 1, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 1, "dx": 0, "si": 245, "di": 244, "bp": 13839}}}
+{"t": 2.51, "msg": {"type": "THREAD_STATE", "seq": 37, "tick": 251, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 2.51, "msg": {"type": "CONTEXT_SWITCH", "seq": 38, "tick": 251, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1032, "cx": 257, "dx": 1033, "si": 10, "di": 25, "bp": 11769}}}
+{"t": 2.51, "msg": {"type": "CONSOLE", "seq": 39, "tick": 251, "text": "phoenix> "}}
+{"t": 2.51, "msg": {"type": "THREAD_STATE", "seq": 40, "tick": 251, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 2.51, "msg": {"type": "CONTEXT_SWITCH", "seq": 41, "tick": 251, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 250, "di": 244, "bp": 13839}}}
+{"t": 2.61, "msg": {"type": "THREAD_STATE", "seq": 42, "tick": 261, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 2.61, "msg": {"type": "CONTEXT_SWITCH", "seq": 43, "tick": 261, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1293, "cx": 257, "dx": 1294, "si": 10, "di": 26, "bp": 11769}}}
+{"t": 2.61, "msg": {"type": "CONSOLE", "seq": 44, "tick": 261, "text": "[A]"}}
+{"t": 2.61, "msg": {"type": "COUNTERS", "seq": 45, "tick": 261, "timer": 261, "keyboard": 42, "syscall": 0, "context_switches": 101, "drops": 0}}
+{"t": 2.61, "msg": {"type": "THREAD_STATE", "seq": 46, "tick": 261, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 2.61, "msg": {"type": "CONTEXT_SWITCH", "seq": 47, "tick": 261, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 260, "di": 254, "bp": 13839}}}
+{"t": 2.66, "msg": {"type": "CONTEXT_SWITCH", "seq": 48, "tick": 266, "from_tid": 3, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 15887, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 246, "di": 246, "bp": 15887}}}
+{"t": 2.67, "msg": {"type": "CONTEXT_SWITCH", "seq": 49, "tick": 267, "from_tid": 4, "to_tid": 5, "regs": {"ip": 6731, "cs": 4096, "flags": 514, "sp": 17971, "ax": 0, "bx": 0, "cx": 0, "dx": 0, "si": 0, "di": 0, "bp": 0}}}
+{"t": 2.68, "msg": {"type": "CONTEXT_SWITCH", "seq": 50, "tick": 268, "from_tid": 5, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 1, "dx": 0, "si": 265, "di": 264, "bp": 13839}}}
+{"t": 2.71, "msg": {"type": "THREAD_STATE", "seq": 51, "tick": 271, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 2.71, "msg": {"type": "CONTEXT_SWITCH", "seq": 52, "tick": 271, "from_tid": 3, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1380, "cx": 257, "dx": 1381, "si": 10, "di": 27, "bp": 11769}}}
+{"t": 2.71, "msg": {"type": "CONSOLE", "seq": 53, "tick": 271, "text": "[A][B][C]"}}
+{"t": 2.71, "msg": {"type": "THREAD_STATE", "seq": 54, "tick": 271, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 2.71, "msg": {"type": "CONTEXT_SWITCH", "seq": 55, "tick": 271, "from_tid": 2, "to_tid": 3, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 13839, "ax": 659, "bx": 0, "cx": 6, "dx": 0, "si": 270, "di": 264, "bp": 13839}}}
+{"t": 2.74, "msg": {"type": "THREAD_EXIT", "seq": 56, "tick": 274, "tid": 3}}
+{"t": 2.74, "msg": {"type": "CONTEXT_SWITCH", "seq": 57, "tick": 274, "from_tid": 3, "to_tid": 5, "regs": {"ip": 1815, "cs": 4096, "flags": 659, "sp": 17947, "ax": 0, "bx": 0, "cx": 0, "dx": 0, "si": 0, "di": 267, "bp": 17967}}}
+{"t": 2.79, "msg": {"type": "CONTEXT_SWITCH", "seq": 58, "tick": 279, "from_tid": 5, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 15887, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 266, "di": 266, "bp": 15887}}}
+{"t": 2.8, "msg": {"type": "CONTEXT_SWITCH", "seq": 59, "tick": 280, "from_tid": 4, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 17935, "ax": 659, "bx": 0, "cx": 1, "dx": 0, "si": 278, "di": 277, "bp": 17935}}}
+{"t": 2.81, "msg": {"type": "THREAD_STATE", "seq": 60, "tick": 281, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 2.81, "msg": {"type": "CONTEXT_SWITCH", "seq": 61, "tick": 281, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1563, "cx": 257, "dx": 1564, "si": 10, "di": 28, "bp": 11769}}}
+{"t": 2.81, "msg": {"type": "CONSOLE", "seq": 62, "tick": 281, "text": "[C][B]"}}
+{"t": 2.81, "msg": {"type": "COUNTERS", "seq": 63, "tick": 281, "timer": 281, "keyboard": 42, "syscall": 0, "context_switches": 111, "drops": 0}}
+{"t": 2.81, "msg": {"type": "THREAD_STATE", "seq": 64, "tick": 281, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 2.81, "msg": {"type": "CONTEXT_SWITCH", "seq": 65, "tick": 281, "from_tid": 2, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 280, "di": 277, "bp": 17935}}}
+{"t": 2.91, "msg": {"type": "THREAD_STATE", "seq": 66, "tick": 291, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 2.91, "msg": {"type": "CONTEXT_SWITCH", "seq": 67, "tick": 291, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1750, "cx": 257, "dx": 1751, "si": 10, "di": 29, "bp": 11769}}}
+{"t": 2.91, "msg": {"type": "CONSOLE", "seq": 68, "tick": 291, "text": "[C]"}}
+{"t": 2.91, "msg": {"type": "THREAD_STATE", "seq": 69, "tick": 291, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 2.91, "msg": {"type": "CONTEXT_SWITCH", "seq": 70, "tick": 291, "from_tid": 2, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 15887, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 279, "di": 279, "bp": 15887}}}
+{"t": 2.92, "msg": {"type": "CONTEXT_SWITCH", "seq": 71, "tick": 292, "from_tid": 4, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 290, "di": 287, "bp": 17935}}}
+{"t": 3.01, "msg": {"type": "THREAD_STATE", "seq": 72, "tick": 301, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 3.01, "msg": {"type": "CONTEXT_SWITCH", "seq": 73, "tick": 301, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1837, "cx": 257, "dx": 1838, "si": 10, "di": 30, "bp": 11769}}}
+{"t": 3.01, "msg": {"type": "CONSOLE", "seq": 74, "tick": 301, "text": "[B][C]"}}
+{"t": 3.01, "msg": {"type": "COUNTERS", "seq": 75, "tick": 301, "timer": 301, "keyboard": 42, "syscall": 0, "context_switches": 116, "drops": 0}}
+{"t": 3.01, "msg": {"type": "HELLO", "seq": 76, "tick": 301, "version": 1, "hz": 100, "max_threads": 8, "code_seg": 4096, "data_seg": 8192, "far_start_seg": 12288, "far_end_seg": 40896, "mem_kb": 639, "heap_start": 26664, "heap_end": 63488}}
+{"t": 3.01, "msg": {"type": "MEMORY", "seq": 77, "tick": 301, "heap_free": 36824, "heap_used": 0, "far_free_paras": 28607, "far_total_paras": 28608}}
+{"t": 3.01, "msg": {"type": "THREAD_STATS", "seq": 78, "tick": 301, "tid": 0, "state": "READY", "priority": 0, "cpu_ticks": 74, "sp": 65508, "stack_base": 63488, "stack_size": 2048, "name": "idle"}}
+{"t": 3.01, "msg": {"type": "THREAD_STATS", "seq": 79, "tick": 301, "tid": 1, "state": "BLOCKED", "priority": 10, "cpu_ticks": 1, "sp": 9651, "stack_base": 7733, "stack_size": 2048, "name": "shell"}}
+{"t": 3.01, "msg": {"type": "THREAD_STATS", "seq": 80, "tick": 301, "tid": 2, "state": "RUNNING", "priority": 12, "cpu_ticks": 0, "sp": 11739, "stack_base": 9781, "stack_size": 2048, "name": "telemetry"}}
+{"t": 3.01, "msg": {"type": "THREAD_STATS", "seq": 81, "tick": 301, "tid": 4, "state": "READY", "priority": 3, "cpu_ticks": 5, "sp": 15863, "stack_base": 13877, "stack_size": 2048, "name": "demo-B"}}
+{"t": 3.01, "msg": {"type": "THREAD_STATS", "seq": 82, "tick": 301, "tid": 5, "state": "READY", "priority": 4, "cpu_ticks": 26, "sp": 17911, "stack_base": 15925, "stack_size": 2048, "name": "demo-C"}}
+{"t": 3.01, "msg": {"type": "THREAD_STATE", "seq": 83, "tick": 301, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 3.01, "msg": {"type": "CONTEXT_SWITCH", "seq": 84, "tick": 301, "from_tid": 2, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 300, "di": 297, "bp": 17935}}}
+{"t": 3.06, "msg": {"type": "CONTEXT_SWITCH", "seq": 85, "tick": 306, "from_tid": 5, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 15887, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 291, "di": 291, "bp": 15887}}}
+{"t": 3.07, "msg": {"type": "CONTEXT_SWITCH", "seq": 86, "tick": 307, "from_tid": 4, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 8, "dx": 0, "si": 305, "di": 297, "bp": 17935}}}
+{"t": 3.11, "msg": {"type": "THREAD_STATE", "seq": 87, "tick": 311, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 3.11, "msg": {"type": "CONTEXT_SWITCH", "seq": 88, "tick": 311, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1957, "cx": 257, "dx": 1958, "si": 10, "di": 31, "bp": 11769}}}
+{"t": 3.11, "msg": {"type": "CONSOLE", "seq": 89, "tick": 311, "text": "[B][C]"}}
+{"t": 3.11, "msg": {"type": "THREAD_STATE", "seq": 90, "tick": 311, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 3.11, "msg": {"type": "CONTEXT_SWITCH", "seq": 91, "tick": 311, "from_tid": 2, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 310, "di": 307, "bp": 17935}}}
+{"t": 3.21, "msg": {"type": "THREAD_STATE", "seq": 92, "tick": 321, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 3.21, "msg": {"type": "CONTEXT_SWITCH", "seq": 93, "tick": 321, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2107, "cx": 257, "dx": 2108, "si": 10, "di": 32, "bp": 11769}}}
+{"t": 3.21, "msg": {"type": "CONSOLE", "seq": 94, "tick": 321, "text": "[C]"}}
+{"t": 3.21, "msg": {"type": "COUNTERS", "seq": 95, "tick": 321, "timer": 321, "keyboard": 42, "syscall": 0, "context_switches": 122, "drops": 0}}
+{"t": 3.21, "msg": {"type": "THREAD_STATE", "seq": 96, "tick": 321, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 3.21, "msg": {"type": "CONTEXT_SWITCH", "seq": 97, "tick": 321, "from_tid": 2, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 15887, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 306, "di": 306, "bp": 15887}}}
+{"t": 3.22, "msg": {"type": "CONTEXT_SWITCH", "seq": 98, "tick": 322, "from_tid": 4, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 320, "di": 317, "bp": 17935}}}
+{"t": 3.31, "msg": {"type": "THREAD_STATE", "seq": 99, "tick": 331, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 3.31, "msg": {"type": "CONTEXT_SWITCH", "seq": 100, "tick": 331, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2194, "cx": 257, "dx": 2195, "si": 10, "di": 33, "bp": 11769}}}
+{"t": 3.31, "msg": {"type": "CONSOLE", "seq": 101, "tick": 331, "text": "[B][C]"}}
+{"t": 3.31, "msg": {"type": "THREAD_STATE", "seq": 102, "tick": 331, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 3.31, "msg": {"type": "CONTEXT_SWITCH", "seq": 103, "tick": 331, "from_tid": 2, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 330, "di": 327, "bp": 17935}}}
+{"t": 3.36, "msg": {"type": "CONTEXT_SWITCH", "seq": 104, "tick": 336, "from_tid": 5, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 15887, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 321, "di": 321, "bp": 15887}}}
+{"t": 3.37, "msg": {"type": "CONTEXT_SWITCH", "seq": 105, "tick": 337, "from_tid": 4, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 8, "dx": 0, "si": 335, "di": 327, "bp": 17935}}}
+{"t": 3.41, "msg": {"type": "THREAD_STATE", "seq": 106, "tick": 341, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 3.41, "msg": {"type": "CONTEXT_SWITCH", "seq": 107, "tick": 341, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2314, "cx": 257, "dx": 2315, "si": 10, "di": 34, "bp": 11769}}}
+{"t": 3.41, "msg": {"type": "CONSOLE", "seq": 108, "tick": 341, "text": "[B][C]"}}
+{"t": 3.41, "msg": {"type": "COUNTERS", "seq": 109, "tick": 341, "timer": 341, "keyboard": 42, "syscall": 0, "context_switches": 129, "drops": 0}}
+{"t": 3.41, "msg": {"type": "THREAD_STATE", "seq": 110, "tick": 341, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 3.41, "msg": {"type": "CONTEXT_SWITCH", "seq": 111, "tick": 341, "from_tid": 2, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 340, "di": 337, "bp": 17935}}}
+{"t": 3.51, "msg": {"type": "THREAD_STATE", "seq": 112, "tick": 351, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 3.51, "msg": {"type": "CONTEXT_SWITCH", "seq": 113, "tick": 351, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2464, "cx": 257, "dx": 2465, "si": 10, "di": 35, "bp": 11769}}}
+{"t": 3.51, "msg": {"type": "CONSOLE", "seq": 114, "tick": 351, "text": "[C]"}}
+{"t": 3.51, "msg": {"type": "THREAD_STATE", "seq": 115, "tick": 351, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 3.51, "msg": {"type": "CONTEXT_SWITCH", "seq": 116, "tick": 351, "from_tid": 2, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 15887, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 336, "di": 336, "bp": 15887}}}
+{"t": 3.52, "msg": {"type": "CONTEXT_SWITCH", "seq": 117, "tick": 352, "from_tid": 4, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 350, "di": 347, "bp": 17935}}}
+{"t": 3.61, "msg": {"type": "THREAD_STATE", "seq": 118, "tick": 361, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 3.61, "msg": {"type": "CONTEXT_SWITCH", "seq": 119, "tick": 361, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2551, "cx": 257, "dx": 2552, "si": 10, "di": 36, "bp": 11769}}}
+{"t": 3.61, "msg": {"type": "CONSOLE", "seq": 120, "tick": 361, "text": "[B][C]"}}
+{"t": 3.61, "msg": {"type": "COUNTERS", "seq": 121, "tick": 361, "timer": 361, "keyboard": 42, "syscall": 0, "context_switches": 134, "drops": 0}}
+{"t": 3.61, "msg": {"type": "THREAD_STATE", "seq": 122, "tick": 361, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 3.61, "msg": {"type": "CONTEXT_SWITCH", "seq": 123, "tick": 361, "from_tid": 2, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 360, "di": 357, "bp": 17935}}}
+{"t": 3.66, "msg": {"type": "CONTEXT_SWITCH", "seq": 124, "tick": 366, "from_tid": 5, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 15887, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 351, "di": 351, "bp": 15887}}}
+{"t": 3.67, "msg": {"type": "CONTEXT_SWITCH", "seq": 125, "tick": 367, "from_tid": 4, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 8, "dx": 0, "si": 365, "di": 357, "bp": 17935}}}
+{"t": 3.71, "msg": {"type": "THREAD_STATE", "seq": 126, "tick": 371, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 3.71, "msg": {"type": "CONTEXT_SWITCH", "seq": 127, "tick": 371, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2671, "cx": 257, "dx": 2672, "si": 10, "di": 37, "bp": 11769}}}
+{"t": 3.71, "msg": {"type": "CONSOLE", "seq": 128, "tick": 371, "text": "[B][C]"}}
+{"t": 3.71, "msg": {"type": "THREAD_STATE", "seq": 129, "tick": 371, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 3.71, "msg": {"type": "CONTEXT_SWITCH", "seq": 130, "tick": 371, "from_tid": 2, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 370, "di": 367, "bp": 17935}}}
+{"t": 3.81, "msg": {"type": "THREAD_STATE", "seq": 131, "tick": 381, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 3.81, "msg": {"type": "CONTEXT_SWITCH", "seq": 132, "tick": 381, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2821, "cx": 257, "dx": 2822, "si": 10, "di": 38, "bp": 11769}}}
+{"t": 3.81, "msg": {"type": "CONSOLE", "seq": 133, "tick": 381, "text": "[C]"}}
+{"t": 3.81, "msg": {"type": "COUNTERS", "seq": 134, "tick": 381, "timer": 381, "keyboard": 42, "syscall": 0, "context_switches": 140, "drops": 0}}
+{"t": 3.81, "msg": {"type": "THREAD_STATE", "seq": 135, "tick": 381, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 3.81, "msg": {"type": "CONTEXT_SWITCH", "seq": 136, "tick": 381, "from_tid": 2, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 15887, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 366, "di": 366, "bp": 15887}}}
+{"t": 3.82, "msg": {"type": "CONTEXT_SWITCH", "seq": 137, "tick": 382, "from_tid": 4, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 380, "di": 377, "bp": 17935}}}
+{"t": 3.91, "msg": {"type": "THREAD_STATE", "seq": 138, "tick": 391, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 3.91, "msg": {"type": "CONTEXT_SWITCH", "seq": 139, "tick": 391, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2908, "cx": 257, "dx": 2909, "si": 10, "di": 39, "bp": 11769}}}
+{"t": 3.91, "msg": {"type": "CONSOLE", "seq": 140, "tick": 391, "text": "[B][C]"}}
+{"t": 3.91, "msg": {"type": "THREAD_STATE", "seq": 141, "tick": 391, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 3.91, "msg": {"type": "CONTEXT_SWITCH", "seq": 142, "tick": 391, "from_tid": 2, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 390, "di": 387, "bp": 17935}}}
+{"t": 3.96, "msg": {"type": "CONTEXT_SWITCH", "seq": 143, "tick": 396, "from_tid": 5, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 15887, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 381, "di": 381, "bp": 15887}}}
+{"t": 3.97, "msg": {"type": "CONTEXT_SWITCH", "seq": 144, "tick": 397, "from_tid": 4, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 8, "dx": 0, "si": 395, "di": 387, "bp": 17935}}}
+{"t": 4.01, "msg": {"type": "THREAD_STATE", "seq": 145, "tick": 401, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 4.01, "msg": {"type": "CONTEXT_SWITCH", "seq": 146, "tick": 401, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3028, "cx": 257, "dx": 3029, "si": 10, "di": 40, "bp": 11769}}}
+{"t": 4.01, "msg": {"type": "CONSOLE", "seq": 147, "tick": 401, "text": "[B][C]"}}
+{"t": 4.01, "msg": {"type": "COUNTERS", "seq": 148, "tick": 401, "timer": 401, "keyboard": 42, "syscall": 0, "context_switches": 147, "drops": 0}}
+{"t": 4.01, "msg": {"type": "HELLO", "seq": 149, "tick": 401, "version": 1, "hz": 100, "max_threads": 8, "code_seg": 4096, "data_seg": 8192, "far_start_seg": 12288, "far_end_seg": 40896, "mem_kb": 639, "heap_start": 26664, "heap_end": 63488}}
+{"t": 4.01, "msg": {"type": "MEMORY", "seq": 150, "tick": 401, "heap_free": 36824, "heap_used": 0, "far_free_paras": 28607, "far_total_paras": 28608}}
+{"t": 4.01, "msg": {"type": "THREAD_STATS", "seq": 151, "tick": 401, "tid": 0, "state": "READY", "priority": 0, "cpu_ticks": 74, "sp": 65508, "stack_base": 63488, "stack_size": 2048, "name": "idle"}}
+{"t": 4.01, "msg": {"type": "THREAD_STATS", "seq": 152, "tick": 401, "tid": 1, "state": "BLOCKED", "priority": 10, "cpu_ticks": 1, "sp": 9651, "stack_base": 7733, "stack_size": 2048, "name": "shell"}}
+{"t": 4.01, "msg": {"type": "THREAD_STATS", "seq": 153, "tick": 401, "tid": 2, "state": "RUNNING", "priority": 12, "cpu_ticks": 0, "sp": 11739, "stack_base": 9781, "stack_size": 2048, "name": "telemetry"}}
+{"t": 4.01, "msg": {"type": "THREAD_STATS", "seq": 154, "tick": 401, "tid": 4, "state": "READY", "priority": 3, "cpu_ticks": 12, "sp": 15863, "stack_base": 13877, "stack_size": 2048, "name": "demo-B"}}
+{"t": 4.01, "msg": {"type": "THREAD_STATS", "seq": 155, "tick": 401, "tid": 5, "state": "READY", "priority": 4, "cpu_ticks": 119, "sp": 17911, "stack_base": 15925, "stack_size": 2048, "name": "demo-C"}}
+{"t": 4.01, "msg": {"type": "THREAD_STATE", "seq": 156, "tick": 401, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 4.01, "msg": {"type": "CONTEXT_SWITCH", "seq": 157, "tick": 401, "from_tid": 2, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 400, "di": 397, "bp": 17935}}}
+{"t": 4.11, "msg": {"type": "THREAD_STATE", "seq": 158, "tick": 411, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 4.11, "msg": {"type": "CONTEXT_SWITCH", "seq": 159, "tick": 411, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3178, "cx": 257, "dx": 3179, "si": 10, "di": 41, "bp": 11769}}}
+{"t": 4.11, "msg": {"type": "CONSOLE", "seq": 160, "tick": 411, "text": "[C]"}}
+{"t": 4.11, "msg": {"type": "THREAD_STATE", "seq": 161, "tick": 411, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 4.11, "msg": {"type": "CONTEXT_SWITCH", "seq": 162, "tick": 411, "from_tid": 2, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 15887, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 396, "di": 396, "bp": 15887}}}
+{"t": 4.12, "msg": {"type": "CONTEXT_SWITCH", "seq": 163, "tick": 412, "from_tid": 4, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 410, "di": 407, "bp": 17935}}}
+{"t": 4.21, "msg": {"type": "THREAD_STATE", "seq": 164, "tick": 421, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 4.21, "msg": {"type": "CONTEXT_SWITCH", "seq": 165, "tick": 421, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3265, "cx": 257, "dx": 3266, "si": 10, "di": 42, "bp": 11769}}}
+{"t": 4.21, "msg": {"type": "CONSOLE", "seq": 166, "tick": 421, "text": "[B][C]"}}
+{"t": 4.21, "msg": {"type": "COUNTERS", "seq": 167, "tick": 421, "timer": 421, "keyboard": 42, "syscall": 0, "context_switches": 152, "drops": 0}}
+{"t": 4.21, "msg": {"type": "THREAD_STATE", "seq": 168, "tick": 421, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 4.21, "msg": {"type": "CONTEXT_SWITCH", "seq": 169, "tick": 421, "from_tid": 2, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 420, "di": 417, "bp": 17935}}}
+{"t": 4.26, "msg": {"type": "CONTEXT_SWITCH", "seq": 170, "tick": 426, "from_tid": 5, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 15887, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 411, "di": 411, "bp": 15887}}}
+{"t": 4.27, "msg": {"type": "CONTEXT_SWITCH", "seq": 171, "tick": 427, "from_tid": 4, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 8, "dx": 0, "si": 425, "di": 417, "bp": 17935}}}
+{"t": 4.31, "msg": {"type": "THREAD_STATE", "seq": 172, "tick": 431, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 4.31, "msg": {"type": "CONTEXT_SWITCH", "seq": 173, "tick": 431, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3385, "cx": 257, "dx": 3386, "si": 10, "di": 43, "bp": 11769}}}
+{"t": 4.31, "msg": {"type": "CONSOLE", "seq": 174, "tick": 431, "text": "[B][C]"}}
+{"t": 4.31, "msg": {"type": "THREAD_STATE", "seq": 175, "tick": 431, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 4.31, "msg": {"type": "CONTEXT_SWITCH", "seq": 176, "tick": 431, "from_tid": 2, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 430, "di": 427, "bp": 17935}}}
+{"t": 4.41, "msg": {"type": "THREAD_STATE", "seq": 177, "tick": 441, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 4.41, "msg": {"type": "CONTEXT_SWITCH", "seq": 178, "tick": 441, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3535, "cx": 257, "dx": 3536, "si": 10, "di": 44, "bp": 11769}}}
+{"t": 4.41, "msg": {"type": "CONSOLE", "seq": 179, "tick": 441, "text": "[C]"}}
+{"t": 4.41, "msg": {"type": "COUNTERS", "seq": 180, "tick": 441, "timer": 441, "keyboard": 42, "syscall": 0, "context_switches": 158, "drops": 0}}
+{"t": 4.41, "msg": {"type": "THREAD_STATE", "seq": 181, "tick": 441, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 4.41, "msg": {"type": "CONTEXT_SWITCH", "seq": 182, "tick": 441, "from_tid": 2, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 15887, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 426, "di": 426, "bp": 15887}}}
+{"t": 4.42, "msg": {"type": "CONTEXT_SWITCH", "seq": 183, "tick": 442, "from_tid": 4, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 440, "di": 437, "bp": 17935}}}
+{"t": 4.51, "msg": {"type": "THREAD_STATE", "seq": 184, "tick": 451, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 4.51, "msg": {"type": "CONTEXT_SWITCH", "seq": 185, "tick": 451, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3622, "cx": 257, "dx": 3623, "si": 10, "di": 45, "bp": 11769}}}
+{"t": 4.51, "msg": {"type": "CONSOLE", "seq": 186, "tick": 451, "text": "[B][C]"}}
+{"t": 4.51, "msg": {"type": "THREAD_STATE", "seq": 187, "tick": 451, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 4.51, "msg": {"type": "CONTEXT_SWITCH", "seq": 188, "tick": 451, "from_tid": 2, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 450, "di": 447, "bp": 17935}}}
+{"t": 4.56, "msg": {"type": "CONTEXT_SWITCH", "seq": 189, "tick": 456, "from_tid": 5, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 15887, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 441, "di": 441, "bp": 15887}}}
+{"t": 4.57, "msg": {"type": "CONTEXT_SWITCH", "seq": 190, "tick": 457, "from_tid": 4, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 8, "dx": 0, "si": 455, "di": 447, "bp": 17935}}}
+{"t": 4.61, "msg": {"type": "THREAD_STATE", "seq": 191, "tick": 461, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 4.61, "msg": {"type": "CONTEXT_SWITCH", "seq": 192, "tick": 461, "from_tid": 5, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3742, "cx": 257, "dx": 3743, "si": 10, "di": 46, "bp": 11769}}}
+{"t": 4.61, "msg": {"type": "CONSOLE", "seq": 193, "tick": 461, "text": "[B][C]"}}
+{"t": 4.61, "msg": {"type": "COUNTERS", "seq": 194, "tick": 461, "timer": 461, "keyboard": 42, "syscall": 0, "context_switches": 165, "drops": 0}}
+{"t": 4.61, "msg": {"type": "THREAD_STATE", "seq": 195, "tick": 461, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 4.61, "msg": {"type": "CONTEXT_SWITCH", "seq": 196, "tick": 461, "from_tid": 2, "to_tid": 5, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 17935, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 460, "di": 457, "bp": 17935}}}
+{"t": 4.67, "msg": {"type": "THREAD_EXIT", "seq": 197, "tick": 467, "tid": 5}}
+{"t": 4.67, "msg": {"type": "CONTEXT_SWITCH", "seq": 198, "tick": 467, "from_tid": 5, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 659, "sp": 15887, "ax": 659, "bx": 0, "cx": 0, "dx": 0, "si": 456, "di": 456, "bp": 15887}}}
+{"t": 4.71, "msg": {"type": "THREAD_STATE", "seq": 199, "tick": 471, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 4.71, "msg": {"type": "CONTEXT_SWITCH", "seq": 200, "tick": 471, "from_tid": 4, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3892, "cx": 257, "dx": 3893, "si": 10, "di": 47, "bp": 11769}}}
+{"t": 4.71, "msg": {"type": "CONSOLE", "seq": 201, "tick": 471, "text": "[B]"}}
+{"t": 4.71, "msg": {"type": "THREAD_STATE", "seq": 202, "tick": 471, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 4.71, "msg": {"type": "CONTEXT_SWITCH", "seq": 203, "tick": 471, "from_tid": 2, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 15887, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 470, "di": 467, "bp": 15887}}}
+{"t": 4.81, "msg": {"type": "THREAD_STATE", "seq": 204, "tick": 481, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 4.81, "msg": {"type": "CONTEXT_SWITCH", "seq": 205, "tick": 481, "from_tid": 4, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 4016, "cx": 257, "dx": 4017, "si": 10, "di": 48, "bp": 11769}}}
+{"t": 4.81, "msg": {"type": "CONSOLE", "seq": 206, "tick": 481, "text": "[B]"}}
+{"t": 4.81, "msg": {"type": "COUNTERS", "seq": 207, "tick": 481, "timer": 481, "keyboard": 42, "syscall": 0, "context_switches": 170, "drops": 0}}
+{"t": 4.81, "msg": {"type": "THREAD_STATE", "seq": 208, "tick": 481, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 4.81, "msg": {"type": "CONTEXT_SWITCH", "seq": 209, "tick": 481, "from_tid": 2, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 15887, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 480, "di": 477, "bp": 15887}}}
+{"t": 4.91, "msg": {"type": "THREAD_STATE", "seq": 210, "tick": 491, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 4.91, "msg": {"type": "CONTEXT_SWITCH", "seq": 211, "tick": 491, "from_tid": 4, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 7, "cx": 257, "dx": 8, "si": 10, "di": 49, "bp": 11769}}}
+{"t": 4.91, "msg": {"type": "CONSOLE", "seq": 212, "tick": 491, "text": "[B]"}}
+{"t": 4.91, "msg": {"type": "THREAD_STATE", "seq": 213, "tick": 491, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 4.91, "msg": {"type": "CONTEXT_SWITCH", "seq": 214, "tick": 491, "from_tid": 2, "to_tid": 4, "regs": {"ip": 446, "cs": 4096, "flags": 663, "sp": 15887, "ax": 663, "bx": 0, "cx": 3, "dx": 0, "si": 490, "di": 487, "bp": 15887}}}
+{"t": 4.97, "msg": {"type": "THREAD_EXIT", "seq": 215, "tick": 497, "tid": 4}}
+{"t": 4.97, "msg": {"type": "CONTEXT_SWITCH", "seq": 216, "tick": 497, "from_tid": 4, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 5.01, "msg": {"type": "THREAD_STATE", "seq": 217, "tick": 501, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 5.01, "msg": {"type": "CONTEXT_SWITCH", "seq": 218, "tick": 501, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 94, "cx": 257, "dx": 95, "si": 10, "di": 50, "bp": 11769}}}
+{"t": 5.01, "msg": {"type": "COUNTERS", "seq": 219, "tick": 501, "timer": 501, "keyboard": 42, "syscall": 0, "context_switches": 175, "drops": 0}}
+{"t": 5.01, "msg": {"type": "HELLO", "seq": 220, "tick": 501, "version": 1, "hz": 100, "max_threads": 8, "code_seg": 4096, "data_seg": 8192, "far_start_seg": 12288, "far_end_seg": 40896, "mem_kb": 639, "heap_start": 26664, "heap_end": 63488}}
+{"t": 5.01, "msg": {"type": "MEMORY", "seq": 221, "tick": 501, "heap_free": 36824, "heap_used": 0, "far_free_paras": 28607, "far_total_paras": 28608}}
+{"t": 5.01, "msg": {"type": "THREAD_STATS", "seq": 222, "tick": 501, "tid": 0, "state": "READY", "priority": 0, "cpu_ticks": 78, "sp": 65508, "stack_base": 63488, "stack_size": 2048, "name": "idle"}}
+{"t": 5.01, "msg": {"type": "THREAD_STATS", "seq": 223, "tick": 501, "tid": 1, "state": "BLOCKED", "priority": 10, "cpu_ticks": 1, "sp": 9651, "stack_base": 7733, "stack_size": 2048, "name": "shell"}}
+{"t": 5.01, "msg": {"type": "THREAD_STATS", "seq": 224, "tick": 501, "tid": 2, "state": "RUNNING", "priority": 12, "cpu_ticks": 0, "sp": 11739, "stack_base": 9781, "stack_size": 2048, "name": "telemetry"}}
+{"t": 5.01, "msg": {"type": "THREAD_STATE", "seq": 225, "tick": 501, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 5.01, "msg": {"type": "CONTEXT_SWITCH", "seq": 226, "tick": 501, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 5.11, "msg": {"type": "THREAD_STATE", "seq": 227, "tick": 511, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 5.11, "msg": {"type": "CONTEXT_SWITCH", "seq": 228, "tick": 511, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 209, "cx": 257, "dx": 210, "si": 10, "di": 51, "bp": 11769}}}
+{"t": 5.11, "msg": {"type": "THREAD_STATE", "seq": 229, "tick": 511, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 5.11, "msg": {"type": "CONTEXT_SWITCH", "seq": 230, "tick": 511, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 5.21, "msg": {"type": "THREAD_STATE", "seq": 231, "tick": 521, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 5.21, "msg": {"type": "CONTEXT_SWITCH", "seq": 232, "tick": 521, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 287, "cx": 257, "dx": 288, "si": 10, "di": 52, "bp": 11769}}}
+{"t": 5.21, "msg": {"type": "COUNTERS", "seq": 233, "tick": 521, "timer": 521, "keyboard": 42, "syscall": 0, "context_switches": 179, "drops": 0}}
+{"t": 5.21, "msg": {"type": "THREAD_STATE", "seq": 234, "tick": 521, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 5.21, "msg": {"type": "CONTEXT_SWITCH", "seq": 235, "tick": 521, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 5.31, "msg": {"type": "THREAD_STATE", "seq": 236, "tick": 531, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 5.31, "msg": {"type": "CONTEXT_SWITCH", "seq": 237, "tick": 531, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 365, "cx": 257, "dx": 366, "si": 10, "di": 53, "bp": 11769}}}
+{"t": 5.31, "msg": {"type": "THREAD_STATE", "seq": 238, "tick": 531, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 5.31, "msg": {"type": "CONTEXT_SWITCH", "seq": 239, "tick": 531, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 5.41, "msg": {"type": "THREAD_STATE", "seq": 240, "tick": 541, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 5.41, "msg": {"type": "CONTEXT_SWITCH", "seq": 241, "tick": 541, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 443, "cx": 257, "dx": 444, "si": 10, "di": 54, "bp": 11769}}}
+{"t": 5.41, "msg": {"type": "COUNTERS", "seq": 242, "tick": 541, "timer": 541, "keyboard": 42, "syscall": 0, "context_switches": 183, "drops": 0}}
+{"t": 5.41, "msg": {"type": "THREAD_STATE", "seq": 243, "tick": 541, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 5.41, "msg": {"type": "CONTEXT_SWITCH", "seq": 244, "tick": 541, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 5.51, "msg": {"type": "THREAD_STATE", "seq": 245, "tick": 551, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 5.51, "msg": {"type": "CONTEXT_SWITCH", "seq": 246, "tick": 551, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 521, "cx": 257, "dx": 522, "si": 10, "di": 55, "bp": 11769}}}
+{"t": 5.51, "msg": {"type": "THREAD_STATE", "seq": 247, "tick": 551, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 5.51, "msg": {"type": "CONTEXT_SWITCH", "seq": 248, "tick": 551, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 5.55, "msg": {"type": "THREAD_STATE", "seq": 249, "tick": 555, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 5.55, "msg": {"type": "CONTEXT_SWITCH", "seq": 250, "tick": 555, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 1200, "cx": 257, "dx": 1201, "si": 582, "di": 5606, "bp": 9683}}}
+{"t": 5.55, "msg": {"type": "THREAD_STATE", "seq": 251, "tick": 555, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 5.55, "msg": {"type": "CONTEXT_SWITCH", "seq": 252, "tick": 555, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 5.61, "msg": {"type": "THREAD_STATE", "seq": 253, "tick": 561, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 5.61, "msg": {"type": "CONTEXT_SWITCH", "seq": 254, "tick": 561, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 599, "cx": 257, "dx": 600, "si": 10, "di": 56, "bp": 11769}}}
+{"t": 5.61, "msg": {"type": "CONSOLE", "seq": 255, "tick": 561, "text": "p"}}
+{"t": 5.61, "msg": {"type": "COUNTERS", "seq": 0, "tick": 561, "timer": 561, "keyboard": 44, "syscall": 0, "context_switches": 189, "drops": 0}}
+{"t": 5.61, "msg": {"type": "THREAD_STATE", "seq": 1, "tick": 561, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 5.61, "msg": {"type": "CONTEXT_SWITCH", "seq": 2, "tick": 561, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 5.63, "msg": {"type": "THREAD_STATE", "seq": 3, "tick": 563, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 5.63, "msg": {"type": "CONTEXT_SWITCH", "seq": 4, "tick": 563, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 677, "cx": 257, "dx": 678, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 5.63, "msg": {"type": "THREAD_STATE", "seq": 5, "tick": 563, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 5.63, "msg": {"type": "CONTEXT_SWITCH", "seq": 6, "tick": 563, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 5.71, "msg": {"type": "THREAD_STATE", "seq": 7, "tick": 571, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 5.71, "msg": {"type": "CONTEXT_SWITCH", "seq": 8, "tick": 571, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 762, "cx": 257, "dx": 763, "si": 10, "di": 57, "bp": 11769}}}
+{"t": 5.71, "msg": {"type": "CONSOLE", "seq": 9, "tick": 571, "text": "s"}}
+{"t": 5.71, "msg": {"type": "THREAD_STATE", "seq": 10, "tick": 571, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 5.71, "msg": {"type": "CONTEXT_SWITCH", "seq": 11, "tick": 571, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 5.71, "msg": {"type": "THREAD_STATE", "seq": 12, "tick": 571, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 5.71, "msg": {"type": "CONTEXT_SWITCH", "seq": 13, "tick": 571, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 840, "cx": 257, "dx": 841, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 5.71, "msg": {"type": "CONSOLE", "seq": 14, "tick": 571, "text": "\n"}}
+{"t": 5.71, "msg": {"type": "CONSOLE", "seq": 15, "tick": 571, "text": "=== Thread List ===\n"}}
+{"t": 5.71, "msg": {"type": "CONSOLE", "seq": 16, "tick": 571, "text": "  TID  Name          State      Pri  CPU Ticks\n"}}
+{"t": 5.71, "msg": {"type": "CONSOLE", "seq": 17, "tick": 571, "text": "  ---  ----          -----      ---  ---------\n"}}
+{"t": 5.71, "msg": {"type": "CONSOLE", "seq": 18, "tick": 571, "text": "  0    idle          READY      0    148\n"}}
+{"t": 5.71, "msg": {"type": "CONSOLE", "seq": 19, "tick": 571, "text": "  1    shell         RUNNING    10    1\n"}}
+{"t": 5.71, "msg": {"type": "CONSOLE", "seq": 20, "tick": 571, "text": "  2    telemetry     SLEEPING   12    0\n"}}
+{"t": 5.71, "msg": {"type": "THREAD_STATE", "seq": 21, "tick": 571, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 5.71, "msg": {"type": "CONTEXT_SWITCH", "seq": 22, "tick": 571, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 5.81, "msg": {"type": "THREAD_STATE", "seq": 23, "tick": 581, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 5.81, "msg": {"type": "CONTEXT_SWITCH", "seq": 24, "tick": 581, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 925, "cx": 257, "dx": 926, "si": 10, "di": 58, "bp": 11769}}}
+{"t": 5.81, "msg": {"type": "CONSOLE", "seq": 25, "tick": 581, "text": "phoenix> "}}
+{"t": 5.81, "msg": {"type": "COUNTERS", "seq": 26, "tick": 581, "timer": 581, "keyboard": 48, "syscall": 0, "context_switches": 197, "drops": 0}}
+{"t": 5.82, "msg": {"type": "THREAD_STATE", "seq": 27, "tick": 582, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 5.82, "msg": {"type": "CONTEXT_SWITCH", "seq": 28, "tick": 582, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 5.92, "msg": {"type": "THREAD_STATE", "seq": 29, "tick": 592, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 5.92, "msg": {"type": "CONTEXT_SWITCH", "seq": 30, "tick": 592, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1374, "cx": 257, "dx": 1375, "si": 10, "di": 59, "bp": 11769}}}
+{"t": 5.92, "msg": {"type": "THREAD_STATE", "seq": 31, "tick": 592, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 5.92, "msg": {"type": "CONTEXT_SWITCH", "seq": 32, "tick": 592, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 6.02, "msg": {"type": "THREAD_STATE", "seq": 33, "tick": 602, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 6.02, "msg": {"type": "CONTEXT_SWITCH", "seq": 34, "tick": 602, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1452, "cx": 257, "dx": 1453, "si": 10, "di": 60, "bp": 11769}}}
+{"t": 6.02, "msg": {"type": "COUNTERS", "seq": 35, "tick": 602, "timer": 602, "keyboard": 48, "syscall": 0, "context_switches": 201, "drops": 0}}
+{"t": 6.02, "msg": {"type": "HELLO", "seq": 36, "tick": 602, "version": 1, "hz": 100, "max_threads": 8, "code_seg": 4096, "data_seg": 8192, "far_start_seg": 12288, "far_end_seg": 40896, "mem_kb": 639, "heap_start": 26664, "heap_end": 63488}}
+{"t": 6.02, "msg": {"type": "MEMORY", "seq": 37, "tick": 602, "heap_free": 36824, "heap_used": 0, "far_free_paras": 28607, "far_total_paras": 28608}}
+{"t": 6.02, "msg": {"type": "THREAD_STATS", "seq": 38, "tick": 602, "tid": 0, "state": "READY", "priority": 0, "cpu_ticks": 178, "sp": 65508, "stack_base": 63488, "stack_size": 2048, "name": "idle"}}
+{"t": 6.02, "msg": {"type": "THREAD_STATS", "seq": 39, "tick": 602, "tid": 1, "state": "BLOCKED", "priority": 10, "cpu_ticks": 1, "sp": 9651, "stack_base": 7733, "stack_size": 2048, "name": "shell"}}
+{"t": 6.02, "msg": {"type": "THREAD_STATS", "seq": 40, "tick": 602, "tid": 2, "state": "RUNNING", "priority": 12, "cpu_ticks": 1, "sp": 11739, "stack_base": 9781, "stack_size": 2048, "name": "telemetry"}}
+{"t": 6.02, "msg": {"type": "THREAD_STATE", "seq": 41, "tick": 602, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 6.02, "msg": {"type": "CONTEXT_SWITCH", "seq": 42, "tick": 602, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 6.12, "msg": {"type": "THREAD_STATE", "seq": 43, "tick": 612, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 6.12, "msg": {"type": "CONTEXT_SWITCH", "seq": 44, "tick": 612, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1530, "cx": 257, "dx": 1531, "si": 10, "di": 61, "bp": 11769}}}
+{"t": 6.12, "msg": {"type": "THREAD_STATE", "seq": 45, "tick": 612, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 6.12, "msg": {"type": "CONTEXT_SWITCH", "seq": 46, "tick": 612, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 6.22, "msg": {"type": "THREAD_STATE", "seq": 47, "tick": 622, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 6.22, "msg": {"type": "CONTEXT_SWITCH", "seq": 48, "tick": 622, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1608, "cx": 257, "dx": 1609, "si": 10, "di": 62, "bp": 11769}}}
+{"t": 6.22, "msg": {"type": "COUNTERS", "seq": 49, "tick": 622, "timer": 622, "keyboard": 48, "syscall": 0, "context_switches": 205, "drops": 0}}
+{"t": 6.22, "msg": {"type": "THREAD_STATE", "seq": 50, "tick": 622, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 6.22, "msg": {"type": "CONTEXT_SWITCH", "seq": 51, "tick": 622, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 6.32, "msg": {"type": "THREAD_STATE", "seq": 52, "tick": 632, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 6.32, "msg": {"type": "CONTEXT_SWITCH", "seq": 53, "tick": 632, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1686, "cx": 257, "dx": 1687, "si": 10, "di": 63, "bp": 11769}}}
+{"t": 6.32, "msg": {"type": "THREAD_STATE", "seq": 54, "tick": 632, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 6.32, "msg": {"type": "CONTEXT_SWITCH", "seq": 55, "tick": 632, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 6.42, "msg": {"type": "THREAD_STATE", "seq": 56, "tick": 642, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 6.42, "msg": {"type": "CONTEXT_SWITCH", "seq": 57, "tick": 642, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1764, "cx": 257, "dx": 1765, "si": 10, "di": 64, "bp": 11769}}}
+{"t": 6.42, "msg": {"type": "COUNTERS", "seq": 58, "tick": 642, "timer": 642, "keyboard": 48, "syscall": 0, "context_switches": 209, "drops": 0}}
+{"t": 6.42, "msg": {"type": "THREAD_STATE", "seq": 59, "tick": 642, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 6.42, "msg": {"type": "CONTEXT_SWITCH", "seq": 60, "tick": 642, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 6.49, "msg": {"type": "THREAD_STATE", "seq": 61, "tick": 649, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 6.49, "msg": {"type": "CONTEXT_SWITCH", "seq": 62, "tick": 649, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 1281, "cx": 257, "dx": 1282, "si": 582, "di": 5606, "bp": 9683}}}
+{"t": 6.49, "msg": {"type": "THREAD_STATE", "seq": 63, "tick": 649, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 6.49, "msg": {"type": "CONTEXT_SWITCH", "seq": 64, "tick": 649, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 6.52, "msg": {"type": "THREAD_STATE", "seq": 65, "tick": 652, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 6.52, "msg": {"type": "CONTEXT_SWITCH", "seq": 66, "tick": 652, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1842, "cx": 257, "dx": 1843, "si": 10, "di": 65, "bp": 11769}}}
+{"t": 6.52, "msg": {"type": "CONSOLE", "seq": 67, "tick": 652, "text": "i"}}
+{"t": 6.52, "msg": {"type": "THREAD_STATE", "seq": 68, "tick": 652, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 6.52, "msg": {"type": "CONTEXT_SWITCH", "seq": 69, "tick": 652, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 6.57, "msg": {"type": "THREAD_STATE", "seq": 70, "tick": 657, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 6.57, "msg": {"type": "CONTEXT_SWITCH", "seq": 71, "tick": 657, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 1920, "cx": 257, "dx": 1921, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 6.57, "msg": {"type": "THREAD_STATE", "seq": 72, "tick": 657, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 6.57, "msg": {"type": "CONTEXT_SWITCH", "seq": 73, "tick": 657, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 6.62, "msg": {"type": "THREAD_STATE", "seq": 74, "tick": 662, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 6.62, "msg": {"type": "CONTEXT_SWITCH", "seq": 75, "tick": 662, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2005, "cx": 257, "dx": 2006, "si": 10, "di": 66, "bp": 11769}}}
+{"t": 6.62, "msg": {"type": "CONSOLE", "seq": 76, "tick": 662, "text": "p"}}
+{"t": 6.62, "msg": {"type": "COUNTERS", "seq": 77, "tick": 662, "timer": 662, "keyboard": 52, "syscall": 0, "context_switches": 217, "drops": 0}}
+{"t": 6.62, "msg": {"type": "THREAD_STATE", "seq": 78, "tick": 662, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 6.62, "msg": {"type": "CONTEXT_SWITCH", "seq": 79, "tick": 662, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 6.65, "msg": {"type": "THREAD_STATE", "seq": 80, "tick": 665, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 6.65, "msg": {"type": "CONTEXT_SWITCH", "seq": 81, "tick": 665, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 2083, "cx": 257, "dx": 2084, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 6.65, "msg": {"type": "THREAD_STATE", "seq": 82, "tick": 665, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 6.65, "msg": {"type": "CONTEXT_SWITCH", "seq": 83, "tick": 665, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 6.72, "msg": {"type": "THREAD_STATE", "seq": 84, "tick": 672, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 6.72, "msg": {"type": "CONTEXT_SWITCH", "seq": 85, "tick": 672, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2168, "cx": 257, "dx": 2169, "si": 10, "di": 67, "bp": 11769}}}
+{"t": 6.72, "msg": {"type": "CONSOLE", "seq": 86, "tick": 672, "text": "c"}}
+{"t": 6.72, "msg": {"type": "THREAD_STATE", "seq": 87, "tick": 672, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 6.72, "msg": {"type": "CONTEXT_SWITCH", "seq": 88, "tick": 672, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 6.73, "msg": {"type": "THREAD_STATE", "seq": 89, "tick": 673, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 6.73, "msg": {"type": "CONTEXT_SWITCH", "seq": 90, "tick": 673, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 2246, "cx": 257, "dx": 2247, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 6.73, "msg": {"type": "CONSOLE", "seq": 91, "tick": 673, "text": "\n"}}
+{"t": 6.73, "msg": {"type": "THREAD_CREATE", "seq": 92, "tick": 673, "tid": 3, "priority": 6, "name": "consumer"}}
+{"t": 6.73, "msg": {"type": "CONSOLE", "seq": 93, "tick": 673, "text": "Created thread TID=3\n"}}
+{"t": 6.73, "msg": {"type": "THREAD_CREATE", "seq": 94, "tick": 673, "tid": 4, "priority": 6, "name": "producer"}}
+{"t": 6.73, "msg": {"type": "CONSOLE", "seq": 95, "tick": 673, "text": "Created thread TID=4\n"}}
+{"t": 6.73, "msg": {"type": "THREAD_STATE", "seq": 96, "tick": 673, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 6.73, "msg": {"type": "CONTEXT_SWITCH", "seq": 97, "tick": 673, "from_tid": 1, "to_tid": 3, "regs": {"ip": 6920, "cs": 4096, "flags": 514, "sp": 13875, "ax": 0, "bx": 0, "cx": 0, "dx": 0, "si": 0, "di": 0, "bp": 0}}}
+{"t": 6.73, "msg": {"type": "THREAD_STATE", "seq": 98, "tick": 673, "tid": 3, "state": "BLOCKED", "priority": 6}}
+{"t": 6.73, "msg": {"type": "CONTEXT_SWITCH", "seq": 99, "tick": 673, "from_tid": 3, "to_tid": 4, "regs": {"ip": 6890, "cs": 4096, "flags": 514, "sp": 15923, "ax": 0, "bx": 0, "cx": 0, "dx": 0, "si": 0, "di": 0, "bp": 0}}}
+{"t": 6.73, "msg": {"type": "THREAD_STATE", "seq": 100, "tick": 673, "tid": 3, "state": "READY", "priority": 6}}
+{"t": 6.73, "msg": {"type": "THREAD_STATE", "seq": 101, "tick": 673, "tid": 4, "state": "SLEEPING", "priority": 6}}
+{"t": 6.73, "msg": {"type": "CONTEXT_SWITCH", "seq": 102, "tick": 673, "from_tid": 4, "to_tid": 3, "regs": {"ip": 3137, "cs": 4096, "flags": 22, "sp": 13841, "ax": 22, "bx": 2549, "cx": 257, "dx": 2550, "si": 514, "di": 22126, "bp": 13849}}}
+{"t": 6.73, "msg": {"type": "THREAD_STATE", "seq": 103, "tick": 673, "tid": 3, "state": "BLOCKED", "priority": 6}}
+{"t": 6.73, "msg": {"type": "CONTEXT_SWITCH", "seq": 104, "tick": 673, "from_tid": 3, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 6.82, "msg": {"type": "THREAD_STATE", "seq": 105, "tick": 682, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 6.82, "msg": {"type": "CONTEXT_SWITCH", "seq": 106, "tick": 682, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2331, "cx": 257, "dx": 2332, "si": 10, "di": 68, "bp": 11769}}}
+{"t": 6.82, "msg": {"type": "CONSOLE", "seq": 107, "tick": 682, "text": "phoenix> [recv 1]"}}
+{"t": 6.82, "msg": {"type": "COUNTERS", "seq": 108, "tick": 682, "timer": 682, "keyboard": 56, "syscall": 0, "context_switches": 228, "drops": 0}}
+{"t": 6.82, "msg": {"type": "THREAD_STATE", "seq": 109, "tick": 682, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 6.82, "msg": {"type": "CONTEXT_SWITCH", "seq": 110, "tick": 682, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 6.83, "msg": {"type": "THREAD_STATE", "seq": 111, "tick": 683, "tid": 4, "state": "READY", "priority": 6}}
+{"t": 6.83, "msg": {"type": "CONTEXT_SWITCH", "seq": 112, "tick": 683, "from_tid": 0, "to_tid": 4, "regs": {"ip": 3162, "cs": 4096, "flags": 22, "sp": 15903, "ax": 22, "bx": 2597, "cx": 257, "dx": 2598, "si": 10, "di": 0, "bp": 15909}}}
+{"t": 6.83, "msg": {"type": "THREAD_STATE", "seq": 113, "tick": 683, "tid": 3, "state": "READY", "priority": 6}}
+{"t": 6.83, "msg": {"type": "THREAD_STATE", "seq": 114, "tick": 683, "tid": 4, "state": "SLEEPING", "priority": 6}}
+{"t": 6.83, "msg": {"type": "CONTEXT_SWITCH", "seq": 115, "tick": 683, "from_tid": 4, "to_tid": 3, "regs": {"ip": 3137, "cs": 4096, "flags": 22, "sp": 13841, "ax": 22, "bx": 2636, "cx": 257, "dx": 2637, "si": 514, "di": 22126, "bp": 13849}}}
+{"t": 6.83, "msg": {"type": "THREAD_STATE", "seq": 116, "tick": 683, "tid": 3, "state": "BLOCKED", "priority": 6}}
+{"t": 6.83, "msg": {"type": "CONTEXT_SWITCH", "seq": 117, "tick": 683, "from_tid": 3, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 6.92, "msg": {"type": "THREAD_STATE", "seq": 118, "tick": 692, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 6.92, "msg": {"type": "CONTEXT_SWITCH", "seq": 119, "tick": 692, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2737, "cx": 257, "dx": 2738, "si": 10, "di": 69, "bp": 11769}}}
+{"t": 6.92, "msg": {"type": "CONSOLE", "seq": 120, "tick": 692, "text": "[recv 2]"}}
+{"t": 6.92, "msg": {"type": "THREAD_STATE", "seq": 121, "tick": 692, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 6.92, "msg": {"type": "CONTEXT_SWITCH", "seq": 122, "tick": 692, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 6.93, "msg": {"type": "THREAD_STATE", "seq": 123, "tick": 693, "tid": 4, "state": "READY", "priority": 6}}
+{"t": 6.93, "msg": {"type": "CONTEXT_SWITCH", "seq": 124, "tick": 693, "from_tid": 0, "to_tid": 4, "regs": {"ip": 3162, "cs": 4096, "flags": 22, "sp": 15903, "ax": 22, "bx": 2824, "cx": 257, "dx": 2825, "si": 10, "di": 0, "bp": 15909}}}
+{"t": 6.93, "msg": {"type": "THREAD_STATE", "seq": 125, "tick": 693, "tid": 3, "state": "READY", "priority": 6}}
+{"t": 6.93, "msg": {"type": "THREAD_STATE", "seq": 126, "tick": 693, "tid": 4, "state": "SLEEPING", "priority": 6}}
+{"t": 6.93, "msg": {"type": "CONTEXT_SWITCH", "seq": 127, "tick": 693, "from_tid": 4, "to_tid": 3, "regs": {"ip": 3137, "cs": 4096, "flags": 22, "sp": 13841, "ax": 22, "bx": 2863, "cx": 257, "dx": 2864, "si": 518, "di": 22126, "bp": 13849}}}
+{"t": 6.93, "msg": {"type": "THREAD_STATE", "seq": 128, "tick": 693, "tid": 3, "state": "BLOCKED", "priority": 6}}
+{"t": 6.93, "msg": {"type": "CONTEXT_SWITCH", "seq": 129, "tick": 693, "from_tid": 3, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 7.02, "msg": {"type": "THREAD_STATE", "seq": 130, "tick": 702, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 7.02, "msg": {"type": "CONTEXT_SWITCH", "seq": 131, "tick": 702, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2955, "cx": 257, "dx": 2956, "si": 10, "di": 70, "bp": 11769}}}
+{"t": 7.02, "msg": {"type": "CONSOLE", "seq": 132, "tick": 702, "text": "[recv 3]"}}
+{"t": 7.02, "msg": {"type": "COUNTERS", "seq": 133, "tick": 702, "timer": 702, "keyboard": 56, "syscall": 0, "context_switches": 238, "drops": 0}}
+{"t": 7.02, "msg": {"type": "HELLO", "seq": 134, "tick": 702, "version": 1, "hz": 100, "max_threads": 8, "code_seg": 4096, "data_seg": 8192, "far_start_seg": 12288, "far_end_seg": 40896, "mem_kb": 639, "heap_start": 26664, "heap_end": 63488}}
+{"t": 7.02, "msg": {"type": "MEMORY", "seq": 135, "tick": 702, "heap_free": 36824, "heap_used": 0, "far_free_paras": 28607, "far_total_paras": 28608}}
+{"t": 7.02, "msg": {"type": "THREAD_STATS", "seq": 136, "tick": 702, "tid": 0, "state": "READY", "priority": 0, "cpu_ticks": 278, "sp": 65508, "stack_base": 63488, "stack_size": 2048, "name": "idle"}}
+{"t": 7.02, "msg": {"type": "THREAD_STATS", "seq": 137, "tick": 702, "tid": 1, "state": "BLOCKED", "priority": 10, "cpu_ticks": 1, "sp": 9651, "stack_base": 7733, "stack_size": 2048, "name": "shell"}}
+{"t": 7.02, "msg": {"type": "THREAD_STATS", "seq": 138, "tick": 702, "tid": 2, "state": "RUNNING", "priority": 12, "cpu_ticks": 1, "sp": 11739, "stack_base": 9781, "stack_size": 2048, "name": "telemetry"}}
+{"t": 7.02, "msg": {"type": "THREAD_STATS", "seq": 139, "tick": 702, "tid": 3, "state": "BLOCKED", "priority": 6, "cpu_ticks": 0, "sp": 13817, "stack_base": 11829, "stack_size": 2048, "name": "consumer"}}
+{"t": 7.02, "msg": {"type": "THREAD_STATS", "seq": 140, "tick": 702, "tid": 4, "state": "SLEEPING", "priority": 6, "cpu_ticks": 0, "sp": 15879, "stack_base": 13877, "stack_size": 2048, "name": "producer"}}
+{"t": 7.02, "msg": {"type": "THREAD_STATE", "seq": 141, "tick": 702, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 7.02, "msg": {"type": "CONTEXT_SWITCH", "seq": 142, "tick": 702, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 7.03, "msg": {"type": "THREAD_STATE", "seq": 143, "tick": 703, "tid": 4, "state": "READY", "priority": 6}}
+{"t": 7.03, "msg": {"type": "CONTEXT_SWITCH", "seq": 144, "tick": 703, "from_tid": 0, "to_tid": 4, "regs": {"ip": 3162, "cs": 4096, "flags": 22, "sp": 15903, "ax": 22, "bx": 3042, "cx": 257, "dx": 3043, "si": 10, "di": 0, "bp": 15909}}}
+{"t": 7.03, "msg": {"type": "THREAD_STATE", "seq": 145, "tick": 703, "tid": 3, "state": "READY", "priority": 6}}
+{"t": 7.03, "msg": {"type": "THREAD_STATE", "seq": 146, "tick": 703, "tid": 4, "state": "SLEEPING", "priority": 6}}
+{"t": 7.03, "msg": {"type": "CONTEXT_SWITCH", "seq": 147, "tick": 703, "from_tid": 4, "to_tid": 3, "regs": {"ip": 3137, "cs": 4096, "flags": 22, "sp": 13841, "ax": 22, "bx": 3081, "cx": 257, "dx": 3082, "si": 514, "di": 22126, "bp": 13849}}}
+{"t": 7.03, "msg": {"type": "THREAD_STATE", "seq": 148, "tick": 703, "tid": 3, "state": "BLOCKED", "priority": 6}}
+{"t": 7.03, "msg": {"type": "CONTEXT_SWITCH", "seq": 149, "tick": 703, "from_tid": 3, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 7.12, "msg": {"type": "THREAD_STATE", "seq": 150, "tick": 712, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 7.12, "msg": {"type": "CONTEXT_SWITCH", "seq": 151, "tick": 712, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3173, "cx": 257, "dx": 3174, "si": 10, "di": 71, "bp": 11769}}}
+{"t": 7.12, "msg": {"type": "CONSOLE", "seq": 152, "tick": 712, "text": "[recv 4]"}}
+{"t": 7.12, "msg": {"type": "THREAD_STATE", "seq": 153, "tick": 712, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 7.12, "msg": {"type": "CONTEXT_SWITCH", "seq": 154, "tick": 712, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 7.13, "msg": {"type": "THREAD_STATE", "seq": 155, "tick": 713, "tid": 4, "state": "READY", "priority": 6}}
+{"t": 7.13, "msg": {"type": "CONTEXT_SWITCH", "seq": 156, "tick": 713, "from_tid": 0, "to_tid": 4, "regs": {"ip": 3162, "cs": 4096, "flags": 22, "sp": 15903, "ax": 22, "bx": 3260, "cx": 257, "dx": 3261, "si": 10, "di": 0, "bp": 15909}}}
+{"t": 7.13, "msg": {"type": "THREAD_STATE", "seq": 157, "tick": 713, "tid": 3, "state": "READY", "priority": 6}}
+{"t": 7.13, "msg": {"type": "THREAD_STATE", "seq": 158, "tick": 713, "tid": 4, "state": "SLEEPING", "priority": 6}}
+{"t": 7.13, "msg": {"type": "CONTEXT_SWITCH", "seq": 159, "tick": 713, "from_tid": 4, "to_tid": 3, "regs": {"ip": 3137, "cs": 4096, "flags": 22, "sp": 13841, "ax": 22, "bx": 3299, "cx": 257, "dx": 3300, "si": 514, "di": 22126, "bp": 13849}}}
+{"t": 7.13, "msg": {"type": "CONSOLE", "seq": 160, "tick": 713, "text": "[recv 5][ipc done]\n"}}
+{"t": 7.13, "msg": {"type": "THREAD_EXIT", "seq": 161, "tick": 713, "tid": 3}}
+{"t": 7.13, "msg": {"type": "CONTEXT_SWITCH", "seq": 162, "tick": 713, "from_tid": 3, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 7.22, "msg": {"type": "THREAD_STATE", "seq": 163, "tick": 722, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 7.22, "msg": {"type": "CONTEXT_SWITCH", "seq": 164, "tick": 722, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3391, "cx": 257, "dx": 3392, "si": 10, "di": 72, "bp": 11769}}}
+{"t": 7.23, "msg": {"type": "THREAD_STATE", "seq": 165, "tick": 723, "tid": 4, "state": "READY", "priority": 6}}
+{"t": 7.23, "msg": {"type": "COUNTERS", "seq": 166, "tick": 723, "timer": 723, "keyboard": 56, "syscall": 0, "context_switches": 248, "drops": 0}}
+{"t": 7.23, "msg": {"type": "THREAD_STATE", "seq": 167, "tick": 723, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 7.23, "msg": {"type": "CONTEXT_SWITCH", "seq": 168, "tick": 723, "from_tid": 2, "to_tid": 4, "regs": {"ip": 3162, "cs": 4096, "flags": 22, "sp": 15903, "ax": 22, "bx": 3478, "cx": 257, "dx": 3479, "si": 10, "di": 0, "bp": 15909}}}
+{"t": 7.23, "msg": {"type": "THREAD_EXIT", "seq": 169, "tick": 723, "tid": 4}}
+{"t": 7.23, "msg": {"type": "CONTEXT_SWITCH", "seq": 170, "tick": 723, "from_tid": 4, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 7.33, "msg": {"type": "THREAD_STATE", "seq": 171, "tick": 733, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 7.33, "msg": {"type": "CONTEXT_SWITCH", "seq": 172, "tick": 733, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3627, "cx": 257, "dx": 3628, "si": 10, "di": 73, "bp": 11769}}}
+{"t": 7.33, "msg": {"type": "THREAD_STATE", "seq": 173, "tick": 733, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 7.33, "msg": {"type": "CONTEXT_SWITCH", "seq": 174, "tick": 733, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 7.43, "msg": {"type": "THREAD_STATE", "seq": 175, "tick": 743, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 7.43, "msg": {"type": "CONTEXT_SWITCH", "seq": 176, "tick": 743, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3742, "cx": 257, "dx": 3743, "si": 10, "di": 74, "bp": 11769}}}
+{"t": 7.43, "msg": {"type": "COUNTERS", "seq": 177, "tick": 743, "timer": 743, "keyboard": 56, "syscall": 0, "context_switches": 253, "drops": 0}}
+{"t": 7.43, "msg": {"type": "THREAD_STATE", "seq": 178, "tick": 743, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 7.43, "msg": {"type": "CONTEXT_SWITCH", "seq": 179, "tick": 743, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 7.53, "msg": {"type": "THREAD_STATE", "seq": 180, "tick": 753, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 7.53, "msg": {"type": "CONTEXT_SWITCH", "seq": 181, "tick": 753, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3820, "cx": 257, "dx": 3821, "si": 10, "di": 75, "bp": 11769}}}
+{"t": 7.53, "msg": {"type": "THREAD_STATE", "seq": 182, "tick": 753, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 7.53, "msg": {"type": "CONTEXT_SWITCH", "seq": 183, "tick": 753, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 7.63, "msg": {"type": "THREAD_STATE", "seq": 184, "tick": 763, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 7.63, "msg": {"type": "CONTEXT_SWITCH", "seq": 185, "tick": 763, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3898, "cx": 257, "dx": 3899, "si": 10, "di": 76, "bp": 11769}}}
+{"t": 7.63, "msg": {"type": "COUNTERS", "seq": 186, "tick": 763, "timer": 763, "keyboard": 56, "syscall": 0, "context_switches": 257, "drops": 0}}
+{"t": 7.63, "msg": {"type": "THREAD_STATE", "seq": 187, "tick": 763, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 7.63, "msg": {"type": "CONTEXT_SWITCH", "seq": 188, "tick": 763, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 7.73, "msg": {"type": "THREAD_STATE", "seq": 189, "tick": 773, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 7.73, "msg": {"type": "CONTEXT_SWITCH", "seq": 190, "tick": 773, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3976, "cx": 257, "dx": 3977, "si": 10, "di": 77, "bp": 11769}}}
+{"t": 7.73, "msg": {"type": "THREAD_STATE", "seq": 191, "tick": 773, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 7.73, "msg": {"type": "CONTEXT_SWITCH", "seq": 192, "tick": 773, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 7.83, "msg": {"type": "THREAD_STATE", "seq": 193, "tick": 783, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 7.83, "msg": {"type": "CONTEXT_SWITCH", "seq": 194, "tick": 783, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 4054, "cx": 257, "dx": 4055, "si": 10, "di": 78, "bp": 11769}}}
+{"t": 7.83, "msg": {"type": "COUNTERS", "seq": 195, "tick": 783, "timer": 783, "keyboard": 56, "syscall": 0, "context_switches": 261, "drops": 0}}
+{"t": 7.83, "msg": {"type": "THREAD_STATE", "seq": 196, "tick": 783, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 7.83, "msg": {"type": "CONTEXT_SWITCH", "seq": 197, "tick": 783, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 7.91, "msg": {"type": "THREAD_STATE", "seq": 198, "tick": 791, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 7.91, "msg": {"type": "CONTEXT_SWITCH", "seq": 199, "tick": 791, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 2510, "cx": 257, "dx": 2511, "si": 582, "di": 5606, "bp": 9683}}}
+{"t": 7.91, "msg": {"type": "THREAD_STATE", "seq": 200, "tick": 791, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 7.91, "msg": {"type": "CONTEXT_SWITCH", "seq": 201, "tick": 791, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 7.93, "msg": {"type": "THREAD_STATE", "seq": 202, "tick": 793, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 7.93, "msg": {"type": "CONTEXT_SWITCH", "seq": 203, "tick": 793, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 36, "cx": 257, "dx": 37, "si": 10, "di": 79, "bp": 11769}}}
+{"t": 7.93, "msg": {"type": "CONSOLE", "seq": 204, "tick": 793, "text": "s"}}
+{"t": 7.93, "msg": {"type": "THREAD_STATE", "seq": 205, "tick": 793, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 7.93, "msg": {"type": "CONTEXT_SWITCH", "seq": 206, "tick": 793, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 7.99, "msg": {"type": "THREAD_STATE", "seq": 207, "tick": 799, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 7.99, "msg": {"type": "CONTEXT_SWITCH", "seq": 208, "tick": 799, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 114, "cx": 257, "dx": 115, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 7.99, "msg": {"type": "THREAD_STATE", "seq": 209, "tick": 799, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 7.99, "msg": {"type": "CONTEXT_SWITCH", "seq": 210, "tick": 799, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 8.03, "msg": {"type": "THREAD_STATE", "seq": 211, "tick": 803, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 8.03, "msg": {"type": "CONTEXT_SWITCH", "seq": 212, "tick": 803, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 199, "cx": 257, "dx": 200, "si": 10, "di": 80, "bp": 11769}}}
+{"t": 8.03, "msg": {"type": "CONSOLE", "seq": 213, "tick": 803, "text": "y"}}
+{"t": 8.03, "msg": {"type": "COUNTERS", "seq": 214, "tick": 803, "timer": 803, "keyboard": 60, "syscall": 0, "context_switches": 269, "drops": 0}}
+{"t": 8.03, "msg": {"type": "HELLO", "seq": 215, "tick": 803, "version": 1, "hz": 100, "max_threads": 8, "code_seg": 4096, "data_seg": 8192, "far_start_seg": 12288, "far_end_seg": 40896, "mem_kb": 639, "heap_start": 26664, "heap_end": 63488}}
+{"t": 8.03, "msg": {"type": "MEMORY", "seq": 216, "tick": 803, "heap_free": 36824, "heap_used": 0, "far_free_paras": 28607, "far_total_paras": 28608}}
+{"t": 8.04, "msg": {"type": "THREAD_STATS", "seq": 217, "tick": 804, "tid": 0, "state": "READY", "priority": 0, "cpu_ticks": 378, "sp": 65508, "stack_base": 63488, "stack_size": 2048, "name": "idle"}}
+{"t": 8.04, "msg": {"type": "THREAD_STATS", "seq": 218, "tick": 804, "tid": 1, "state": "BLOCKED", "priority": 10, "cpu_ticks": 1, "sp": 9651, "stack_base": 7733, "stack_size": 2048, "name": "shell"}}
+{"t": 8.04, "msg": {"type": "THREAD_STATS", "seq": 219, "tick": 804, "tid": 2, "state": "RUNNING", "priority": 12, "cpu_ticks": 3, "sp": 11683, "stack_base": 9781, "stack_size": 2048, "name": "telemetry"}}
+{"t": 8.04, "msg": {"type": "THREAD_STATE", "seq": 220, "tick": 804, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 8.04, "msg": {"type": "CONTEXT_SWITCH", "seq": 221, "tick": 804, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 8.07, "msg": {"type": "THREAD_STATE", "seq": 222, "tick": 807, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 8.07, "msg": {"type": "CONTEXT_SWITCH", "seq": 223, "tick": 807, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 277, "cx": 257, "dx": 278, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 8.07, "msg": {"type": "THREAD_STATE", "seq": 224, "tick": 807, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 8.07, "msg": {"type": "CONTEXT_SWITCH", "seq": 225, "tick": 807, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 8.14, "msg": {"type": "THREAD_STATE", "seq": 226, "tick": 814, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 8.14, "msg": {"type": "CONTEXT_SWITCH", "seq": 227, "tick": 814, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 362, "cx": 257, "dx": 363, "si": 10, "di": 81, "bp": 11769}}}
+{"t": 8.14, "msg": {"type": "CONSOLE", "seq": 228, "tick": 814, "text": "s"}}
+{"t": 8.14, "msg": {"type": "THREAD_STATE", "seq": 229, "tick": 814, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 8.14, "msg": {"type": "CONTEXT_SWITCH", "seq": 230, "tick": 814, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 8.15, "msg": {"type": "THREAD_STATE", "seq": 231, "tick": 815, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 8.15, "msg": {"type": "CONTEXT_SWITCH", "seq": 232, "tick": 815, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 440, "cx": 257, "dx": 441, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 8.15, "msg": {"type": "THREAD_STATE", "seq": 233, "tick": 815, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 8.15, "msg": {"type": "CONTEXT_SWITCH", "seq": 234, "tick": 815, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 8.23, "msg": {"type": "THREAD_STATE", "seq": 235, "tick": 823, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 8.23, "msg": {"type": "CONTEXT_SWITCH", "seq": 236, "tick": 823, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 603, "cx": 257, "dx": 604, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 8.23, "msg": {"type": "THREAD_STATE", "seq": 237, "tick": 823, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 8.23, "msg": {"type": "CONTEXT_SWITCH", "seq": 238, "tick": 823, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 8.24, "msg": {"type": "THREAD_STATE", "seq": 239, "tick": 824, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 8.24, "msg": {"type": "CONTEXT_SWITCH", "seq": 240, "tick": 824, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 525, "cx": 257, "dx": 526, "si": 10, "di": 82, "bp": 11769}}}
+{"t": 8.24, "msg": {"type": "CONSOLE", "seq": 241, "tick": 824, "text": "ca"}}
+{"t": 8.24, "msg": {"type": "COUNTERS", "seq": 242, "tick": 824, "timer": 824, "keyboard": 65, "syscall": 0, "context_switches": 279, "drops": 0}}
+{"t": 8.24, "msg": {"type": "THREAD_STATE", "seq": 243, "tick": 824, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 8.24, "msg": {"type": "CONTEXT_SWITCH", "seq": 244, "tick": 824, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 8.31, "msg": {"type": "THREAD_STATE", "seq": 245, "tick": 831, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 8.31, "msg": {"type": "CONTEXT_SWITCH", "seq": 246, "tick": 831, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 681, "cx": 257, "dx": 682, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 8.31, "msg": {"type": "THREAD_STATE", "seq": 247, "tick": 831, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 8.31, "msg": {"type": "CONTEXT_SWITCH", "seq": 248, "tick": 831, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 8.34, "msg": {"type": "THREAD_STATE", "seq": 249, "tick": 834, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 8.34, "msg": {"type": "CONTEXT_SWITCH", "seq": 250, "tick": 834, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 767, "cx": 257, "dx": 768, "si": 10, "di": 83, "bp": 11769}}}
+{"t": 8.34, "msg": {"type": "CONSOLE", "seq": 251, "tick": 834, "text": "l"}}
+{"t": 8.34, "msg": {"type": "THREAD_STATE", "seq": 252, "tick": 834, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 8.34, "msg": {"type": "CONTEXT_SWITCH", "seq": 253, "tick": 834, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 8.39, "msg": {"type": "THREAD_STATE", "seq": 254, "tick": 839, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 8.39, "msg": {"type": "CONTEXT_SWITCH", "seq": 255, "tick": 839, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 845, "cx": 257, "dx": 846, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 8.39, "msg": {"type": "THREAD_STATE", "seq": 0, "tick": 839, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 8.39, "msg": {"type": "CONTEXT_SWITCH", "seq": 1, "tick": 839, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 8.44, "msg": {"type": "THREAD_STATE", "seq": 2, "tick": 844, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 8.44, "msg": {"type": "CONTEXT_SWITCH", "seq": 3, "tick": 844, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 930, "cx": 257, "dx": 931, "si": 10, "di": 84, "bp": 11769}}}
+{"t": 8.44, "msg": {"type": "CONSOLE", "seq": 4, "tick": 844, "text": "l"}}
+{"t": 8.44, "msg": {"type": "COUNTERS", "seq": 5, "tick": 844, "timer": 844, "keyboard": 70, "syscall": 0, "context_switches": 287, "drops": 0}}
+{"t": 8.44, "msg": {"type": "THREAD_STATE", "seq": 6, "tick": 844, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 8.44, "msg": {"type": "CONTEXT_SWITCH", "seq": 7, "tick": 844, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 8.47, "msg": {"type": "THREAD_STATE", "seq": 8, "tick": 847, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 8.47, "msg": {"type": "CONTEXT_SWITCH", "seq": 9, "tick": 847, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 1008, "cx": 257, "dx": 1009, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 8.47, "msg": {"type": "CONSOLE", "seq": 10, "tick": 847, "text": "\n"}}
+{"t": 8.47, "msg": {"type": "THREAD_CREATE", "seq": 11, "tick": 847, "tid": 3, "priority": 6, "name": "syscall"}}
+{"t": 8.47, "msg": {"type": "CONSOLE", "seq": 12, "tick": 847, "text": "Created thread TID=3\n"}}
+{"t": 8.47, "msg": {"type": "THREAD_STATE", "seq": 13, "tick": 847, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 8.47, "msg": {"type": "CONTEXT_SWITCH", "seq": 14, "tick": 847, "from_tid": 1, "to_tid": 3, "regs": {"ip": 6977, "cs": 4096, "flags": 514, "sp": 13875, "ax": 0, "bx": 0, "cx": 0, "dx": 0, "si": 0, "di": 0, "bp": 0}}}
+{"t": 8.47, "msg": {"type": "SYSCALL", "seq": 15, "tick": 847, "tid": 3, "func": 1}}
+{"t": 8.47, "msg": {"type": "SYSCALL", "seq": 16, "tick": 847, "tid": 3, "func": 1}}
+{"t": 8.47, "msg": {"type": "SYSCALL", "seq": 17, "tick": 847, "tid": 3, "func": 0}}
+{"t": 8.47, "msg": {"type": "SYSCALL", "seq": 18, "tick": 847, "tid": 3, "func": 1}}
+{"t": 8.47, "msg": {"type": "SYSCALL", "seq": 19, "tick": 847, "tid": 3, "func": 1}}
+{"t": 8.47, "msg": {"type": "SYSCALL", "seq": 20, "tick": 847, "tid": 3, "func": 8}}
+{"t": 8.47, "msg": {"type": "SYSCALL", "seq": 21, "tick": 847, "tid": 3, "func": 7}}
+{"t": 8.47, "msg": {"type": "THREAD_STATE", "seq": 22, "tick": 847, "tid": 3, "state": "SLEEPING", "priority": 6}}
+{"t": 8.47, "msg": {"type": "CONTEXT_SWITCH", "seq": 23, "tick": 847, "from_tid": 3, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 8.54, "msg": {"type": "THREAD_STATE", "seq": 24, "tick": 854, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 8.54, "msg": {"type": "CONTEXT_SWITCH", "seq": 25, "tick": 854, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1093, "cx": 257, "dx": 1094, "si": 10, "di": 85, "bp": 11769}}}
+{"t": 8.54, "msg": {"type": "CONSOLE", "seq": 26, "tick": 854, "text": "phoenix> [v1]"}}
+{"t": 8.54, "msg": {"type": "THREAD_STATE", "seq": 27, "tick": 854, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 8.54, "msg": {"type": "CONTEXT_SWITCH", "seq": 28, "tick": 854, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 8.64, "msg": {"type": "THREAD_STATE", "seq": 29, "tick": 864, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 8.64, "msg": {"type": "CONTEXT_SWITCH", "seq": 30, "tick": 864, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1417, "cx": 257, "dx": 1418, "si": 10, "di": 86, "bp": 11769}}}
+{"t": 8.64, "msg": {"type": "COUNTERS", "seq": 31, "tick": 864, "timer": 864, "keyboard": 72, "syscall": 7, "context_switches": 294, "drops": 0}}
+{"t": 8.64, "msg": {"type": "THREAD_STATE", "seq": 32, "tick": 864, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 8.64, "msg": {"type": "CONTEXT_SWITCH", "seq": 33, "tick": 864, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 8.67, "msg": {"type": "THREAD_STATE", "seq": 34, "tick": 867, "tid": 3, "state": "READY", "priority": 6}}
+{"t": 8.67, "msg": {"type": "CONTEXT_SWITCH", "seq": 35, "tick": 867, "from_tid": 0, "to_tid": 3, "regs": {"ip": 465, "cs": 4096, "flags": 514, "sp": 13837, "ax": 1792, "bx": 0, "cx": 20, "dx": 0, "si": 0, "di": 847, "bp": 13837}}}
+{"t": 8.67, "msg": {"type": "SYSCALL", "seq": 36, "tick": 867, "tid": 3, "func": 8}}
+{"t": 8.67, "msg": {"type": "SYSCALL", "seq": 37, "tick": 867, "tid": 3, "func": 2}}
+{"t": 8.67, "msg": {"type": "CONSOLE", "seq": 38, "tick": 867, "text": "[slept 20 ticks][syscall done]\n"}}
+{"t": 8.67, "msg": {"type": "SYSCALL", "seq": 39, "tick": 867, "tid": 3, "func": 5}}
+{"t": 8.67, "msg": {"type": "THREAD_EXIT", "seq": 40, "tick": 867, "tid": 3}}
+{"t": 8.67, "msg": {"type": "CONTEXT_SWITCH", "seq": 41, "tick": 867, "from_tid": 3, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 8.74, "msg": {"type": "THREAD_STATE", "seq": 42, "tick": 874, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 8.74, "msg": {"type": "CONTEXT_SWITCH", "seq": 43, "tick": 874, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1495, "cx": 257, "dx": 1496, "si": 10, "di": 87, "bp": 11769}}}
+{"t": 8.74, "msg": {"type": "THREAD_STATE", "seq": 44, "tick": 874, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 8.74, "msg": {"type": "CONTEXT_SWITCH", "seq": 45, "tick": 874, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 8.84, "msg": {"type": "THREAD_STATE", "seq": 46, "tick": 884, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 8.84, "msg": {"type": "CONTEXT_SWITCH", "seq": 47, "tick": 884, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1710, "cx": 257, "dx": 1711, "si": 10, "di": 88, "bp": 11769}}}
+{"t": 8.84, "msg": {"type": "COUNTERS", "seq": 48, "tick": 884, "timer": 884, "keyboard": 72, "syscall": 10, "context_switches": 300, "drops": 0}}
+{"t": 8.84, "msg": {"type": "THREAD_STATE", "seq": 49, "tick": 884, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 8.84, "msg": {"type": "CONTEXT_SWITCH", "seq": 50, "tick": 884, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 8.94, "msg": {"type": "THREAD_STATE", "seq": 51, "tick": 894, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 8.94, "msg": {"type": "CONTEXT_SWITCH", "seq": 52, "tick": 894, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1788, "cx": 257, "dx": 1789, "si": 10, "di": 89, "bp": 11769}}}
+{"t": 8.94, "msg": {"type": "THREAD_STATE", "seq": 53, "tick": 894, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 8.94, "msg": {"type": "CONTEXT_SWITCH", "seq": 54, "tick": 894, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 9.04, "msg": {"type": "THREAD_STATE", "seq": 55, "tick": 904, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 9.04, "msg": {"type": "CONTEXT_SWITCH", "seq": 56, "tick": 904, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1866, "cx": 257, "dx": 1867, "si": 10, "di": 90, "bp": 11769}}}
+{"t": 9.04, "msg": {"type": "COUNTERS", "seq": 57, "tick": 904, "timer": 904, "keyboard": 72, "syscall": 10, "context_switches": 304, "drops": 0}}
+{"t": 9.04, "msg": {"type": "HELLO", "seq": 58, "tick": 904, "version": 1, "hz": 100, "max_threads": 8, "code_seg": 4096, "data_seg": 8192, "far_start_seg": 12288, "far_end_seg": 40896, "mem_kb": 639, "heap_start": 26664, "heap_end": 63488}}
+{"t": 9.04, "msg": {"type": "MEMORY", "seq": 59, "tick": 904, "heap_free": 36824, "heap_used": 0, "far_free_paras": 28607, "far_total_paras": 28608}}
+{"t": 9.04, "msg": {"type": "THREAD_STATS", "seq": 60, "tick": 904, "tid": 0, "state": "READY", "priority": 0, "cpu_ticks": 478, "sp": 65508, "stack_base": 63488, "stack_size": 2048, "name": "idle"}}
+{"t": 9.04, "msg": {"type": "THREAD_STATS", "seq": 61, "tick": 904, "tid": 1, "state": "BLOCKED", "priority": 10, "cpu_ticks": 1, "sp": 9651, "stack_base": 7733, "stack_size": 2048, "name": "shell"}}
+{"t": 9.04, "msg": {"type": "THREAD_STATS", "seq": 62, "tick": 904, "tid": 2, "state": "RUNNING", "priority": 12, "cpu_ticks": 3, "sp": 11739, "stack_base": 9781, "stack_size": 2048, "name": "telemetry"}}
+{"t": 9.04, "msg": {"type": "THREAD_STATE", "seq": 63, "tick": 904, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 9.04, "msg": {"type": "CONTEXT_SWITCH", "seq": 64, "tick": 904, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 9.14, "msg": {"type": "THREAD_STATE", "seq": 65, "tick": 914, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 9.14, "msg": {"type": "CONTEXT_SWITCH", "seq": 66, "tick": 914, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 1944, "cx": 257, "dx": 1945, "si": 10, "di": 91, "bp": 11769}}}
+{"t": 9.14, "msg": {"type": "THREAD_STATE", "seq": 67, "tick": 914, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 9.14, "msg": {"type": "CONTEXT_SWITCH", "seq": 68, "tick": 914, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 9.24, "msg": {"type": "THREAD_STATE", "seq": 69, "tick": 924, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 9.24, "msg": {"type": "CONTEXT_SWITCH", "seq": 70, "tick": 924, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2022, "cx": 257, "dx": 2023, "si": 10, "di": 92, "bp": 11769}}}
+{"t": 9.24, "msg": {"type": "COUNTERS", "seq": 71, "tick": 924, "timer": 924, "keyboard": 72, "syscall": 10, "context_switches": 308, "drops": 0}}
+{"t": 9.24, "msg": {"type": "THREAD_STATE", "seq": 72, "tick": 924, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 9.24, "msg": {"type": "CONTEXT_SWITCH", "seq": 73, "tick": 924, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 9.25, "msg": {"type": "THREAD_STATE", "seq": 74, "tick": 925, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 9.25, "msg": {"type": "CONTEXT_SWITCH", "seq": 75, "tick": 925, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 1225, "cx": 257, "dx": 1226, "si": 582, "di": 5606, "bp": 9683}}}
+{"t": 9.25, "msg": {"type": "THREAD_STATE", "seq": 76, "tick": 925, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 9.25, "msg": {"type": "CONTEXT_SWITCH", "seq": 77, "tick": 925, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 9.33, "msg": {"type": "THREAD_STATE", "seq": 78, "tick": 933, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 9.33, "msg": {"type": "CONTEXT_SWITCH", "seq": 79, "tick": 933, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 2178, "cx": 257, "dx": 2179, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 9.33, "msg": {"type": "THREAD_STATE", "seq": 80, "tick": 933, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 9.33, "msg": {"type": "CONTEXT_SWITCH", "seq": 81, "tick": 933, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 9.34, "msg": {"type": "THREAD_STATE", "seq": 82, "tick": 934, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 9.34, "msg": {"type": "CONTEXT_SWITCH", "seq": 83, "tick": 934, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2100, "cx": 257, "dx": 2101, "si": 10, "di": 93, "bp": 11769}}}
+{"t": 9.34, "msg": {"type": "CONSOLE", "seq": 84, "tick": 934, "text": "me"}}
+{"t": 9.34, "msg": {"type": "THREAD_STATE", "seq": 85, "tick": 934, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 9.34, "msg": {"type": "CONTEXT_SWITCH", "seq": 86, "tick": 934, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 9.41, "msg": {"type": "THREAD_STATE", "seq": 87, "tick": 941, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 9.41, "msg": {"type": "CONTEXT_SWITCH", "seq": 88, "tick": 941, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 2256, "cx": 257, "dx": 2257, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 9.41, "msg": {"type": "THREAD_STATE", "seq": 89, "tick": 941, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 9.41, "msg": {"type": "CONTEXT_SWITCH", "seq": 90, "tick": 941, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 9.44, "msg": {"type": "THREAD_STATE", "seq": 91, "tick": 944, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 9.44, "msg": {"type": "CONTEXT_SWITCH", "seq": 92, "tick": 944, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2342, "cx": 257, "dx": 2343, "si": 10, "di": 94, "bp": 11769}}}
+{"t": 9.44, "msg": {"type": "CONSOLE", "seq": 93, "tick": 944, "text": "m"}}
+{"t": 9.44, "msg": {"type": "COUNTERS", "seq": 94, "tick": 944, "timer": 944, "keyboard": 78, "syscall": 10, "context_switches": 318, "drops": 0}}
+{"t": 9.44, "msg": {"type": "THREAD_STATE", "seq": 95, "tick": 944, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 9.44, "msg": {"type": "CONTEXT_SWITCH", "seq": 96, "tick": 944, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 9.49, "msg": {"type": "THREAD_STATE", "seq": 97, "tick": 949, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 9.49, "msg": {"type": "CONTEXT_SWITCH", "seq": 98, "tick": 949, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 2420, "cx": 257, "dx": 2421, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 9.49, "msg": {"type": "THREAD_STATE", "seq": 99, "tick": 949, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 9.49, "msg": {"type": "CONTEXT_SWITCH", "seq": 100, "tick": 949, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 9.54, "msg": {"type": "THREAD_STATE", "seq": 101, "tick": 954, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 9.54, "msg": {"type": "CONTEXT_SWITCH", "seq": 102, "tick": 954, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2505, "cx": 257, "dx": 2506, "si": 10, "di": 95, "bp": 11769}}}
+{"t": 9.54, "msg": {"type": "CONSOLE", "seq": 103, "tick": 954, "text": "o"}}
+{"t": 9.54, "msg": {"type": "THREAD_STATE", "seq": 104, "tick": 954, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 9.54, "msg": {"type": "CONTEXT_SWITCH", "seq": 105, "tick": 954, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 9.57, "msg": {"type": "THREAD_STATE", "seq": 106, "tick": 957, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 9.57, "msg": {"type": "CONTEXT_SWITCH", "seq": 107, "tick": 957, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 2583, "cx": 257, "dx": 2584, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 9.57, "msg": {"type": "THREAD_STATE", "seq": 108, "tick": 957, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 9.57, "msg": {"type": "CONTEXT_SWITCH", "seq": 109, "tick": 957, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 9.64, "msg": {"type": "THREAD_STATE", "seq": 110, "tick": 964, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 9.64, "msg": {"type": "CONTEXT_SWITCH", "seq": 111, "tick": 964, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2668, "cx": 257, "dx": 2669, "si": 10, "di": 96, "bp": 11769}}}
+{"t": 9.64, "msg": {"type": "CONSOLE", "seq": 112, "tick": 964, "text": "r"}}
+{"t": 9.64, "msg": {"type": "COUNTERS", "seq": 113, "tick": 964, "timer": 964, "keyboard": 82, "syscall": 10, "context_switches": 326, "drops": 0}}
+{"t": 9.64, "msg": {"type": "THREAD_STATE", "seq": 114, "tick": 964, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 9.64, "msg": {"type": "CONTEXT_SWITCH", "seq": 115, "tick": 964, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 9.65, "msg": {"type": "THREAD_STATE", "seq": 116, "tick": 965, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 9.65, "msg": {"type": "CONTEXT_SWITCH", "seq": 117, "tick": 965, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 2746, "cx": 257, "dx": 2747, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 9.65, "msg": {"type": "THREAD_STATE", "seq": 118, "tick": 965, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 9.65, "msg": {"type": "CONTEXT_SWITCH", "seq": 119, "tick": 965, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 9.73, "msg": {"type": "THREAD_STATE", "seq": 120, "tick": 973, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 9.73, "msg": {"type": "CONTEXT_SWITCH", "seq": 121, "tick": 973, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 2909, "cx": 257, "dx": 2910, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 9.73, "msg": {"type": "CONSOLE", "seq": 122, "tick": 973, "text": "y\n"}}
+{"t": 9.73, "msg": {"type": "CONSOLE", "seq": 123, "tick": 973, "text": "=== Memory Map ===\n"}}
+{"t": 9.74, "msg": {"type": "THREAD_STATE", "seq": 124, "tick": 974, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 9.74, "msg": {"type": "CONTEXT_SWITCH", "seq": 125, "tick": 974, "from_tid": 1, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 2831, "cx": 257, "dx": 2832, "si": 10, "di": 97, "bp": 11769}}}
+{"t": 9.74, "msg": {"type": "THREAD_STATE", "seq": 126, "tick": 974, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 9.74, "msg": {"type": "CONTEXT_SWITCH", "seq": 127, "tick": 974, "from_tid": 2, "to_tid": 1, "regs": {"ip": 446, "cs": 4096, "flags": 514, "sp": 9685, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 9713, "di": 9707, "bp": 9685}}}
+{"t": 9.74, "msg": {"type": "CONSOLE", "seq": 128, "tick": 974, "text": "  IVT:           0x0000:0x0000 - 0x03FF\n"}}
+{"t": 9.74, "msg": {"type": "CONSOLE", "seq": 129, "tick": 974, "text": "  BIOS Data:     0x0000:0x0400 - 0x04FF\n"}}
+{"t": 9.74, "msg": {"type": "CONSOLE", "seq": 130, "tick": 974, "text": "  Bootloader:    0x0000:0x7C00  (512 bytes)\n"}}
+{"t": 9.74, "msg": {"type": "CONSOLE", "seq": 131, "tick": 974, "text": "  Stage 2:       0x0000:0x7E00  (2048 bytes)\n"}}
+{"t": 9.74, "msg": {"type": "CONSOLE", "seq": 132, "tick": 974, "text": "  Kernel Code:   0x1000:0x0000\n"}}
+{"t": 9.74, "msg": {"type": "CONSOLE", "seq": 133, "tick": 974, "text": "  Kernel Data:   0x2000:0x0000  (data+BSS end 0x"}}
+{"t": 9.74, "msg": {"type": "CONSOLE", "seq": 134, "tick": 974, "text": "6828)\n"}}
+{"t": 9.74, "msg": {"type": "CONSOLE", "seq": 135, "tick": 974, "text": "  Near Heap:     0x2000:0x6828 - 0xF7FF\n"}}
+{"t": 9.74, "msg": {"type": "CONSOLE", "seq": 136, "tick": 974, "text": "  Kernel Stack:  0x2000:0xF800 - 0xFFFF\n"}}
+{"t": 9.74, "msg": {"type": "CONSOLE", "seq": 137, "tick": 974, "text": "  Far Arena:     0x3000:0x0000 - 0x9FC0:0x0000\n"}}
+{"t": 9.74, "msg": {"type": "CONSOLE", "seq": 138, "tick": 974, "text": "\n"}}
+{"t": 9.74, "msg": {"type": "CONSOLE", "seq": 139, "tick": 974, "text": "  Heap free:  36824 bytes\n"}}
+{"t": 9.74, "msg": {"type": "CONSOLE", "seq": 140, "tick": 974, "text": "  Heap used:  0 bytes\n"}}
+{"t": 9.74, "msg": {"type": "CONSOLE", "seq": 141, "tick": 974, "text": "  Far free:   446 KB\n"}}
+{"t": 9.75, "msg": {"type": "THREAD_STATE", "seq": 142, "tick": 975, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 9.75, "msg": {"type": "CONTEXT_SWITCH", "seq": 143, "tick": 975, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 9.84, "msg": {"type": "THREAD_STATE", "seq": 144, "tick": 984, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 9.84, "msg": {"type": "CONTEXT_SWITCH", "seq": 145, "tick": 984, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3059, "cx": 257, "dx": 3060, "si": 10, "di": 98, "bp": 11769}}}
+{"t": 9.84, "msg": {"type": "CONSOLE", "seq": 146, "tick": 984, "text": "phoenix> "}}
+{"t": 9.84, "msg": {"type": "COUNTERS", "seq": 147, "tick": 984, "timer": 984, "keyboard": 86, "syscall": 10, "context_switches": 334, "drops": 0}}
+{"t": 9.84, "msg": {"type": "THREAD_STATE", "seq": 148, "tick": 984, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 9.84, "msg": {"type": "CONTEXT_SWITCH", "seq": 149, "tick": 984, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 9.94, "msg": {"type": "THREAD_STATE", "seq": 150, "tick": 994, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 9.94, "msg": {"type": "CONTEXT_SWITCH", "seq": 151, "tick": 994, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3726, "cx": 257, "dx": 3727, "si": 10, "di": 99, "bp": 11769}}}
+{"t": 9.94, "msg": {"type": "THREAD_STATE", "seq": 152, "tick": 994, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 9.94, "msg": {"type": "CONTEXT_SWITCH", "seq": 153, "tick": 994, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 10.04, "msg": {"type": "THREAD_STATE", "seq": 154, "tick": 1004, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 10.04, "msg": {"type": "CONTEXT_SWITCH", "seq": 155, "tick": 1004, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3804, "cx": 257, "dx": 3805, "si": 10, "di": 100, "bp": 11769}}}
+{"t": 10.04, "msg": {"type": "COUNTERS", "seq": 156, "tick": 1004, "timer": 1004, "keyboard": 86, "syscall": 10, "context_switches": 338, "drops": 0}}
+{"t": 10.04, "msg": {"type": "HELLO", "seq": 157, "tick": 1004, "version": 1, "hz": 100, "max_threads": 8, "code_seg": 4096, "data_seg": 8192, "far_start_seg": 12288, "far_end_seg": 40896, "mem_kb": 639, "heap_start": 26664, "heap_end": 63488}}
+{"t": 10.04, "msg": {"type": "MEMORY", "seq": 158, "tick": 1004, "heap_free": 36824, "heap_used": 0, "far_free_paras": 28607, "far_total_paras": 28608}}
+{"t": 10.04, "msg": {"type": "THREAD_STATS", "seq": 159, "tick": 1004, "tid": 0, "state": "READY", "priority": 0, "cpu_ticks": 576, "sp": 65508, "stack_base": 63488, "stack_size": 2048, "name": "idle"}}
+{"t": 10.04, "msg": {"type": "THREAD_STATS", "seq": 160, "tick": 1004, "tid": 1, "state": "BLOCKED", "priority": 10, "cpu_ticks": 3, "sp": 9651, "stack_base": 7733, "stack_size": 2048, "name": "shell"}}
+{"t": 10.04, "msg": {"type": "THREAD_STATS", "seq": 161, "tick": 1004, "tid": 2, "state": "RUNNING", "priority": 12, "cpu_ticks": 3, "sp": 11739, "stack_base": 9781, "stack_size": 2048, "name": "telemetry"}}
+{"t": 10.04, "msg": {"type": "THREAD_STATE", "seq": 162, "tick": 1004, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 10.04, "msg": {"type": "CONTEXT_SWITCH", "seq": 163, "tick": 1004, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 10.14, "msg": {"type": "THREAD_STATE", "seq": 164, "tick": 1014, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 10.14, "msg": {"type": "CONTEXT_SWITCH", "seq": 165, "tick": 1014, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3882, "cx": 257, "dx": 3883, "si": 10, "di": 101, "bp": 11769}}}
+{"t": 10.14, "msg": {"type": "THREAD_STATE", "seq": 166, "tick": 1014, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 10.14, "msg": {"type": "CONTEXT_SWITCH", "seq": 167, "tick": 1014, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 10.24, "msg": {"type": "THREAD_STATE", "seq": 168, "tick": 1024, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 10.24, "msg": {"type": "CONTEXT_SWITCH", "seq": 169, "tick": 1024, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 3960, "cx": 257, "dx": 3961, "si": 10, "di": 102, "bp": 11769}}}
+{"t": 10.24, "msg": {"type": "COUNTERS", "seq": 170, "tick": 1024, "timer": 1024, "keyboard": 86, "syscall": 10, "context_switches": 342, "drops": 0}}
+{"t": 10.24, "msg": {"type": "THREAD_STATE", "seq": 171, "tick": 1024, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 10.24, "msg": {"type": "CONTEXT_SWITCH", "seq": 172, "tick": 1024, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 10.34, "msg": {"type": "THREAD_STATE", "seq": 173, "tick": 1034, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 10.34, "msg": {"type": "CONTEXT_SWITCH", "seq": 174, "tick": 1034, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 4038, "cx": 257, "dx": 4039, "si": 10, "di": 103, "bp": 11769}}}
+{"t": 10.34, "msg": {"type": "THREAD_STATE", "seq": 175, "tick": 1034, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 10.34, "msg": {"type": "CONTEXT_SWITCH", "seq": 176, "tick": 1034, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 10.44, "msg": {"type": "THREAD_STATE", "seq": 177, "tick": 1044, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 10.44, "msg": {"type": "CONTEXT_SWITCH", "seq": 178, "tick": 1044, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 20, "cx": 257, "dx": 21, "si": 10, "di": 104, "bp": 11769}}}
+{"t": 10.44, "msg": {"type": "COUNTERS", "seq": 179, "tick": 1044, "timer": 1044, "keyboard": 86, "syscall": 10, "context_switches": 346, "drops": 0}}
+{"t": 10.44, "msg": {"type": "THREAD_STATE", "seq": 180, "tick": 1044, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 10.44, "msg": {"type": "CONTEXT_SWITCH", "seq": 181, "tick": 1044, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 10.52, "msg": {"type": "THREAD_STATE", "seq": 182, "tick": 1052, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 10.52, "msg": {"type": "CONTEXT_SWITCH", "seq": 183, "tick": 1052, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 3633, "cx": 257, "dx": 3634, "si": 582, "di": 5606, "bp": 9683}}}
+{"t": 10.52, "msg": {"type": "THREAD_STATE", "seq": 184, "tick": 1052, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 10.52, "msg": {"type": "CONTEXT_SWITCH", "seq": 185, "tick": 1052, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 10.54, "msg": {"type": "THREAD_STATE", "seq": 186, "tick": 1054, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 10.54, "msg": {"type": "CONTEXT_SWITCH", "seq": 187, "tick": 1054, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 98, "cx": 257, "dx": 99, "si": 10, "di": 105, "bp": 11769}}}
+{"t": 10.54, "msg": {"type": "CONSOLE", "seq": 188, "tick": 1054, "text": "p"}}
+{"t": 10.54, "msg": {"type": "THREAD_STATE", "seq": 189, "tick": 1054, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 10.54, "msg": {"type": "CONTEXT_SWITCH", "seq": 190, "tick": 1054, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 10.6, "msg": {"type": "THREAD_STATE", "seq": 191, "tick": 1060, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 10.6, "msg": {"type": "CONTEXT_SWITCH", "seq": 192, "tick": 1060, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 176, "cx": 257, "dx": 177, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 10.6, "msg": {"type": "THREAD_STATE", "seq": 193, "tick": 1060, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 10.6, "msg": {"type": "CONTEXT_SWITCH", "seq": 194, "tick": 1060, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 10.64, "msg": {"type": "THREAD_STATE", "seq": 195, "tick": 1064, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 10.64, "msg": {"type": "CONTEXT_SWITCH", "seq": 196, "tick": 1064, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 261, "cx": 257, "dx": 262, "si": 10, "di": 106, "bp": 11769}}}
+{"t": 10.64, "msg": {"type": "CONSOLE", "seq": 197, "tick": 1064, "text": "a"}}
+{"t": 10.64, "msg": {"type": "COUNTERS", "seq": 198, "tick": 1064, "timer": 1064, "keyboard": 90, "syscall": 10, "context_switches": 354, "drops": 0}}
+{"t": 10.64, "msg": {"type": "THREAD_STATE", "seq": 199, "tick": 1064, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 10.64, "msg": {"type": "CONTEXT_SWITCH", "seq": 200, "tick": 1064, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 10.68, "msg": {"type": "THREAD_STATE", "seq": 201, "tick": 1068, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 10.68, "msg": {"type": "CONTEXT_SWITCH", "seq": 202, "tick": 1068, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 339, "cx": 257, "dx": 340, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 10.68, "msg": {"type": "THREAD_STATE", "seq": 203, "tick": 1068, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 10.68, "msg": {"type": "CONTEXT_SWITCH", "seq": 204, "tick": 1068, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 10.74, "msg": {"type": "THREAD_STATE", "seq": 205, "tick": 1074, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 10.74, "msg": {"type": "CONTEXT_SWITCH", "seq": 206, "tick": 1074, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 424, "cx": 257, "dx": 425, "si": 10, "di": 107, "bp": 11769}}}
+{"t": 10.74, "msg": {"type": "CONSOLE", "seq": 207, "tick": 1074, "text": "n"}}
+{"t": 10.74, "msg": {"type": "THREAD_STATE", "seq": 208, "tick": 1074, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 10.74, "msg": {"type": "CONTEXT_SWITCH", "seq": 209, "tick": 1074, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 10.76, "msg": {"type": "THREAD_STATE", "seq": 210, "tick": 1076, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 10.76, "msg": {"type": "CONTEXT_SWITCH", "seq": 211, "tick": 1076, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 502, "cx": 257, "dx": 503, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 10.76, "msg": {"type": "THREAD_STATE", "seq": 212, "tick": 1076, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 10.76, "msg": {"type": "CONTEXT_SWITCH", "seq": 213, "tick": 1076, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 10.84, "msg": {"type": "THREAD_STATE", "seq": 214, "tick": 1084, "tid": 2, "state": "READY", "priority": 12}}
+{"t": 10.84, "msg": {"type": "CONTEXT_SWITCH", "seq": 215, "tick": 1084, "from_tid": 0, "to_tid": 2, "regs": {"ip": 3162, "cs": 4096, "flags": 18, "sp": 11763, "ax": 18, "bx": 587, "cx": 257, "dx": 588, "si": 10, "di": 108, "bp": 11769}}}
+{"t": 10.84, "msg": {"type": "CONSOLE", "seq": 216, "tick": 1084, "text": "i"}}
+{"t": 10.84, "msg": {"type": "COUNTERS", "seq": 217, "tick": 1084, "timer": 1084, "keyboard": 94, "syscall": 10, "context_switches": 362, "drops": 0}}
+{"t": 10.84, "msg": {"type": "THREAD_STATE", "seq": 218, "tick": 1084, "tid": 2, "state": "SLEEPING", "priority": 12}}
+{"t": 10.84, "msg": {"type": "CONTEXT_SWITCH", "seq": 219, "tick": 1084, "from_tid": 2, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 10.84, "msg": {"type": "THREAD_STATE", "seq": 220, "tick": 1084, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 10.84, "msg": {"type": "CONTEXT_SWITCH", "seq": 221, "tick": 1084, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 665, "cx": 257, "dx": 666, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 10.84, "msg": {"type": "THREAD_STATE", "seq": 222, "tick": 1084, "tid": 1, "state": "BLOCKED", "priority": 10}}
+{"t": 10.84, "msg": {"type": "CONTEXT_SWITCH", "seq": 223, "tick": 1084, "from_tid": 1, "to_tid": 0, "regs": {"ip": 11052, "cs": 4096, "flags": 646, "sp": 65532, "ax": 128, "bx": 3998, "cx": 1800, "dx": 981, "si": 5582, "di": 26662, "bp": 639}}}
+{"t": 10.92, "msg": {"type": "THREAD_STATE", "seq": 224, "tick": 1092, "tid": 1, "state": "READY", "priority": 10}}
+{"t": 10.92, "msg": {"type": "CONTEXT_SWITCH", "seq": 225, "tick": 1092, "from_tid": 0, "to_tid": 1, "regs": {"ip": 3137, "cs": 4096, "flags": 18, "sp": 9675, "ax": 18, "bx": 828, "cx": 257, "dx": 829, "si": 514, "di": 5606, "bp": 9683}}}
+{"t": 10.92, "msg": {"type": "CONSOLE", "seq": 226, "tick": 1092, "text": "c\n"}}
+{"t": 10.92, "msg": {"type": "FAULT", "seq": 227, "tick": 1092, "tid": 1, "regs": {"ip": 9640, "cs": 4096, "flags": 2, "sp": 9693, "ax": 2983, "bx": 2535, "cx": 1800, "dx": 65535, "si": 9712, "di": 9707, "bp": 9693}, "reason": "User-triggered panic via shell"}}
+{"t": 10.92, "msg": {"type": "CONSOLE", "seq": 228, "tick": 1092, "text": "=========================    KERNEL PANIC       "}}
+{"t": 10.92, "msg": {"type": "CONSOLE", "seq": 229, "tick": 1092, "text": "  =========================Reason: User-triggere"}}
+{"t": 10.92, "msg": {"type": "CONSOLE", "seq": 230, "tick": 1092, "text": "d panic via shellCurrent Thread: TID=1  Name=she"}}
+{"t": 10.92, "msg": {"type": "CONSOLE", "seq": 231, "tick": 1092, "text": "ll  State=1Register Dump:AX=0x0BA7  BX=0x09E7  C"}}
+{"t": 10.92, "msg": {"type": "CONSOLE", "seq": 232, "tick": 1092, "text": "X=0x0708  DX=0xFFFFSP=0x25DD  BP=0x25DD  SI=0x25"}}
+{"t": 10.92, "msg": {"type": "CONSOLE", "seq": 233, "tick": 1092, "text": "F0  DI=0x25EBCS=0x1000  IP=0x25A8  FLAGS=0x0002D"}}
+{"t": 10.92, "msg": {"type": "CONSOLE", "seq": 234, "tick": 1092, "text": "S=0x2000  ES=0x0B4C  SS=0x2000Timer ticks: 1092 "}}
+{"t": 10.92, "msg": {"type": "CONSOLE", "seq": 235, "tick": 1092, "text": " Context switches: 366System halted. Please rebo"}}
+{"t": 10.92, "msg": {"type": "CONSOLE", "seq": 236, "tick": 1092, "text": "ot.Press RESET to restart.\n"}}
