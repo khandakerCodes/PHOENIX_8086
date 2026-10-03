@@ -58,7 +58,7 @@ Keep your change inside `kernel/scheduler.c` and `kernel/scheduler.h`.
 make test
 ```
 
-Expect the check named "threads interleave (preemption + aging)" to keep passing for all three policies. If it fails, your policy lets one demo thread finish before another has started.
+Expect the check named "threads interleave (preemption + aging)" to keep passing for all three policies. If it fails, your policy lets one demo thread finish before another has started. The other checks should pass too; if a sleep-accuracy check fails, work out which thread was late and why.
 
 Then repeat the Part 1 measurement and compare the shares with the baseline.
 

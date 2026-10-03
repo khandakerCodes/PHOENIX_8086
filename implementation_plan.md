@@ -193,7 +193,7 @@ Goal: run separately built programs from disk.
 - [x] `docs/<lang>/` structure and translation guide (`docs/translating.md`); no translated documents yet
 - [/] Build guides — Ubuntu 24.04 and WSL2 verified; macOS and other distributions written but not verified (`docs/building.md`)
 - [ ] Documentation site generated from `docs/` (the documents are readable on GitHub; no generated site)
-- [/] Three course labs (`docs/labs/`) — written; worked solutions not written, and nobody has worked through them yet
+- [/] Three course labs (`docs/labs/`) with worked solutions as patches (`docs/labs/solutions/`), each applied, built and run; kept on the main branch, not a separate one, so CI can check they still apply. No newcomer has worked through the labs yet
 - [ ] Freeze syscall ABI v1 and telemetry protocol v1 — the gaps that blocked this are closed; freezing is a maintainer decision, to be made when cutting v0.9
 
 **Exit test:** every item in spec §9 except the public demo is met. *(Not met: see the open items above and the dashboard browser check.)*

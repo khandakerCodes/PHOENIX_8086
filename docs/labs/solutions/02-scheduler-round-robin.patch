@@ -1,0 +1,101 @@
+diff --git a/kernel/scheduler.c b/kernel/scheduler.c
+index 5832316..af89ed3 100644
+--- a/kernel/scheduler.c
++++ b/kernel/scheduler.c
+@@ -50,29 +50,6 @@ static void check_sleep_queue(void)
+     }
+ }
+ 
+-/* ── Aging ──────────────────────────────────── */
+-
+-/*
+- * Every AGING_TICKS a thread spends READY raises its effective
+- * priority by one, so it eventually outranks whatever is hogging
+- * the CPU. The boost is dropped when the thread gets to run.
+- * The idle thread (TID 0) never ages.
+- */
+-static void age_ready_threads(void)
+-{
+-    int i;
+-    for (i = 1; i < MAX_THREADS; i++) {
+-        if (tcb_table[i].active && tcb_table[i].state == THREAD_READY) {
+-            if (++tcb_table[i].wait_ticks >= AGING_TICKS) {
+-                tcb_table[i].wait_ticks = 0;
+-                if (tcb_table[i].eff_priority < 255) {
+-                    tcb_table[i].eff_priority++;
+-                }
+-            }
+-        }
+-    }
+-}
+-
+ /* ── Stack guard check ──────────────────────── */
+ 
+ /*
+@@ -113,42 +90,30 @@ static bool is_runnable(int tid)
+     return tid == current_thread && tcb_table[tid].state == THREAD_RUNNING;
+ }
+ 
++/*
++ * Lab 2, option A: pure round-robin. Priorities are ignored; every
++ * runnable thread gets one time slice in turn. The idle thread runs
++ * only when nothing else can.
++ */
+ static int select_next_thread(void)
+ {
+-    int best_tid = -1;
+     int i, idx;
+ 
+-    /*
+-     * Scan in round-robin order starting after the current thread,
+-     * so the current thread is examined last. Only a strictly higher
+-     * effective priority replaces the best candidate, which makes
+-     * equal-priority threads take turns.
+-     */
+-    for (i = 1; i <= MAX_THREADS; i++) {
+-        idx = (current_thread + i) % MAX_THREADS;
+-        if (idx == 0 || !is_runnable(idx)) continue;
+-        if (best_tid < 0 ||
+-            tcb_table[idx].eff_priority > tcb_table[best_tid].eff_priority) {
+-            best_tid = idx;
+-        }
+-    }
+-
+-    /*
+-     * The current thread keeps the CPU while its time slice lasts,
+-     * unless a higher-priority thread is ready.
+-     */
++    /* The current thread keeps the CPU until its time slice runs out */
+     if (current_thread > 0 && is_runnable(current_thread) &&
+-        tcb_table[current_thread].slice_left > 0 &&
+-        tcb_table[current_thread].eff_priority >= tcb_table[best_tid].eff_priority) {
+-        best_tid = current_thread;
++        tcb_table[current_thread].slice_left > 0) {
++        return current_thread;
+     }
+ 
+-    /* If nothing is runnable, fall back to idle (thread 0) */
+-    if (best_tid < 0) {
+-        best_tid = 0;
++    /* Otherwise the next runnable thread after it, wrapping around */
++    for (i = 1; i <= MAX_THREADS; i++) {
++        idx = (current_thread + i) % MAX_THREADS;
++        if (idx != 0 && is_runnable(idx)) {
++            return idx;
++        }
+     }
+ 
+-    return best_tid;
++    return 0;
+ }
+ 
+ /* ── Public API ─────────────────────────────── */
+@@ -200,8 +165,6 @@ void sched_tick(void)
+     /* Wake up sleeping threads */
+     check_sleep_queue();
+ 
+-    /* Raise the effective priority of threads kept waiting */
+-    age_ready_threads();
+ }
+ 
+ void sched_yield_current(void)

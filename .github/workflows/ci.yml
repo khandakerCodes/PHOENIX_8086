@@ -26,6 +26,12 @@ jobs:
       - name: Fetch the ia16-elf toolchain
         run: make toolchain
 
+      - name: Lab solutions still apply
+        run: |
+          for patch in docs/labs/solutions/*.patch; do
+            git apply --check "$patch"
+          done
+
       - name: Build without telemetry
         run: |
           make TELEMETRY=0 all check

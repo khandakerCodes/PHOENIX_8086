@@ -25,7 +25,7 @@ Thanks for your interest. The project is pre-alpha; the [implementation plan](im
 * Try the dashboard in a browser or at a window size other than the tested one (Chromium, 1440×900) and report what looks wrong.
 * Try the build on macOS or another Linux distribution and update the table in `docs/building.md`.
 * Add integration checks for the shell commands that have none: `reboot`, `registers`, `scheduler`, `interrupts`, `clear`, `about`.
-* Write a worked solution for one of the labs.
+* Work through one of the labs as a newcomer and report where the instructions were unclear.
 
 ## Reporting bugs
 

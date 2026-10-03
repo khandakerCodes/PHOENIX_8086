@@ -16,7 +16,7 @@ Read `docs/syscalls.md` and the `SYS_VERSION` and `SYS_TICKS` cases in `kernel/s
 
 ## Steps
 
-1. **Choose a number.** In `kernel/syscall.h`, add `SYS_GETTID` with the first unused number after `SYS_FREE`.
+1. **Choose a number.** In `kernel/syscall.h`, add `SYS_GETTID` with the first unused number after `SYS_MBOX_DESTROY`.
 2. **Implement it.** In `syscall_dispatch`, add a case that puts the current thread's ID in `frame->ax`. `thread_current_tid()` gives you the ID.
 3. **Expose it to programs.** In `sdk/include/phoenix.h`, add a `px_gettid()` wrapper next to `px_version()`.
 4. **Use it.** Copy `sdk/examples/hello.c` to `sdk/examples/whoami.c`. Make it print `I am thread N`. Add `whoami` to `PROGRAM_NAMES` in the `Makefile`.
