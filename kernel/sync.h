@@ -32,6 +32,12 @@ bool sem_trywait(semaphore_t *s);
 /* Release the semaphore and wake the oldest waiter. Safe from ISRs. */
 void sem_signal(semaphore_t *s);
 
+/*
+ * Like sem_signal, but wakes the thread that started waiting most
+ * recently instead of the one that has waited longest.
+ */
+void sem_signal_newest(semaphore_t *s);
+
 /* Drop a thread from the wait queue (used when a blocked thread is killed) */
 void sem_remove_waiter(semaphore_t *s, int tid);
 

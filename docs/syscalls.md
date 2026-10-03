@@ -23,7 +23,7 @@ A call marked **blocks** may suspend the calling thread until it can complete. T
 | 00h | `version` | — | AX = ABI version | |
 | 01h | `putc` | AL = character | — | |
 | 02h | `puts` | BX = string pointer | — | Null-terminated |
-| 03h | `getc` | — | AL = character | Blocks until a key is pressed |
+| 03h | `getc` | — | AL = character | Blocks until a key is pressed. If several threads are waiting, the key goes to the one that asked last |
 | 04h | `thread_create` | BX = entry address in the caller's code segment, CL = priority, DX = value for the new thread's SI | AX = thread ID | Error if no free slot. In a program, use `px_thread_create` from the SDK, which routes the new thread through a small startup stub |
 | 05h | `thread_exit` | — | does not return | |
 | 06h | `yield` | — | — | Gives up the rest of the time slice |

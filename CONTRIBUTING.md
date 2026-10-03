@@ -15,7 +15,7 @@ Thanks for your interest. The project is pre-alpha; the [implementation plan](im
 * **Pointers are 16 bits** and relative to the kernel data segment. Memory outside it (video memory, the interrupt table, far allocations) needs a `__far` pointer; see `MK_FP` in `kernel/hal.h`.
 * **Critical sections** use `hal_irq_save()` / `hal_irq_restore()`, never bare `cli` / `sti`, so they nest and work inside interrupt handlers.
 * **Thread stacks are 2 KB.** Avoid large local arrays.
-* **Known compiler pitfall:** `ia16-elf-gcc` 6.3 at `-Os` miscompiles calls like `f((uint8_t)(x >> 8))` when `x` is 32 bits wide. Split the value into a byte array first (see `put32` in `kernel/telemetry.c`).
+* **Known compiler pitfalls:** `ia16-elf-gcc` 6.3 at `-Os` miscompiles calls like `f((uint8_t)(x >> 8))` when `x` is 32 bits wide, and can drop the store when a 32-bit function result is narrowed to a byte. Split the value into a byte array first (see `put32` in `kernel/telemetry.c`), or go through a 16-bit variable (see `px_getc` in `sdk/include/phoenix.h`).
 * Match the style of the file you are editing. New source files start with an `SPDX-License-Identifier: MIT` line.
 
 ## Good first tasks

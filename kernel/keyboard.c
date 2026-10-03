@@ -259,7 +259,12 @@ static void kb_buf_push(char c)
         kb_buffer[kb_head] = c;
         kb_head = (kb_head + 1) % KB_BUFFER_SIZE;
         kb_count++;
-        sem_signal(&kb_sem);    /* Wake a thread blocked in kb_getchar */
+        /*
+         * Wake a thread blocked in kb_getchar. If several are waiting,
+         * the key goes to the one that asked last: a program that calls
+         * getc takes the keyboard from the shell until it stops asking.
+         */
+        sem_signal_newest(&kb_sem);
     }
 }
 

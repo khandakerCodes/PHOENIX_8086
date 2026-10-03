@@ -93,20 +93,21 @@ bool sem_trywait(semaphore_t *s)
     return taken;
 }
 
-void sem_signal(semaphore_t *s)
+/* Release the semaphore and wake the waiter at `index` in the queue, if any */
+static void signal_waiter(semaphore_t *s, bool newest)
 {
     uint16_t flags = hal_irq_save();
 
     s->count++;
 
     if (s->wait_count > 0) {
-        /* Wake up the first waiting thread */
-        int tid = s->wait_queue[0];
+        uint8_t index = newest ? s->wait_count - 1 : 0;
+        int tid = s->wait_queue[index];
         tcb_t *tcb = thread_get_tcb(tid);
         int i;
 
-        /* Shift wait queue */
-        for (i = 1; i < s->wait_count; i++) {
+        /* Close the gap in the wait queue */
+        for (i = index + 1; i < s->wait_count; i++) {
             s->wait_queue[i - 1] = s->wait_queue[i];
         }
         s->wait_count--;
@@ -118,6 +119,16 @@ void sem_signal(semaphore_t *s)
     }
 
     hal_irq_restore(flags);
+}
+
+void sem_signal(semaphore_t *s)
+{
+    signal_waiter(s, false);
+}
+
+void sem_signal_newest(semaphore_t *s)
+{
+    signal_waiter(s, true);
 }
 
 void sem_remove_waiter(semaphore_t *s, int tid)

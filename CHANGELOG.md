@@ -46,6 +46,8 @@ All notable changes to this project are recorded here. The project follows [Sema
 * System calls 11h–12h: `sem_destroy`, `mbox_destroy`. Far memory is reclaimed when the thread that allocated it ends.
 * Kernel version string (`0.6-dev`) in the banner and `about`.
 * Integration checks for `about`, `uptime`, `interrupts`, `scheduler`, `registers`, `clear` and `reboot`.
+* New README with a banner, real console screenshots, diagrams, a guided tour and a glossary; a full user manual (`docs/manual.md`).
+* Example program `greet`; `make disasm`.
 * Worked solutions for the three labs, as patches that CI checks still apply.
 * Dashboard accessibility: WCAG AA contrast, tab and dialog roles, arrow-key tab navigation, focus handling for the panic dialog, keyboard-reachable scrolling regions; a phone layout.
 * `tools/test_dashboard_browser.mjs`: the dashboard and the in-browser demo tested in headless Chromium, with screenshots kept by CI.
@@ -56,6 +58,8 @@ All notable changes to this project are recorded here. The project follows [Sema
 * `phoenix.sh` no longer kills other processes; it reports busy ports and stops.
 
 ### Fixed
+* A key press now goes to the thread that asked for one most recently, so a program calling `getc` is not starved by the shell.
+* SDK: `px_getc` returned garbage because of a compiler bug in narrowing a 32-bit result; the SDK now has separate 16-bit and 32-bit system-call entries.
 * `reboot` lost its last console line, and the telemetry decoders counted a reboot as lost frames.
 * Dashboard layout problems found in a real browser: the page could grow taller than the window and hide the bottom bar; the console view overflowed its panel; the context-switch steps wrapped; emoji icons rendered as empty boxes; list entries stayed half-faded while data was flowing; letter-spacing broke Arabic text apart.
 * The dashboard's "hide telemetry thread" filter missed switches out of that thread.

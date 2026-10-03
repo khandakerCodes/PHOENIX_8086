@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
+  <title id="title">Phoenix-8086</title>
+  <desc id="desc">Phoenix-8086: a small preemptive operating system kernel for the Intel 8086 that explains itself while it runs.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0e17"/>
+      <stop offset="1" stop-color="#1a2332"/>
+    </linearGradient>
+    <linearGradient id="flame" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#ef4444"/>
+      <stop offset="0.55" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#fde68a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="320" rx="18" fill="url(#bg)"/>
+
+  <!-- A 40-pin chip, the 8086's package -->
+  <g transform="translate(90 70)">
+    <g fill="#6b7280">
+      <rect x="-14" y="14" width="14" height="6"/><rect x="-14" y="34" width="14" height="6"/>
+      <rect x="-14" y="54" width="14" height="6"/><rect x="-14" y="74" width="14" height="6"/>
+      <rect x="-14" y="94" width="14" height="6"/><rect x="-14" y="114" width="14" height="6"/>
+      <rect x="-14" y="134" width="14" height="6"/><rect x="-14" y="154" width="14" height="6"/>
+      <rect x="180" y="14" width="14" height="6"/><rect x="180" y="34" width="14" height="6"/>
+      <rect x="180" y="54" width="14" height="6"/><rect x="180" y="74" width="14" height="6"/>
+      <rect x="180" y="94" width="14" height="6"/><rect x="180" y="114" width="14" height="6"/>
+      <rect x="180" y="134" width="14" height="6"/><rect x="180" y="154" width="14" height="6"/>
+    </g>
+    <rect width="180" height="180" rx="10" fill="#111827" stroke="#3b82f6" stroke-width="2"/>
+    <circle cx="18" cy="18" r="5" fill="#3b82f6"/>
+    <!-- Flame rising from the chip -->
+    <path d="M90 150 C52 128 58 92 78 72 C76 92 88 98 92 84 C96 62 86 48 98 28 C104 56 132 70 126 104 C122 128 110 142 90 150 Z" fill="url(#flame)"/>
+    <text x="90" y="170" text-anchor="middle" font-family="ui-monospace, Consolas, 'DejaVu Sans Mono', monospace" font-size="15" fill="#9ca3af">8086</text>
+  </g>
+
+  <text x="320" y="138" font-family="ui-monospace, Consolas, 'DejaVu Sans Mono', monospace" font-size="78" font-weight="700" fill="#60a5fa">Phoenix-8086</text>
+  <text x="322" y="188" font-family="system-ui, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="27" fill="#e5e7eb">A tiny operating system kernel that explains itself while it runs.</text>
+  <text x="322" y="234" textLength="820" lengthAdjust="spacingAndGlyphs" font-family="ui-monospace, Consolas, 'DejaVu Sans Mono', monospace" font-size="19" fill="#10b981">phoenix&gt; <tspan fill="#e5e7eb">boots from a floppy · runs real threads · 8086 code only</tspan></text>
+</svg>

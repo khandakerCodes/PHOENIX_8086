@@ -2,6 +2,7 @@
 
 | Document | What it covers |
 | --- | --- |
+| **[User manual](manual.md)** | Using the kernel: every shell command, programs, the dashboard, troubleshooting |
 | [Architecture](architecture.md) | How the system fits together: boot, memory, threads, interrupts, storage, telemetry |
 | [Building and running](building.md) | Toolchain, build targets, tests, emulators, the dashboard and the demo site |
 | [System calls](syscalls.md) | The `INT 80h` interface |

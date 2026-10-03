@@ -284,6 +284,18 @@ def run(machine):
     check("program: has 50 KB of zeroed memory, more than the kernel heap",
           "50000 bytes of my own, zeroed and writable" in text, text)
 
+    # A program that reads the keyboard takes it from the shell while it waits
+    machine.type("run greet.bin")
+    machine.wait_for(r"favourite number\? ", timeout=30)
+    machine.qemu.stdin.write(b"sendkey 7\n")
+    machine.qemu.stdin.flush()
+    text = machine.wait_for(r"Counting to three:\n1\n2\n3\n", timeout=30) or ""
+    check("program: greet (a key press goes to the program that asked for it)",
+          "favourite number? 7\n" in text, text)
+    time.sleep(0.3)
+    machine.type("ticks")
+    check("the shell has the keyboard back afterwards", machine.wait_for(r"Ticks: \d+") is not None)
+
     # Both disk drivers: the kernel's own floppy driver and the BIOS fallback
     check("the native floppy driver was chosen at boot",
           "[INIT] Disk... native floppy driver" in machine.output(), machine.output()[:900])

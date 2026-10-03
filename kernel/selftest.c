@@ -130,6 +130,11 @@ static void test_sync(void)
         expect(sem_wait_timeout(&empty, 5), "sem: timed wait succeeds when a signal is pending");
     }
 
+    /* sem_signal_newest behaves like sem_signal when nobody is waiting */
+    sem_init(&sem, 0);
+    sem_signal_newest(&sem);
+    expect(sem.count == 1 && sem_trywait(&sem), "sem: signal_newest with no waiter just counts");
+
     mutex_init(&mutex);
     mutex_lock(&mutex);
     expect(mutex.owner == thread_current_tid(), "mutex: owner recorded");
