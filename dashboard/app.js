@@ -301,8 +301,15 @@
             const card = el('div', 'thread-card' + (thread.state === 'RUNNING' ? ' thread-card--active' : '') +
                                    (thread.tid === selectedThread ? ' thread-card--selected' : ''));
             card.tabIndex = 0;
+            card.setAttribute('role', 'button');
+            card.setAttribute('aria-pressed', thread.tid === selectedThread ? 'true' : 'false');
             card.onclick = function () { selectedThread = thread.tid; render(); };
-            card.onkeydown = function (e) { if (e.key === 'Enter') card.onclick(); };
+            card.onkeydown = function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    card.onclick();
+                }
+            };
 
             const dot = el('div', 'thread-card__dot thread-card__dot--' + stateClass);
             dot.style.background = threadColor(thread.tid);
@@ -554,22 +561,42 @@
             regs.appendChild(el('span', 'fault-register',
                                 name.toUpperCase() + '=' + hex16(fault.regs[name])));
         });
-        overlay.style.display = 'flex';
+        if (overlay.style.display !== 'flex') {
+            overlay.style.display = 'flex';
+            $('fault-dismiss').focus();     /* keyboard users land on the way out */
+        }
     }
 
     /* ================================================================
        Controls
        ================================================================ */
     function setupViewTabs() {
-        const tabs = document.querySelectorAll('.view-tab');
+        const tabs = Array.from(document.querySelectorAll('.view-tab'));
         const views = document.querySelectorAll('.view-content');
 
-        tabs.forEach(function (tab) {
-            tab.addEventListener('click', function () {
-                tabs.forEach(function (t) { t.classList.remove('view-tab--active'); });
-                views.forEach(function (v) { v.classList.remove('view-content--active'); });
-                tab.classList.add('view-tab--active');
-                $('view-' + tab.dataset.view).classList.add('view-content--active');
+        function select(tab) {
+            tabs.forEach(function (other) {
+                other.classList.remove('view-tab--active');
+                other.setAttribute('aria-selected', 'false');
+                other.tabIndex = -1;
+            });
+            views.forEach(function (view) { view.classList.remove('view-content--active'); });
+            tab.classList.add('view-tab--active');
+            tab.setAttribute('aria-selected', 'true');
+            tab.tabIndex = 0;
+            $('view-' + tab.dataset.view).classList.add('view-content--active');
+        }
+
+        tabs.forEach(function (tab, index) {
+            tab.addEventListener('click', function () { select(tab); });
+            /* Left and right arrows move between tabs, as in any tab list */
+            tab.addEventListener('keydown', function (event) {
+                const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+                if (step === 0) return;
+                const next = tabs[(index + step + tabs.length) % tabs.length];
+                select(next);
+                next.focus();
+                event.preventDefault();
             });
         });
     }
@@ -598,9 +625,15 @@
             scheduleRender();
         });
 
-        $('fault-dismiss').addEventListener('click', function () {
+        function dismissFault() {
             faultDismissedTick = model.fault ? model.fault.tick : null;
             scheduleRender();
+        }
+        $('fault-dismiss').addEventListener('click', dismissFault);
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && model.fault && faultDismissedTick !== model.fault.tick) {
+                dismissFault();
+            }
         });
     }
 

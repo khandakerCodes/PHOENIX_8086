@@ -128,7 +128,7 @@ Start with the [documentation index](docs/README.md).
 ## Known limitations
 
 * Not yet run on real hardware. `make test-8086` runs the kernel on DOSBox-X with its CPU set to 8086, which that project labels experimental; it is not a cycle-accurate 8088 and its BIOS is not an IBM PC BIOS.
-* The dashboard and the in-browser demo are tested in headless Chromium at one window size (1440×900). Other sizes, other browsers, and screen readers have not been tried.
+* The dashboard and the in-browser demo are tested in headless Chromium only, at desktop and phone sizes, with an automated accessibility audit (axe, WCAG 2 A/AA). Other browsers and real screen readers have not been tried.
 * Under heavy load (the `bench` command) the kernel's telemetry buffer fills and records are dropped. The drops are counted and shown, never hidden.
 * Real mode has no memory protection: any thread can overwrite any memory.
 * The file system is read-only. On machines where the kernel's floppy driver finds no controller it falls back to the BIOS, and a BIOS read pauses the scheduler.

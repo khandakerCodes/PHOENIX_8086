@@ -12,6 +12,9 @@
  *   Arabic       the right-to-left layout
  *   in browser   the demo site: the kernel running in v86 in the page
  *
+ * It also checks a phone-sized window, and, if the axe-core package is
+ * installed, runs its WCAG 2 A/AA accessibility audit on every view.
+ *
  * Screenshots of each are written to the output directory so a person
  * can look at them; the script cannot judge appearance.
  *
@@ -43,6 +46,15 @@ try {
 } catch (error) {
     console.error('playwright-core is not installed (npm install playwright-core).');
     process.exit(1);
+}
+
+// Optional: the axe accessibility engine, injected into the page
+let axeSource = null;
+try {
+    const require = createRequire(import.meta.url);
+    axeSource = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
+} catch (error) {
+    console.log('  note  axe-core is not installed: accessibility audit skipped');
 }
 
 const failures = [];
@@ -122,6 +134,16 @@ async function open(url) {
     return page;
 }
 
+async function audit(page, label) {
+    if (!axeSource) return;
+    await page.evaluate((source) => { if (!window.axe) (0, eval)(source); }, axeSource);
+    const violations = await page.evaluate(async () => {
+        const result = await window.axe.run(document, { runOnly: ['wcag2a', 'wcag2aa'] });
+        return result.violations.map((v) => `${v.id} (${v.nodes.length}): ${v.nodes[0].target.join(' ')}`);
+    });
+    check(`accessibility audit: ${label}`, violations.length === 0, violations.join(' | '));
+}
+
 const fitsWindow = (page) => page.evaluate(() =>
     document.documentElement.scrollWidth <= document.documentElement.clientWidth &&
     document.documentElement.scrollHeight <= document.documentElement.clientHeight);
@@ -141,6 +163,7 @@ try {
     check('offline: no numbers are shown', await page.textContent('#metric-ticks') === '—');
     check('offline: page fits the window', await fitsWindow(page));
     await page.screenshot({ path: path.join(out, 'offline.png') });
+    await audit(page, 'offline');
     await page.close();
 
     // ── Replay through the real bridge ──────────
@@ -152,7 +175,11 @@ try {
     await page.waitForSelector('#fault-overlay', { state: 'visible', timeout: 30000 });
     check('replay: the recorded panic is shown',
           await page.textContent('#fault-reason') === 'User-triggered panic via shell');
+    await page.waitForTimeout(700);     // let the dialog finish fading in
     await page.screenshot({ path: path.join(out, 'replay-panic.png') });
+    await audit(page, 'panic dialog');
+    check('replay: the panic dialog has keyboard focus on its Dismiss button',
+          await page.evaluate(() => document.activeElement && document.activeElement.id) === 'fault-dismiss');
     await page.click('#fault-dismiss');
     await page.waitForTimeout(400);     // the page redraws at most every 100 ms
     check('replay: the panic can be dismissed', !(await page.isVisible('#fault-overlay')));
@@ -168,6 +195,7 @@ try {
         check(`replay: ${view} view fits the window with the bottom bar visible`,
               await fitsWindow(page) && await bottomBarVisible(page));
         await page.screenshot({ path: path.join(out, `replay-${view}.png`) });
+        await audit(page, `${view} view`);
     }
     check('replay: scheduler timeline has blocks',
           await page.locator('#sched-gantt .gantt-seg').count() > 5);
@@ -199,6 +227,24 @@ try {
     check('Arabic: register values stay left-to-right', rtl.registers === 'ltr');
     check('Arabic: page fits the window', await fitsWindow(page));
     await page.screenshot({ path: path.join(out, 'arabic.png') });
+    await audit(page, 'Arabic');
+
+    // ── Keyboard: arrow keys move between the tabs ──
+    await page.selectOption('#language', 'en');
+    await page.focus('#tab-scheduler');
+    await page.keyboard.press('ArrowRight');
+    check('keyboard: the right arrow selects the next tab',
+          await page.getAttribute('#tab-context-switch', 'aria-selected') === 'true' &&
+          await page.isVisible('#view-context-switch'));
+
+    // ── A phone-sized window ────────────────────
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(300);
+    check('phone: no sideways scrolling', await page.evaluate(() =>
+        document.documentElement.scrollWidth <= document.documentElement.clientWidth));
+    check('phone: the page scrolls down to reach everything', await page.evaluate(() =>
+        document.documentElement.scrollHeight > document.documentElement.clientHeight));
+    await page.screenshot({ path: path.join(out, 'phone.png'), fullPage: true });
     await page.close();
 
     // ── The demo site: kernel running in the page ──

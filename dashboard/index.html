@@ -11,7 +11,6 @@
     <!-- ═══ Top Status Bar ═══ -->
     <header class="top-bar" id="top-bar">
         <div class="top-bar__logo">
-            <span class="logo-icon">◆</span>
             <span class="logo-text">Phoenix-8086</span>
             <span class="logo-badge logo-badge--offline" id="status-badge">OFFLINE</span>
             <button class="demo-toggle" id="demo-toggle" type="button">Run demo</button>
@@ -52,7 +51,7 @@
     <!-- ═══ Main Dashboard Grid ═══ -->
     <main class="dashboard">
         <!-- ─── Left Panel: Thread List & Scheduler ─── -->
-        <aside class="panel panel--left" id="panel-left">
+        <aside class="panel panel--left" id="panel-left" tabindex="0" aria-label="Threads">
             <div class="panel__section" id="thread-list-section">
                 <h2 class="panel__title">
                     <span class="panel__icon">◉</span> <span data-i18n="panel.threads">Threads</span>
@@ -77,15 +76,15 @@
         <!-- ─── Center Panel: Main Visualization ─── -->
         <section class="panel panel--center" id="panel-center">
             <!-- View Tabs -->
-            <div class="view-tabs" id="view-tabs">
-                <button class="view-tab view-tab--active" data-view="boot" data-i18n="tab.boot">Boot Timeline</button>
-                <button class="view-tab" data-view="scheduler" data-i18n="tab.scheduler">Scheduler View</button>
-                <button class="view-tab" data-view="context-switch" data-i18n="tab.contextSwitch">Context Switch</button>
-                <button class="view-tab" data-view="console" data-i18n="tab.console">Console</button>
+            <div class="view-tabs" id="view-tabs" role="tablist">
+                <button class="view-tab view-tab--active" data-view="boot" role="tab" id="tab-boot" aria-controls="view-boot" aria-selected="true" tabindex="0" data-i18n="tab.boot">Boot Timeline</button>
+                <button class="view-tab" data-view="scheduler" role="tab" id="tab-scheduler" aria-controls="view-scheduler" aria-selected="false" tabindex="-1" data-i18n="tab.scheduler">Scheduler View</button>
+                <button class="view-tab" data-view="context-switch" role="tab" id="tab-context-switch" aria-controls="view-context-switch" aria-selected="false" tabindex="-1" data-i18n="tab.contextSwitch">Context Switch</button>
+                <button class="view-tab" data-view="console" role="tab" id="tab-console" aria-controls="view-console" aria-selected="false" tabindex="-1" data-i18n="tab.console">Console</button>
             </div>
 
             <!-- Boot Timeline View -->
-            <div class="view-content view-content--active" id="view-boot">
+            <div class="view-content view-content--active" id="view-boot" role="tabpanel" aria-labelledby="tab-boot">
                 <h2 class="view-content__title" data-i18n="view.boot">Boot Timeline</h2>
                 <div class="boot-timeline" id="boot-timeline">
                     <div class="boot-step" data-stage="1">
@@ -173,7 +172,7 @@
             </div>
 
             <!-- Scheduler View -->
-            <div class="view-content" id="view-scheduler">
+            <div class="view-content" id="view-scheduler" role="tabpanel" aria-labelledby="tab-scheduler">
                 <h2 class="view-content__title" data-i18n="view.scheduler">Scheduler Timeline</h2>
                 <div class="sched-timeline" id="sched-timeline">
                     <div class="sched-timeline__gantt" id="sched-gantt" dir="ltr"></div>
@@ -187,7 +186,7 @@
             </div>
 
             <!-- Context Switch View -->
-            <div class="view-content" id="view-context-switch">
+            <div class="view-content" id="view-context-switch" role="tabpanel" aria-labelledby="tab-context-switch">
                 <h2 class="view-content__title" data-i18n="view.contextSwitch">Context Switch</h2>
                 <div class="ctx-switch-anim" id="ctx-switch-anim">
                     <div class="ctx-phase" id="ctx-phase-save">
@@ -229,9 +228,9 @@
             </div>
 
             <!-- Console View -->
-            <div class="view-content" id="view-console">
+            <div class="view-content" id="view-console" role="tabpanel" aria-labelledby="tab-console">
                 <h2 class="view-content__title" data-i18n="view.console">Kernel Console Mirror</h2>
-                <div class="console-output" id="console-output" dir="ltr">
+                <div class="console-output" id="console-output" dir="ltr" tabindex="0" role="log" aria-label="Kernel console">
                     <pre id="console-text">No console output received.</pre>
                 </div>
                 <form class="console-form" id="console-form" autocomplete="off">
@@ -242,7 +241,7 @@
         </section>
 
         <!-- ─── Right Panel: Registers, Memory, Inspector ─── -->
-        <aside class="panel panel--right" id="panel-right">
+        <aside class="panel panel--right" id="panel-right" tabindex="0" aria-label="Registers and memory">
             <div class="panel__section" id="register-section">
                 <h2 class="panel__title">
                     <span class="panel__icon">⬡</span> <span data-i18n="panel.registers">Registers</span>
@@ -318,16 +317,16 @@
                 <input type="checkbox" id="event-filter" checked>
                 <span data-i18n="events.filter">Hide the telemetry thread's own sleeps and switches</span>
             </label>
-            <div class="event-stream" id="event-stream">
+            <div class="event-stream" id="event-stream" tabindex="0" role="log" aria-live="off" aria-label="Events">
                 <div class="event-item event-item--info">No events received</div>
             </div>
         </div>
     </footer>
 
     <!-- ═══ Fault Overlay (hidden by default) ═══ -->
-    <div class="fault-overlay" id="fault-overlay" style="display: none;">
+    <div class="fault-overlay" id="fault-overlay" style="display: none;" role="alertdialog" aria-modal="true" aria-labelledby="fault-title" aria-describedby="fault-reason">
         <div class="fault-content">
-            <h1 class="fault-title">! <span data-i18n="fault.title">KERNEL PANIC</span></h1>
+            <h1 class="fault-title" id="fault-title">! <span data-i18n="fault.title">KERNEL PANIC</span></h1>
             <p class="fault-reason" id="fault-reason"></p>
             <p class="fault-thread" id="fault-thread"></p>
             <div class="fault-registers" id="fault-registers" dir="ltr"></div>
