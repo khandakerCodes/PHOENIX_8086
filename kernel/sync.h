@@ -20,6 +20,12 @@ void sem_init(semaphore_t *s, int16_t initial);
 /* Take the semaphore; blocks the calling thread until it is available */
 void sem_wait(semaphore_t *s);
 
+/*
+ * Take the semaphore, waiting at most `ticks` timer ticks.
+ * Returns false if the time ran out first.
+ */
+bool sem_wait_timeout(semaphore_t *s, uint16_t ticks);
+
 /* Take the semaphore if available; returns false instead of blocking */
 bool sem_trywait(semaphore_t *s);
 

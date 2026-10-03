@@ -82,3 +82,6 @@ ISR_STUB exc_divide_isr, exc_divide_handler
 ISR_STUB exc_step_isr, exc_step_handler
 ISR_STUB exc_break_isr, exc_break_handler
 ISR_STUB exc_overflow_isr, exc_overflow_handler
+
+/* Floppy controller (IRQ6 — Vector 0x0E) */
+ISR_STUB floppy_isr, floppy_handler

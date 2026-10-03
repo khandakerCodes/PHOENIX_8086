@@ -115,6 +115,21 @@ static void test_sync(void)
     sem_signal(&sem);
     expect(sem_trywait(&sem), "sem: take after signal succeeds");
 
+    /* A timed wait gives up after its time and leaves the semaphore as it was */
+    {
+        semaphore_t empty;
+        uint32_t start = irq_ticks();
+        uint32_t waited;
+
+        sem_init(&empty, 0);
+        expect(!sem_wait_timeout(&empty, 5), "sem: timed wait on an empty semaphore times out");
+        waited = irq_ticks() - start;
+        expect(waited >= 5 && waited <= 7, "sem: the timeout lasts as long as asked");
+        expect(empty.count == 0 && empty.wait_count == 0, "sem: a timed-out wait leaves no trace");
+        sem_signal(&empty);
+        expect(sem_wait_timeout(&empty, 5), "sem: timed wait succeeds when a signal is pending");
+    }
+
     mutex_init(&mutex);
     mutex_lock(&mutex);
     expect(mutex.owner == thread_current_tid(), "mutex: owner recorded");

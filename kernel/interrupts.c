@@ -138,7 +138,14 @@ extern void yield_isr(void);
 /* What the BIOS had installed before the kernel took over */
 static uint16_t bios_timer_vector[2];
 static uint16_t bios_keyboard_vector[2];
+static uint16_t bios_floppy_vector[2];
 static uint8_t  bios_pic_mask;
+
+/* Interrupt lines the kernel listens to: bit clear = enabled */
+static uint8_t kernel_pic_mask = 0xFC;      /* IRQ0 (timer) and IRQ1 (keyboard) */
+
+/* Handler a driver installed for the floppy line, or NULL */
+static void (*floppy_irq_handler)(void);
 
 static void ivt_read(uint8_t vector, uint16_t *saved)
 {
@@ -164,24 +171,56 @@ static void pit_set_divisor(uint16_t divisor)
     outb(PIT_CHANNEL0, (uint8_t)(divisor >> 8));
 }
 
-/* The kernel's own setup: HZ ticks, our handlers, only IRQ0 and IRQ1 */
+/* The kernel's own setup: HZ ticks, our handlers, only the lines we use */
 static void kernel_irq_setup(void)
 {
     pit_set_divisor((uint16_t)(PIT_FREQUENCY / HZ));
 
     idt_install(IRQ0_VECTOR, timer_isr);
     idt_install(IRQ1_VECTOR, keyboard_isr);
+    if (floppy_irq_handler) {
+        idt_install(FLOPPY_VECTOR, floppy_irq_handler);
+    }
 
-    outb(PIC1_DATA, 0xFC);   /* 11111100 — only IRQ0 and IRQ1 unmasked */
+    outb(PIC1_DATA, kernel_pic_mask);
     outb(PIC2_DATA, 0xFF);   /* All masked on PIC2 */
+}
+
+void irq_claim(uint8_t irq, uint8_t vector, void (*handler)(void))
+{
+    uint16_t flags = hal_irq_save();
+
+    if (vector == FLOPPY_VECTOR) {
+        floppy_irq_handler = handler;
+    }
+    idt_install(vector, handler);
+    kernel_pic_mask &= (uint8_t)~(1 << irq);
+    outb(PIC1_DATA, kernel_pic_mask);
+
+    hal_irq_restore(flags);
+}
+
+void irq_release(uint8_t irq, uint8_t vector)
+{
+    uint16_t flags = hal_irq_save();
+
+    kernel_pic_mask |= (uint8_t)(1 << irq);
+    outb(PIC1_DATA, kernel_pic_mask);
+    if (vector == FLOPPY_VECTOR) {
+        floppy_irq_handler = NULL;
+        ivt_write(FLOPPY_VECTOR, bios_floppy_vector);
+    }
+
+    hal_irq_restore(flags);
 }
 
 void irq_bios_enter(void)
 {
-    /* BIOS timing expects its 18.2 Hz tick; the floppy needs IRQ6 */
+    /* BIOS timing expects its 18.2 Hz tick; its floppy code needs IRQ6 */
     pit_set_divisor(0);
     ivt_write(IRQ0_VECTOR, bios_timer_vector);
     ivt_write(IRQ1_VECTOR, bios_keyboard_vector);
+    ivt_write(FLOPPY_VECTOR, bios_floppy_vector);
     outb(PIC1_DATA, bios_pic_mask & ~0x41);
 }
 
@@ -198,6 +237,7 @@ void irq_init(void)
     /* Remember the BIOS setup so disk reads can borrow it back */
     ivt_read(IRQ0_VECTOR, bios_timer_vector);
     ivt_read(IRQ1_VECTOR, bios_keyboard_vector);
+    ivt_read(FLOPPY_VECTOR, bios_floppy_vector);
     bios_pic_mask = inb(PIC1_DATA);
 
     kernel_irq_setup();

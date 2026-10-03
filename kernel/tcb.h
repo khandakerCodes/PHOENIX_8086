@@ -70,6 +70,8 @@ typedef struct {
     uint8_t  wait_ticks;    /* Ticks spent READY since the last aging step */
     uint32_t sleep_until;   /* Wake tick for SLEEPING threads */
     void    *wait_sem;      /* Semaphore this thread is blocked on, or NULL */
+    bool     wait_timed;    /* The wait ends at sleep_until even without a signal */
+    bool     wait_timed_out;/* Set when that happened */
 
     /* Identity and accounting */
     uint16_t tid;           /* Thread ID */

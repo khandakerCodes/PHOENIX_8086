@@ -24,6 +24,8 @@
 #include "console.h"
 #include "interrupts.h"
 #include "kernel.h"
+#include "sync.h"
+#include "floppy.h"
 
 /* ── External TCB table (defined in thread.c) ─ */
 extern tcb_t tcb_table[MAX_THREADS];
@@ -46,6 +48,18 @@ static void check_sleep_queue(void)
                 tcb_table[i].state = THREAD_READY;
                 telemetry_thread_state((uint8_t)i);
             }
+        }
+
+        /* A timed semaphore wait that ran out: wake the thread empty-handed */
+        if (tcb_table[i].active &&
+            tcb_table[i].state == THREAD_BLOCKED && tcb_table[i].wait_timed &&
+            (int32_t)(tick_count - tcb_table[i].sleep_until) >= 0) {
+            sem_remove_waiter((semaphore_t *)tcb_table[i].wait_sem, i);
+            tcb_table[i].wait_sem = NULL;
+            tcb_table[i].wait_timed = false;
+            tcb_table[i].wait_timed_out = true;
+            tcb_table[i].state = THREAD_READY;
+            telemetry_thread_state((uint8_t)i);
         }
     }
 }
@@ -199,6 +213,9 @@ void sched_tick(void)
 
     /* Wake up sleeping threads */
     check_sleep_queue();
+
+    /* Stop the floppy motor once the drive has been idle for a while */
+    floppy_tick();
 
     /* Raise the effective priority of threads kept waiting */
     age_ready_threads();

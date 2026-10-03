@@ -88,6 +88,7 @@ KERNEL_C_SRCS = $(KERNEL_DIR)/kernel_main.c \
                 $(KERNEL_DIR)/selftest.c \
                 $(KERNEL_DIR)/serial.c \
                 $(KERNEL_DIR)/disk.c \
+                $(KERNEL_DIR)/floppy.c \
                 $(KERNEL_DIR)/fat12.c \
                 $(KERNEL_DIR)/exec.c \
                 $(KERNEL_DIR)/string.c

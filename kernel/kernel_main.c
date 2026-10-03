@@ -21,6 +21,7 @@
 #include "serial.h"
 #include "hal.h"
 #include "fat12.h"
+#include "disk.h"
 
 /* Boot drive and memory info from entry.asm */
 extern uint8_t  boot_drive;
@@ -119,7 +120,11 @@ void kernel_main(void)
     con_println("[INIT] IRQ1 (Keyboard) -> Installed");
     con_println("[INIT] INT 80h (Syscall) -> Installed");
 
-    /* ── File system (needs interrupts: disk reads go through the BIOS) ── */
+    /* ── Disk and file system (need interrupts to be running) ── */
+    con_print("[INIT] Disk... ");
+    disk_init();
+    con_println(disk_driver_name());
+
     con_print("[INIT] File system... ");
     if (fat_mount()) {
         con_set_color(VGA_LIGHT_GREEN, VGA_BLACK);

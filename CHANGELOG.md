@@ -39,6 +39,8 @@ All notable changes to this project are recorded here. The project follows [Sema
 * In-browser demo: the dashboard can boot the kernel in the v86 emulator inside the page; `tools/build_site.sh`, a JavaScript telemetry decoder, and a GitHub Pages workflow.
 * Release workflow: a version tag builds, tests and publishes the image, checksum and a telemetry capture.
 * Documentation: architecture guide, build guide, translation guide, three labs.
+* Native floppy controller driver (`kernel/floppy.c`): disk reads no longer pause the scheduler where a controller is present; BIOS `INT 13h` remains as the fallback. `disk` shell command.
+* `sem_wait_timeout`: a semaphore wait that gives up after a number of ticks.
 * Programs can start threads in their own code (`px_thread_create`); a program's memory is shared by its threads and freed when the last one ends. New example `threads`.
 * System calls 11h–12h: `sem_destroy`, `mbox_destroy`. Far memory is reclaimed when the thread that allocated it ends.
 * Kernel version string (`0.6-dev`) in the banner and `about`.

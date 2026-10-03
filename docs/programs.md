@@ -66,4 +66,9 @@ A relocation is the 16-bit offset of a word, inside the text or inside the data,
 
 ## Disk access
 
-The kernel reads the boot drive through the BIOS (`INT 13h`). For each sector it hands the timer and keyboard interrupts back to the BIOS, makes the call, and takes them again. During a read nothing is scheduled, the tick counter stops, and keys pressed are lost. A native floppy driver would remove those limits and is future work. The file system is read-only FAT12.
+The kernel reads the boot drive with one of two drivers, chosen at boot; `disk` at the shell shows which, and `disk native` or `disk bios` switches.
+
+* **Native floppy driver** (`kernel/floppy.c`): the kernel programs the floppy controller, the DMA controller and IRQ6 itself. A thread that reads the disk sleeps while the drive works and everything else keeps running. Used when the machine booted from drive A: and a controller answers.
+* **BIOS** (`INT 13h`): the fallback. For each sector the kernel hands the timer and keyboard interrupts back to the BIOS, makes the call, and takes them again. During a read nothing is scheduled, the tick counter stops, and keys pressed are lost.
+
+QEMU and v86 get the native driver. DOSBox-X does not emulate a floppy controller for a booted image, so it gets the BIOS driver. The file system is read-only FAT12.
