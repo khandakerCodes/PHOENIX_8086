@@ -49,6 +49,10 @@ function makeElement(tagName, attributes) {
         appendChild(child) { this.children.push(child); return child; },
         replaceChildren(...nodes) { this.children.length = 0; this.children.push(...nodes); },
         addEventListener(type, handler) { listeners[type] = handler; },
+        attributes: Object.assign({}, attributes),
+        setAttribute(name, value) { this.attributes[name] = String(value); },
+        getAttribute(name) { return name in this.attributes ? this.attributes[name] : null; },
+        focus() { this.focused = true; },
         querySelector() { return this._inner || (this._inner = makeElement('span', {})); },
     };
     Object.defineProperty(element, 'className', {
@@ -93,7 +97,7 @@ function load(options) {
 
     const timers = [];
     const storage = settings.stored ? { 'phoenix-locale': settings.stored } : {};
-    const page = { sockets: [], sent: [], byId: byId, elements: elements };
+    const page = { sockets: [], sent: [], byId: byId, elements: elements, documentListeners: {} };
     let ready = null;
 
     const documentElement = makeElement('html', {});
@@ -127,7 +131,10 @@ function load(options) {
                 }
                 throw new Error('fake DOM does not support selector ' + selector);
             },
-            addEventListener: (type, handler) => { if (type === 'DOMContentLoaded') ready = handler; },
+            addEventListener: (type, handler) => {
+                if (type === 'DOMContentLoaded') ready = handler;
+                else page.documentListeners[type] = handler;
+            },
         },
         WebSocket: function (url) {
             this.url = url;

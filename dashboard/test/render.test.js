@@ -240,3 +240,41 @@ test('"?live" overrides a site configured for the emulator', () => {
     assert.strictEqual(page.sockets.length, 1);
     assert.strictEqual(page.byId['status-badge'].textContent, 'OFFLINE');
 });
+
+test('tabs expose their state and move with the arrow keys', () => {
+    const page = load();
+    const tabs = page.elements.filter((e) => e.classList.contains('view-tab'));
+    assert.strictEqual(tabs.length, 4);
+    assert.strictEqual(tabs[0].getAttribute('aria-selected'), 'true');
+
+    tabs[0].listeners.keydown({ key: 'ArrowRight', preventDefault() {} });
+    assert.strictEqual(tabs[0].getAttribute('aria-selected'), 'false');
+    assert.strictEqual(tabs[1].getAttribute('aria-selected'), 'true');
+    assert.strictEqual(tabs[1].focused, true);
+    assert.ok(page.byId['view-scheduler'].classList.contains('view-content--active'));
+
+    tabs[0].listeners.keydown({ key: 'ArrowLeft', preventDefault() {} });
+    assert.strictEqual(tabs[3].getAttribute('aria-selected'), 'true', 'wraps around');
+});
+
+test('the panic dialog takes focus and Escape dismisses it', () => {
+    const page = load();
+    goLive(page);
+    assert.strictEqual(page.byId['fault-overlay'].style.display, 'flex');
+    assert.strictEqual(page.byId['fault-dismiss'].focused, true);
+
+    page.documentListeners.keydown({ key: 'Escape' });
+    page.flush();
+    assert.strictEqual(page.byId['fault-overlay'].style.display, 'none');
+});
+
+test('thread cards are buttons that say which one is selected', () => {
+    const page = load();
+    goLive(page);
+    const card = () => page.byId['thread-list'].children[1];
+    assert.strictEqual(card().getAttribute('role'), 'button');
+    assert.strictEqual(card().getAttribute('aria-pressed'), 'false');
+    card().onkeydown({ key: ' ', preventDefault() {} });
+    page.flush();
+    assert.strictEqual(card().getAttribute('aria-pressed'), 'true');
+});

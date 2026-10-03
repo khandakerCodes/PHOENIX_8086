@@ -24,7 +24,7 @@
     /* Text */
     --text-primary:     #e5e7eb;
     --text-secondary:   #9ca3af;
-    --text-muted:       #6b7280;
+    --text-muted:       #9aa3b2;    /* 4.5:1 or better on every panel background */
     --text-accent:      #60a5fa;
 
     /* Accents */
@@ -430,7 +430,7 @@ body {
 }
 
 .view-tab--active {
-    color: var(--accent-blue);
+    color: var(--text-accent);
 }
 
 .view-tab--active::after {
@@ -1066,9 +1066,9 @@ body {
 
 /* ── Data source: mode badge and banner ─────── */
 .logo-badge--live    { background: var(--accent-green); animation: none; }
-.logo-badge--replay  { background: var(--accent-purple); color: #fff; animation: none; }
+.logo-badge--replay  { background: #7c3aed; color: #fff; animation: none; }
 .logo-badge--demo    { background: var(--accent-amber); animation: none; }
-.logo-badge--offline { background: var(--accent-red); color: #fff; animation: none; }
+.logo-badge--offline { background: #dc2626; color: #fff; animation: none; }
 .logo-badge--emulator { background: var(--accent-cyan); color: #000; animation: none; }
 
 .mode-banner {
@@ -1082,8 +1082,8 @@ body {
 
 .mode-banner[hidden] { display: none; }
 .mode-banner--demo    { background: var(--accent-amber); color: #000; }
-.mode-banner--replay  { background: var(--accent-purple); color: #fff; }
-.mode-banner--offline { background: var(--accent-red); color: #fff; }
+.mode-banner--replay  { background: #7c3aed; color: #fff; }
+.mode-banner--offline { background: #dc2626; color: #fff; }
 .mode-banner--waiting { background: var(--bg-tertiary); color: var(--text-secondary); }
 .mode-banner--emulator { background: var(--accent-cyan); color: #000; }
 
@@ -1326,6 +1326,132 @@ body {
 [dir="rtl"] .demo-toggle,
 [dir="rtl"] .fault-dismiss {
     font-family: var(--font-sans);
+}
+
+/* ── Accessibility: contrast and focus ──────── */
+
+/* State badges and alerts: lighter text so it reads on the tinted background */
+.thread-card__state--running    { color: #34d399; }
+.thread-card__state--ready      { color: #93c5fd; }
+.thread-card__state--blocked    { color: #fbbf24; }
+.thread-card__state--sleeping   { color: #c4b5fd; }
+.thread-card__state--terminated { color: #fca5a5; }
+.event-item--fault              { color: #fca5a5; }
+
+.fault-thread,
+.fault-registers {
+    color: var(--text-primary);
+}
+
+/* Steps not reached yet are marked by their hollow dot and muted text.
+   Fading the whole row made the text too faint to read. */
+.boot-step {
+    opacity: 1;
+}
+
+.boot-step .boot-step__label {
+    color: var(--text-muted);
+}
+
+.boot-step--completed .boot-step__label,
+.boot-step--active .boot-step__label {
+    color: var(--text-primary);
+}
+
+/* Everything that can take keyboard focus shows it */
+.view-tab:focus-visible,
+.panel:focus-visible,
+.event-stream:focus-visible,
+.console-output:focus-visible,
+.fault-dismiss:focus-visible,
+.demo-toggle:focus-visible,
+#event-filter:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: -2px;
+}
+
+/* ── Phones: one scrolling column ───────────── */
+@media (max-width: 640px) {
+    body {
+        height: auto;
+        min-height: 100vh;
+        overflow: auto;
+    }
+
+    .top-bar {
+        height: auto;
+        flex-wrap: wrap;
+        gap: var(--gap-sm);
+    }
+
+    .top-bar__metrics {
+        flex-wrap: wrap;
+        gap: var(--gap-sm) var(--gap-md);
+    }
+
+    .dashboard {
+        display: block;
+    }
+
+    .panel {
+        overflow: visible;
+    }
+
+    .panel--left,
+    .panel--right {
+        flex-direction: column;
+        overflow-x: visible;
+    }
+
+    .panel__section {
+        min-width: 0;
+    }
+
+    .view-content {
+        overflow: visible;
+        padding: var(--gap-md);
+    }
+
+    #view-console .console-output {
+        height: 50vh;
+        flex: none;
+    }
+
+    .ctx-switch-anim {
+        flex-wrap: wrap;
+    }
+
+    .ctx-phase {
+        flex: 1 1 40%;
+    }
+
+    .ctx-arrow {
+        display: none;
+    }
+
+    .ctx-switch-detail {
+        flex-direction: column;
+        padding: var(--gap-md) 0;
+    }
+
+    .ctx-thread-box {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .ctx-switch-arrow {
+        transform: rotate(90deg);
+    }
+
+    .bottom-bar {
+        height: auto;
+        flex-direction: column;
+    }
+
+    .bottom-bar__section--log .event-stream {
+        height: 30vh;
+        flex: none;
+    }
 }
 
 /* ── Reduced motion ─────────────────────────── */

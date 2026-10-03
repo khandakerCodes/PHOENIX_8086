@@ -159,7 +159,7 @@ Goal: the dashboard shows only the truth, and sessions can be replayed.
 - [x] Dashboard: real memory map, register diff on switch, fault view, console input
 - [x] No external requests: system font stacks instead of a font CDN
 - [x] Dashboard model tests driven by a recorded capture (`node --test dashboard/test/*.test.js`)
-- [x] Dashboard checked in a real browser (headless Chromium) and the layout problems it showed fixed; `tools/test_dashboard_browser.mjs` repeats the check in CI and keeps screenshots. One window size and one browser only
+- [x] Dashboard checked in a real browser (headless Chromium) and the layout problems it showed fixed; `tools/test_dashboard_browser.mjs` repeats the check in CI and keeps screenshots. Desktop and phone window sizes; one browser only
 - [ ] Replay controls in the dashboard (pause, seek); replay is currently controlled from the bridge command line
 - [x] A flood of events such as `bench` overflows the 4 KB ring; high-volume records are limited to three quarters of it so console text and faults still get through, and the drops are counted
 
@@ -189,7 +189,7 @@ Goal: run separately built programs from disk.
 - [/] Every subsystem has a design page — one architecture guide covers them all (`docs/architecture.md`); no per-subsystem pages
 - [ ] Coverage report for host unit tests
 - [x] Pluggable keymaps: US, UK, DE, FR; AltGr and Caps Lock; `keymap` command
-- [/] Dashboard locale files (en, de, fr, es, ar), language switcher, right-to-left support — done, tested for consistency, and the right-to-left layout checked in a browser; translations not reviewed by native speakers; no accessibility pass
+- [/] Dashboard locale files (en, de, fr, es, ar), language switcher, right-to-left support — done, tested for consistency, and the right-to-left layout checked in a browser; translations not reviewed by native speakers. Accessibility: an automated axe audit (WCAG 2 A/AA) passes on every view and runs in CI; not tried with a real screen reader
 - [x] `docs/<lang>/` structure and translation guide (`docs/translating.md`); no translated documents yet
 - [/] Build guides — Ubuntu 24.04 and WSL2 verified; macOS and other distributions written but not verified (`docs/building.md`)
 - [ ] Documentation site generated from `docs/` (the documents are readable on GitHub; no generated site)
