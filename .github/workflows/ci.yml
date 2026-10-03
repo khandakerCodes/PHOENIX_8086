@@ -40,3 +40,6 @@ jobs:
 
       - name: Test on an emulated 8086
         run: make test-8086
+
+      - name: Short soak test
+        run: make soak SOAK_SECONDS=90

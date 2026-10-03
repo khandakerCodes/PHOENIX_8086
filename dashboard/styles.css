@@ -1064,6 +1064,7 @@ body {
 .logo-badge--replay  { background: var(--accent-purple); color: #fff; animation: none; }
 .logo-badge--demo    { background: var(--accent-amber); animation: none; }
 .logo-badge--offline { background: var(--accent-red); color: #fff; animation: none; }
+.logo-badge--emulator { background: var(--accent-cyan); color: #000; animation: none; }
 
 .mode-banner {
     padding: 6px var(--gap-md);
@@ -1079,6 +1080,7 @@ body {
 .mode-banner--replay  { background: var(--accent-purple); color: #fff; }
 .mode-banner--offline { background: var(--accent-red); color: #fff; }
 .mode-banner--waiting { background: var(--bg-tertiary); color: var(--text-secondary); }
+.mode-banner--emulator { background: var(--accent-cyan); color: #000; }
 
 .demo-toggle {
     font-family: var(--font-mono);

@@ -11,6 +11,7 @@
  *   REPLAY   — the bridge is playing back a recorded capture
  *   DEMO     — simulated data (demo.js), only when the user starts it
  *   OFFLINE  — no bridge; panels keep whatever was last received
+ *   IN BROWSER — the kernel runs in an emulator inside the page (browser.js)
  *
  * Every visible string comes from the locale files through t().
  */
@@ -51,6 +52,9 @@
     let ws = null;
     let wsOpen = false;
     let stopDemo = null;            // non-null while demo mode runs
+    let emulatorMode = false;       // the kernel runs inside the page instead of behind a bridge
+    let emulator = null;            // { send, stop } once the in-browser emulator is up
+    let emulatorError = null;
     let selectedThread = null;
     let hideTelemetryThread = true;
     let faultDismissedTick = null;
@@ -107,6 +111,7 @@
     }
 
     function mode() {
+        if (emulatorMode) return 'emulator';
         if (stopDemo) return 'demo';
         if (!wsOpen) return 'offline';
         return model.link.mode === 'replay' ? 'replay' : 'live';
@@ -178,7 +183,9 @@
     }
 
     function sendInput(text) {
-        if (wsOpen && mode() === 'live' && model.link.serial) {
+        if (emulator) {
+            emulator.send(text);
+        } else if (wsOpen && mode() === 'live' && model.link.serial) {
             ws.send(JSON.stringify({ type: 'input', text: text }));
         }
     }
@@ -213,7 +220,10 @@
         badge.className = 'logo-badge logo-badge--' + current;
 
         let text = '';
-        if (current === 'demo') {
+        if (current === 'emulator') {
+            text = emulatorError ? t('banner.emulatorFailed', { error: emulatorError })
+                 : emulator ? t('banner.emulator') : t('banner.emulatorLoading');
+        } else if (current === 'demo') {
             text = t('banner.demo');
         } else if (current === 'replay') {
             text = t('banner.replay');
@@ -223,13 +233,15 @@
             text = t('banner.waiting');
         }
         banner.textContent = text;
-        banner.className = 'mode-banner mode-banner--' + (waiting ? 'waiting' : current);
+        banner.className = 'mode-banner mode-banner--' +
+            (waiting || (current === 'emulator' && !emulator && !emulatorError) ? 'waiting'
+                : emulatorError ? 'offline' : current);
         banner.hidden = text === '';
 
-        $('demo-toggle').hidden = wsOpen;
+        $('demo-toggle').hidden = wsOpen || emulatorMode;
         $('demo-toggle').textContent = stopDemo ? t('demo.stop') : t('demo.run');
 
-        const live = current === 'live' && model.link.serial;
+        const live = (current === 'live' && model.link.serial) || emulator !== null;
         $('console-input').disabled = !live;
         $('console-input').placeholder = live ? t('console.placeholderLive') : t('console.placeholderOff');
     }
@@ -568,7 +580,7 @@
                 stopDemo();
                 stopDemo = null;
                 receive({ type: 'BRIDGE', mode: 'offline', serial: false, reset: true });
-            } else if (!wsOpen) {
+            } else if (!wsOpen && !emulatorMode) {
                 stopDemo = PhoenixDemo.start(receive);
             }
             scheduleRender();
@@ -632,7 +644,23 @@
     document.addEventListener('DOMContentLoaded', function () {
         setupViewTabs();
         setupControls();
+        const query = new URLSearchParams(location.search);
+        const config = window.PhoenixConfig || {};
+        emulatorMode = (config.emulator === true || query.has('emulator')) && !query.has('live');
+
         setupLanguage();        /* also draws the page for the first time */
+
+        if (emulatorMode) {
+            PhoenixBrowser.start(receive, document).then(function (handle) {
+                emulator = handle;
+                scheduleRender();
+            }).catch(function (error) {
+                emulatorError = error && error.message ? error.message : String(error);
+                scheduleRender();
+            });
+            return;
+        }
+
         connectWebSocket();
 
         /* ?demo in the URL asks for the demo explicitly */

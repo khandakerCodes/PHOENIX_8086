@@ -134,7 +134,11 @@
             "console.placeholderOff": "La entrada solo está disponible en modo en vivo",
             "fault.title": "PÁNICO DEL NÚCLEO",
             "fault.thread": "Hilo {thread} en el tick {tick}",
-            "fault.dismiss": "Cerrar"
+            "fault.dismiss": "Cerrar",
+            "mode.emulator": "EN EL NAVEGADOR",
+            "banner.emulator": "EN EL NAVEGADOR — un núcleo real ejecutándose en un emulador de PC dentro de esta página (CPU de clase 386)",
+            "banner.emulatorLoading": "Iniciando el emulador en el navegador…",
+            "banner.emulatorFailed": "No se pudo iniciar el emulador en el navegador: {error}"
         },
     });
 }(typeof self !== 'undefined' ? self : this));

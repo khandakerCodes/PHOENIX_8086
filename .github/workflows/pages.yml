@@ -1,0 +1,64 @@
+name: Demo site
+
+# Builds the in-browser demo and publishes it with GitHub Pages.
+# One-time setup: repository Settings → Pages → Source: "GitHub Actions".
+# Runs when started by hand and when a version tag is pushed.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make nasm python3 curl libgmp10 libmpc3 libmpfr6
+
+      - name: Cache the ia16-elf toolchain
+        uses: actions/cache@v4
+        with:
+          path: .toolchain
+          key: toolchain-${{ hashFiles('tools/get-toolchain.sh') }}
+
+      - name: Fetch the ia16-elf toolchain
+        run: make toolchain
+
+      - name: Build the floppy image
+        run: make all check
+
+      - name: Build the site
+        run: ./tools/build_site.sh
+
+      - name: Test the demo engine in v86
+        run: |
+          npm install --no-save --no-audit --no-fund v86@0.5.469
+          node tools/test_browser_demo.mjs site
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

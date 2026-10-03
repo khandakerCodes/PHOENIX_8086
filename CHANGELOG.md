@@ -33,6 +33,12 @@ All notable changes to this project are recorded here. The project follows [Sema
 * SDK (`sdk/`): `phoenix.h`, startup code, linker script, `mkprog.py`, and three example programs.
 * System calls 18h–1Bh: `open`, `read`, `close`, `exec`.
 * `tools/test_image.py`: independent check of the floppy image and program files.
+* `make soak`: sustained churn of threads, IPC and program loads with leak and fault checks; nightly one-hour workflow.
+* Keyboard layouts (US, UK, German, French) with AltGr and Caps Lock; `keymap` shell command.
+* Dashboard translations (English, German, French, Spanish, Arabic) with a language switcher and right-to-left support.
+* In-browser demo: the dashboard can boot the kernel in the v86 emulator inside the page; `tools/build_site.sh`, a JavaScript telemetry decoder, and a GitHub Pages workflow.
+* Release workflow: a version tag builds, tests and publishes the image, checksum and a telemetry capture.
+* Documentation: architecture guide, build guide, translation guide, three labs.
 
 ### Changed
 * Memory layout: kernel code at `1000:0000`, kernel data and stacks at `2000:0000`.
@@ -40,6 +46,7 @@ All notable changes to this project are recorded here. The project follows [Sema
 * `phoenix.sh` no longer kills other processes; it reports busy ports and stops.
 
 ### Fixed
+* The dashboard's "hide telemetry thread" filter missed switches out of that thread.
 * Dashboard no longer falls back to random data or draws random bar heights.
 * Telemetry no longer does serial I/O inside the timer interrupt, and no longer reports context switches that did not happen.
 * Kernel image was silently truncated when it grew past 32 sectors.

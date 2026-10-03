@@ -134,7 +134,11 @@
             "console.placeholderOff": "Input is available in live mode only",
             "fault.title": "KERNEL PANIC",
             "fault.thread": "Thread {thread} at tick {tick}",
-            "fault.dismiss": "Dismiss"
+            "fault.dismiss": "Dismiss",
+            "mode.emulator": "IN BROWSER",
+            "banner.emulator": "IN BROWSER — a real kernel running in a PC emulator inside this page (386-class CPU)",
+            "banner.emulatorLoading": "Starting the in-browser emulator…",
+            "banner.emulatorFailed": "The in-browser emulator could not start: {error}"
         },
     });
 }(typeof self !== 'undefined' ? self : this));

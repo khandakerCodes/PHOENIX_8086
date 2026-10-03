@@ -134,7 +134,11 @@
             "console.placeholderOff": "الإدخال متاح في الوضع المباشر فقط",
             "fault.title": "ذعر النواة",
             "fault.thread": "الخيط {thread} عند النبضة {tick}",
-            "fault.dismiss": "إغلاق"
+            "fault.dismiss": "إغلاق",
+            "mode.emulator": "في المتصفح",
+            "banner.emulator": "في المتصفح — نواة حقيقية تعمل داخل محاكي حاسوب في هذه الصفحة (معالج من فئة 386)",
+            "banner.emulatorLoading": "جارٍ تشغيل المحاكي داخل المتصفح…",
+            "banner.emulatorFailed": "تعذّر تشغيل المحاكي داخل المتصفح: {error}"
         },
     });
 }(typeof self !== 'undefined' ? self : this));

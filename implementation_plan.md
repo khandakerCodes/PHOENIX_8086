@@ -184,24 +184,27 @@ Goal: run separately built programs from disk.
 
 ### Phase 5 — Hardening and Internationalisation (release v0.9)
 
-- [ ] 1-hour soak test with thread churn in CI (nightly)
-- [ ] Coverage report for host unit tests; every subsystem has a design page
-- [ ] Pluggable keymaps: US, UK, DE, FR to start; `keymap` command
-- [ ] Dashboard locale files, language switcher, right-to-left layout check; accessibility pass
-- [ ] `docs/<lang>/` structure and translation guide
-- [ ] Build guides verified on Linux, macOS, and Windows (WSL)
-- [ ] Documentation site generated from `docs/`
-- [ ] Three course labs with solutions on a separate branch
-- [ ] Freeze syscall ABI v1 and telemetry protocol v1
+- [x] Soak test with thread, IPC and program churn (`make soak`); 90 seconds in CI on every push, one hour nightly (`.github/workflows/soak.yml`). A 15-minute run passed locally: 122 cycles, 27,611 context switches, no leaks, faults or lost telemetry
+- [ ] The nightly one-hour run has not executed yet (it starts on its schedule once pushed)
+- [/] Every subsystem has a design page — one architecture guide covers them all (`docs/architecture.md`); no per-subsystem pages
+- [ ] Coverage report for host unit tests
+- [x] Pluggable keymaps: US, UK, DE, FR; AltGr and Caps Lock; `keymap` command
+- [/] Dashboard locale files (en, de, fr, es, ar), language switcher, right-to-left support — done and tested for consistency; translations not reviewed by native speakers; right-to-left layout not checked in a browser; no accessibility pass
+- [x] `docs/<lang>/` structure and translation guide (`docs/translating.md`); no translated documents yet
+- [/] Build guides — Ubuntu 24.04 and WSL2 verified; macOS and other distributions written but not verified (`docs/building.md`)
+- [ ] Documentation site generated from `docs/` (the documents are readable on GitHub; no generated site)
+- [/] Three course labs (`docs/labs/`) — written; worked solutions not written, and nobody has worked through them yet
+- [ ] Freeze syscall ABI v1 and telemetry protocol v1 — deliberately not done while known gaps remain (no destroy calls, `thread_create` unusable from programs)
 
-**Exit test:** every item in spec §9 except the public demo is met.
+**Exit test:** every item in spec §9 except the public demo is met. *(Not met: see the open items above and the dashboard browser check.)*
 
 ### Phase 6 — Public Launch (release v1.0)
 
-- [ ] Browser demo: image booted in an in-browser x86 emulator, wired to the dashboard, hosted on the project site
-- [ ] Release pipeline: tagged build publishes image, checksums, capture file, release notes
-- [ ] README with screenshots, a short demo recording, and a 15-minute quick start verified by someone new to the project
-- [ ] Label 15+ starter issues; publish the 1.x roadmap
+- [/] Browser demo: the dashboard boots the image in v86 inside the page (`dashboard/browser.js`, `tools/build_site.sh`). The engine is tested under Node with the real emulator (boot, typed command, program load); the page has not been opened in a browser, and nothing is hosted until GitHub Pages is enabled and the `Demo site` workflow is run
+- [/] Release pipeline: `.github/workflows/release.yml` builds, tests and publishes on a version tag. Never run: no tag has been pushed
+- [/] README with quick start — written; no screenshots or recording; the 15-minute quick start has not been tried by a newcomer
+- [/] Starter tasks listed in `CONTRIBUTING.md`; no GitHub issues created
+- [ ] Publish the 1.x roadmap
 - [ ] Announce to OS-development, retro-computing, and education communities
 
 **Exit test:** spec §9 Definition of Done fully met.

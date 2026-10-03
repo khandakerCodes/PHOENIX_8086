@@ -13,8 +13,8 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const DASHBOARD = path.join(__dirname, '..');
-const SCRIPTS = ['i18n.js', 'locales/en.js', 'locales/de.js', 'locales/fr.js', 'locales/es.js',
-                 'locales/ar.js', 'model.js', 'demo.js', 'app.js'];
+const SCRIPTS = ['config.js', 'i18n.js', 'locales/en.js', 'locales/de.js', 'locales/fr.js', 'locales/es.js',
+                 'locales/ar.js', 'model.js', 'demo.js', 'protocol.js', 'browser.js', 'app.js'];
 
 function camel(name) {
     return name.replace(/-(\w)/g, (_, letter) => letter.toUpperCase());
@@ -85,7 +85,7 @@ function parse(html) {
  * the WebSocket the page opened, and flush() to run its pending timers.
  */
 function load(options) {
-    const settings = Object.assign({ language: 'en', search: '', stored: null }, options);
+    const settings = Object.assign({ language: 'en', search: '', stored: null, V86: null }, options);
     const html = fs.readFileSync(path.join(DASHBOARD, 'index.html'), 'utf8');
     const elements = parse(html);
     const byId = {};
@@ -137,6 +137,8 @@ function load(options) {
         },
     };
     context.self = context;
+    context.window = context;
+    if (settings.V86) context.V86 = settings.V86;
     vm.createContext(context);
     SCRIPTS.forEach((file) => {
         const source = fs.readFileSync(path.join(DASHBOARD, file), 'utf8')

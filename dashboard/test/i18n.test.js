@@ -60,7 +60,7 @@ test('every key used by the page exists', () => {
     Object.keys(english).filter((key) => app.includes("'" + key + "'")).forEach((key) => used.add(key));
     for (const match of model.matchAll(/'(event\.\w+)'/g)) used.add(match[1]);
     // keys built at run time
-    ['live', 'replay', 'demo', 'offline'].forEach((mode) => used.add('mode.' + mode));
+    ['live', 'replay', 'demo', 'offline', 'emulator'].forEach((mode) => used.add('mode.' + mode));
     ['READY', 'RUNNING', 'BLOCKED', 'SLEEPING', 'TERMINATED', 'UNKNOWN'].forEach((s) => used.add('state.' + s));
     ['ivt', 'bios', 'boot', 'kernel', 'threads', 'heap', 'stack', 'far'].forEach((r) => used.add('mem.region.' + r));
 

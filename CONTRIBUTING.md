@@ -18,6 +18,15 @@ Thanks for your interest. The project is pre-alpha; the [implementation plan](im
 * **Known compiler pitfall:** `ia16-elf-gcc` 6.3 at `-Os` miscompiles calls like `f((uint8_t)(x >> 8))` when `x` is 32 bits wide. Split the value into a byte array first (see `put32` in `kernel/telemetry.c`).
 * Match the style of the file you are editing. New source files start with an `SPDX-License-Identifier: MIT` line.
 
+## Good first tasks
+
+* Review one of the dashboard translations if you are a native speaker (`docs/translating.md`).
+* Add a keyboard layout (`docs/labs/03-keyboard-layout.md`).
+* Open the dashboard in a browser and report what looks wrong; nobody has yet.
+* Try the build on macOS or another Linux distribution and update the table in `docs/building.md`.
+* Add integration checks for the shell commands that have none: `reboot`, `registers`, `scheduler`, `interrupts`, `clear`, `about`.
+* Write a worked solution for one of the labs.
+
 ## Reporting bugs
 
 Open an issue with what you ran, what you expected, and what happened. For kernel bugs, the output of `make test` and the text on the QEMU screen help most.
