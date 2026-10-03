@@ -184,7 +184,7 @@ No region may overlap another. The build fails if any image exceeds its region.
 
 * The boot floppy is a valid **FAT12** volume, so any host OS can add files to it.
 * Read-only FAT12 driver: root directory, cluster chains, 8.3 names.
-* Programs are files with a small header, text, data and a relocation table. Text is loaded into the far arena and runs in its own code segment. In the 0.x line a program's data lives in the kernel data segment and is relocated at load time, so every thread keeps DS = SS = kernel data; a separate data segment per program is a 1.x goal.
+* Programs are files with a small header, text and data. Each program is loaded into a code segment and a data segment of its own in the far arena; its threads' stacks live in its data segment. The interrupt path switches to a per-thread kernel stack while the kernel works on a program's behalf.
 * An SDK (`sdk/`) provides headers, a C runtime stub, a linker script, and example programs.
 
 ### 4.11 Shell, debug monitor, panic

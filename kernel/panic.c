@@ -23,8 +23,9 @@ static const char *panic_reason;
 
 /* ── Panic screen ───────────────────────────── */
 
-static void panic_show(const char *reason, frame_t *frame)
+static void panic_show(const char *reason, uint16_t context)
 {
+    frame_t *frame = CONTEXT_FRAME(context);
     tcb_t *tcb = NULL;
     int tid;
 
@@ -32,7 +33,7 @@ static void panic_show(const char *reason, frame_t *frame)
     irq_disable();
 
     tid = thread_current_tid();
-    telemetry_fault((uint8_t)(tid < 0 ? 0xFF : tid), frame, reason);
+    telemetry_fault((uint8_t)(tid < 0 ? 0xFF : tid), frame, CONTEXT_RESUME_SP(context), reason);
 
     /* Red background for panic screen */
     con_set_color(VGA_WHITE, VGA_RED);
@@ -84,7 +85,7 @@ static void panic_show(const char *reason, frame_t *frame)
 
     con_set_cursor(12, 7);
     con_print("SP=");
-    con_print_hex((uint16_t)frame + sizeof(frame_t));   /* SP before the interrupt */
+    con_print_hex(CONTEXT_RESUME_SP(context));          /* SP before the interrupt */
     con_print("  BP=");
     con_print_hex(frame->bp);
     con_print("  SI=");
@@ -106,7 +107,8 @@ static void panic_show(const char *reason, frame_t *frame)
     con_print("  ES=");
     con_print_hex(frame->es);
     con_print("  SS=");
-    con_print_hex(tcb ? tcb->ss : KERNEL_DATA_SEG);
+    con_print_hex(CONTEXT(context)->from_program
+                      ? ((user_context_t *)context)->user_ss : KERNEL_DATA_SEG);
 
     /* Interrupt stats */
     con_set_cursor(16, 5);
@@ -136,31 +138,31 @@ static void panic_show(const char *reason, frame_t *frame)
 
 uint16_t panic_handler(uint16_t sp)
 {
-    panic_show(panic_reason, (frame_t *)sp);
+    panic_show(panic_reason, sp);
     return sp;
 }
 
 uint16_t exc_divide_handler(uint16_t sp)
 {
-    panic_show("Divide error (INT 0)", (frame_t *)sp);
+    panic_show("Divide error (INT 0)", sp);
     return sp;
 }
 
 uint16_t exc_step_handler(uint16_t sp)
 {
-    panic_show("Unexpected single-step trap (INT 1)", (frame_t *)sp);
+    panic_show("Unexpected single-step trap (INT 1)", sp);
     return sp;
 }
 
 uint16_t exc_break_handler(uint16_t sp)
 {
-    panic_show("Breakpoint (INT 3)", (frame_t *)sp);
+    panic_show("Breakpoint (INT 3)", sp);
     return sp;
 }
 
 uint16_t exc_overflow_handler(uint16_t sp)
 {
-    panic_show("Overflow trap (INTO)", (frame_t *)sp);
+    panic_show("Overflow trap (INTO)", sp);
     return sp;
 }
 

@@ -12,9 +12,13 @@
  * calls the normal blocking kernel function: the thread is switched
  * out in the middle of its system call and finishes it when woken.
  *
+ * A pointer argument is an offset in the caller's own data segment,
+ * which for a loaded program is not the kernel's. The kernel reaches
+ * it through a far pointer built from the caller's saved DS.
+ *
  * Semaphore and mailbox handles are near pointers to kernel heap
- * objects. Real mode has no memory protection, so they are not
- * validated beyond a NULL check.
+ * objects, opaque to the caller. Real mode has no memory protection,
+ * so they are not validated beyond a NULL check.
  */
 
 #include "syscall.h"
@@ -31,6 +35,24 @@
 #include "hal.h"
 
 extern void thread_terminate(int tid);
+
+/* ── The caller's memory ────────────────────── */
+
+#define NAME_MAX_LENGTH     13      /* "FILENAME.EXT" + NUL */
+#define PUTS_MAX_LENGTH     1024    /* A string without a terminator must not print forever */
+#define READ_CHUNK          64
+
+/* Copy a short string argument out of the caller's data segment */
+static void copy_name(const frame_t *frame, uint16_t offset, char *out)
+{
+    const char __far *in = (const char __far *)MK_FP(frame->ds, offset);
+    uint8_t i;
+
+    for (i = 0; i < NAME_MAX_LENGTH - 1 && in[i]; i++) {
+        out[i] = in[i];
+    }
+    out[i] = '\0';
+}
 
 /* ── Open files ─────────────────────────────── */
 
@@ -87,6 +109,7 @@ bool syscall_dispatch(frame_t *frame)
     uint8_t func = (uint8_t)(frame->ax >> 8);  /* Function number in AH */
     bool resched = false;
     bool error = false;
+    char name[NAME_MAX_LENGTH];
     int tid;
     void *obj;
 
@@ -104,8 +127,15 @@ bool syscall_dispatch(frame_t *frame)
         break;
 
     case SYS_PUTS:
-        /* BX = near pointer to a null-terminated string */
-        con_print((const char *)frame->bx);
+        /* BX = offset of a null-terminated string in the caller's data segment */
+        {
+            const char __far *text = (const char __far *)MK_FP(frame->ds, frame->bx);
+            uint16_t i;
+
+            for (i = 0; i < PUTS_MAX_LENGTH && text[i]; i++) {
+                con_putchar(text[i]);
+            }
+        }
         break;
 
     case SYS_THREAD_CREATE: {
@@ -115,7 +145,7 @@ bool syscall_dispatch(frame_t *frame)
          */
         tcb_t *caller = thread_get_tcb(thread_current_tid());
 
-        if (caller->program && frame->cs == caller->program->segment) {
+        if (caller->program && frame->cs == caller->program->code_segment) {
             /* A program starting another thread in itself */
             tid = thread_create_program(caller->program, frame->bx, frame->dx,
                                         (uint8_t)(frame->cx & 0xFF), caller->name);
@@ -246,8 +276,9 @@ bool syscall_dispatch(frame_t *frame)
         break;
 
     case SYS_OPEN:
-        /* BX = near pointer to the file name */
-        tid = file_open((const char *)frame->bx);
+        /* BX = offset of the file name */
+        copy_name(frame, frame->bx, name);
+        tid = file_open(name);
         if (tid < 0) {
             error = true;
         }
@@ -255,9 +286,26 @@ bool syscall_dispatch(frame_t *frame)
         break;
 
     case SYS_READ:
-        /* BX = handle, CX = length, DX = near pointer to the buffer */
+        /* BX = handle, CX = length, DX = offset of the buffer */
         if (file_valid(frame->bx)) {
-            frame->ax = fat_read(&open_files[frame->bx].file, (uint8_t *)frame->dx, frame->cx);
+            /* The file system reads into kernel memory; pass it on in pieces */
+            uint8_t __far *out = (uint8_t __far *)MK_FP(frame->ds, frame->dx);
+            uint8_t chunk[READ_CHUNK];
+            uint16_t total = 0;
+
+            while (total < frame->cx) {
+                uint16_t want = frame->cx - total;
+                uint16_t got, i;
+
+                if (want > READ_CHUNK) want = READ_CHUNK;
+                got = fat_read(&open_files[frame->bx].file, chunk, want);
+                for (i = 0; i < got; i++) {
+                    out[total + i] = chunk[i];
+                }
+                total += got;
+                if (got < want) break;
+            }
+            frame->ax = total;
         } else {
             error = true;
         }
@@ -272,8 +320,9 @@ bool syscall_dispatch(frame_t *frame)
         break;
 
     case SYS_EXEC:
-        /* BX = near pointer to the program file name */
-        tid = exec_program((const char *)frame->bx, NULL);
+        /* BX = offset of the program file name */
+        copy_name(frame, frame->bx, name);
+        tid = exec_program(name, NULL);
         if (tid < 0) {
             error = true;
         }

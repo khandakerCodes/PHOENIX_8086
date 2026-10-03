@@ -208,6 +208,12 @@ def run(machine):
     machine.command("run threads.bin")
     text = machine.wait_for(r"threads: two workers sent \d+ numbers, total \d+\n") or ""
     check("a program starts threads in its own code", "total 1515" in text, text)
+    machine.command("run where.bin")
+    text = machine.wait_for(r"where: (50000 bytes|memory check)[^\n]*\n", timeout=120) or ""
+    where = re.search(r"cs=([0-9A-F]{4}) ds=([0-9A-F]{4}) ss=([0-9A-F]{4})", text)
+    check("a program runs in its own data and stack segment",
+          where is not None and where.group(2) == where.group(3) and where.group(2) != "2000" and
+          "zeroed and writable" in text, text)
     machine.command("run clock.bin")
     text = machine.wait_for(r"first line of README\.TXT: [^\n]*\n") or ""
     check("a program sleeps and reads a file",

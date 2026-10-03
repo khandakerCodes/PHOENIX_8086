@@ -132,7 +132,7 @@ Start with the [documentation index](docs/README.md).
 * Under heavy load (the `bench` command) the kernel's telemetry buffer fills and records are dropped. The drops are counted and shown, never hidden.
 * Real mode has no memory protection: any thread can overwrite any memory.
 * The file system is read-only. On machines where the kernel's floppy driver finds no controller it falls back to the BIOS, and a BIOS read pauses the scheduler.
-* Programs share the kernel's data segment; there is no process isolation.
+* Programs run in segments of their own, but real mode cannot enforce that: there is no memory protection.
 
 ## Contributing
 

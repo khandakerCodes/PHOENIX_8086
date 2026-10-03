@@ -280,7 +280,7 @@ void telemetry_thread_state(uint8_t tid)
 void telemetry_context_switch(uint8_t from_tid, uint8_t to_tid, uint16_t to_sp)
 {
     /* The registers the incoming thread is about to resume with */
-    const frame_t *frame = (const frame_t *)to_sp;
+    const frame_t *frame = CONTEXT_FRAME(to_sp);
     uint8_t data[24];
     uint8_t *p = data;
 
@@ -289,7 +289,7 @@ void telemetry_context_switch(uint8_t from_tid, uint8_t to_tid, uint16_t to_sp)
     p = put16(p, frame->ip);
     p = put16(p, frame->cs);
     p = put16(p, frame->flags);
-    p = put16(p, to_sp + sizeof(frame_t));  /* SP after the frame is popped */
+    p = put16(p, CONTEXT_RESUME_SP(to_sp));  /* SP after the frame is popped */
     p = put16(p, frame->ax);
     p = put16(p, frame->bx);
     p = put16(p, frame->cx);
@@ -309,7 +309,7 @@ void telemetry_syscall(uint8_t tid, uint8_t func)
     record(TEL_SYSCALL, data, sizeof(data));
 }
 
-void telemetry_fault(uint8_t tid, const frame_t *frame, const char *reason)
+void telemetry_fault(uint8_t tid, const frame_t *frame, uint16_t sp, const char *reason)
 {
     uint8_t data[TEL_MAX_PAYLOAD];
     uint8_t *p = data;
@@ -318,7 +318,7 @@ void telemetry_fault(uint8_t tid, const frame_t *frame, const char *reason)
     p = put16(p, frame->ip);
     p = put16(p, frame->cs);
     p = put16(p, frame->flags);
-    p = put16(p, (uint16_t)frame + sizeof(frame_t));
+    p = put16(p, sp);
     p = put16(p, frame->ax);
     p = put16(p, frame->bx);
     p = put16(p, frame->cx);

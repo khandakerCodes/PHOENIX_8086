@@ -36,13 +36,56 @@ typedef struct {
 } frame_t;
 
 /*
- * A loaded program's memory. Every thread running in the program holds
- * a reference; the memory is freed when the last of them ends.
+ * Saved context
+ *
+ * What an ISR stub leaves on a thread's kernel stack, lowest address
+ * first, and what the TCB's saved stack pointer points at.
+ *
+ * A thread interrupted while running kernel code already was on its
+ * kernel stack: the frame was pushed right there. A thread interrupted
+ * while running a program was on the program's stack, in the program's
+ * own data segment; the stub copies the frame to the kernel stack and
+ * notes where the program's stack was, so that the handlers (which are
+ * C code and need SS = DS = the kernel data segment) can run. On the
+ * way back the frame is copied to the program's stack again and the
+ * IRET happens there.
  */
+typedef struct {
+    uint16_t from_program;  /* 0: interrupted kernel code; 1: interrupted a program */
+    frame_t  frame;
+} context_t;
+
+typedef struct {
+    context_t context;      /* from_program = 1 */
+    uint16_t  user_sp;      /* Where the frame sits on the program's stack */
+    uint16_t  user_ss;      /* The program's data (and stack) segment */
+} user_context_t;
+
+#define CONTEXT(sp)         ((context_t *)(sp))
+#define CONTEXT_FRAME(sp)   (&CONTEXT(sp)->frame)
+
+/* The stack pointer the thread resumes with once its frame has been popped */
+#define CONTEXT_RESUME_SP(sp) \
+    (CONTEXT(sp)->from_program \
+        ? ((user_context_t *)(sp))->user_sp + sizeof(frame_t) \
+        : (uint16_t)CONTEXT_FRAME(sp) + sizeof(frame_t))
+
+/*
+ * A loaded program. Its code and its data each have a segment of their
+ * own in far memory; the data segment also holds the stacks of the
+ * program's threads. Every thread running in the program holds a
+ * reference, and the memory is freed when the last of them ends.
+ */
+#define PROG_MAX_THREADS    4       /* Threads one program can have at once */
+#define PROG_STACK_SIZE     2048    /* Stack for each of them, in the program's data segment */
+#define PROG_DATA_START     16      /* Offset of the program's data; below it is unused, so NULL is never valid */
+
 typedef struct program {
-    uint16_t segment;       /* Far segment holding the code */
-    void    *data;          /* Near heap block holding data + bss */
+    uint16_t code_segment;
+    uint16_t data_segment;
+    uint16_t stack_area;    /* Offset of the first thread stack in the data segment */
     uint8_t  threads;       /* Threads currently running in this program */
+    uint8_t  stacks_in_use; /* Bit n set: stack n belongs to a thread */
 } program_t;
 
 /* FLAGS bits used by the kernel */
@@ -53,7 +96,7 @@ typedef struct program {
 /*
  * Task Control Block
  *
- *   +0x00  SP   Saved stack pointer (points at a frame_t while not running)
+ *   +0x00  SP   Saved stack pointer (points at a context_t while not running)
  *   +0x02  SS   Stack segment (always the kernel data segment)
  *
  * The remaining fields are used from C only.
@@ -75,13 +118,14 @@ typedef struct {
 
     /* Identity and accounting */
     uint16_t tid;           /* Thread ID */
-    uint16_t stack_base;    /* Lowest address of the stack (guard word lives here) */
+    uint16_t stack_base;    /* Lowest address of the kernel stack (guard word lives here) */
     uint16_t stack_size;    /* Size of the stack in bytes */
     uint32_t cpu_ticks;     /* CPU time consumed (in timer ticks) */
     uint32_t last_scheduled;/* Tick when last scheduled */
 
     /* Loaded program this thread runs in, or NULL for a kernel thread */
     struct program *program;
+    uint8_t  program_stack; /* Which of the program's stacks this thread uses */
 
     char     name[12];      /* Human-readable thread name */
 

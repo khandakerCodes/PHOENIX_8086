@@ -3,8 +3,8 @@
  * Phoenix-8086 SDK — Program Startup and System Call Stub
  *
  * The loader starts a program at _start as a new thread. DS, ES and
- * SS already point at the kernel data segment, where the program's
- * own data was placed, and the stack is the thread's stack.
+ * SS already point at the program's own data segment, and SP at a
+ * stack inside it.
  */
 
     .arch i8086,jumps
