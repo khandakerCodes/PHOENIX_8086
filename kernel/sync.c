@@ -12,6 +12,7 @@
 #include "scheduler.h"
 #include "interrupts.h"
 #include "hal.h"
+#include "telemetry.h"
 
 /* ── Semaphore ──────────────────────────────── */
 
@@ -39,6 +40,7 @@ void sem_wait(semaphore_t *s)
         s->wait_queue[s->wait_count++] = (uint8_t)tid;
         tcb->wait_sem = s;
         tcb->state = THREAD_BLOCKED;
+        telemetry_thread_state((uint8_t)tid);
 
         /* Switch away; execution continues here after sem_signal */
         thread_yield();
@@ -81,6 +83,7 @@ void sem_signal(semaphore_t *s)
 
         tcb->wait_sem = NULL;
         tcb->state = THREAD_READY;
+        telemetry_thread_state((uint8_t)tid);
     }
 
     hal_irq_restore(flags);

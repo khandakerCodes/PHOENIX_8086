@@ -59,17 +59,4 @@ typedef uint8_t             bool;
 #define MEM_KERNEL_DATA     0x20000UL
 #define MEM_FAR_ARENA       0x30000UL
 
-/* Telemetry message types */
-#define TEL_BOOT_STAGE      0x01
-#define TEL_THREAD_EVENT    0x02
-#define TEL_CONTEXT_SWITCH  0x03
-#define TEL_IRQ_COUNTER     0x04
-#define TEL_REG_SNAPSHOT    0x05
-#define TEL_MEM_SUMMARY     0x06
-#define TEL_FAULT           0x07
-
-/* Telemetry framing */
-#define TEL_START_BYTE      0xFE
-#define TEL_SERIAL_PORT     0x3F8  /* COM1 */
-
 #endif /* PHOENIX_TYPES_H */

@@ -18,6 +18,7 @@
 #include "shell.h"
 #include "stats.h"
 #include "panic.h"
+#include "serial.h"
 
 /* Boot drive and memory info from entry.asm */
 extern uint8_t  boot_drive;
@@ -39,7 +40,8 @@ extern void idle_thread(void);
  */
 void kernel_main(void)
 {
-    /* Initialize serial telemetry hardware */
+    /* Serial port and telemetry buffer first, so early events are captured */
+    serial_init();
     telemetry_init();
     telemetry_boot_stage(1);
 
@@ -127,6 +129,9 @@ void kernel_main(void)
         con_println("FAILED");
     }
     con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
+
+    /* ── Step 7: Telemetry thread ───────────── */
+    telemetry_start();
 
     /* ── Boot complete ──────────────────────── */
     telemetry_boot_stage(7);

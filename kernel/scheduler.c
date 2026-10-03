@@ -33,9 +33,6 @@ extern void thread_terminate(int tid);
 /* ── Scheduler state ────────────────────────── */
 static int current_thread = -1;
 
-/* Emit interrupt counters to telemetry this often (in ticks) */
-#define TELEMETRY_IRQ_PERIOD    (HZ / 10)
-
 /* ── Sleep queue management ─────────────────── */
 
 static void check_sleep_queue(void)
@@ -47,6 +44,7 @@ static void check_sleep_queue(void)
             /* Signed difference keeps this correct when tick_count wraps */
             if ((int32_t)(tick_count - tcb_table[i].sleep_until) >= 0) {
                 tcb_table[i].state = THREAD_READY;
+                telemetry_thread_state((uint8_t)i);
             }
         }
     }
@@ -184,7 +182,7 @@ void sched_init(void)
 
     current_thread = 0;
     thread_set_current(0);
-    telemetry_thread_event(0, 0);
+    telemetry_thread_created(0);
 }
 
 void sched_tick(void)
@@ -204,11 +202,6 @@ void sched_tick(void)
 
     /* Raise the effective priority of threads kept waiting */
     age_ready_threads();
-
-    /* Emit IRQ telemetry update */
-    if (tick_count % TELEMETRY_IRQ_PERIOD == 0) {
-        telemetry_irq_counters();
-    }
 }
 
 void sched_yield_current(void)
@@ -237,7 +230,7 @@ uint16_t sched_switch(uint16_t sp)
         return sp;
     }
 
-    telemetry_context_switch((uint8_t)current_thread, (uint8_t)next_tid);
+    telemetry_context_switch((uint8_t)current_thread, (uint8_t)next_tid, next->sp);
 
     /* The outgoing thread goes back to READY unless it blocked, slept or died */
     if (tcb_table[current_thread].active &&
@@ -266,6 +259,7 @@ void sched_sleep(int tid, uint16_t ticks)
 
     tcb_table[tid].state = THREAD_SLEEPING;
     tcb_table[tid].sleep_until = tick_count + ticks;
+    telemetry_thread_state((uint8_t)tid);
 }
 
 int sched_current(void)

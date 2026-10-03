@@ -143,6 +143,15 @@ void kb_handle_scancode(uint8_t scancode)
     }
 }
 
+void kb_inject_char(char c)
+{
+    uint16_t flags = hal_irq_save();
+
+    kb_buf_push(c);
+
+    hal_irq_restore(flags);
+}
+
 char kb_getchar(void)
 {
     /* Block until the keyboard ISR has buffered a character */

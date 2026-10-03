@@ -21,6 +21,7 @@
 #include "syscall.h"
 #include "hal.h"
 #include "selftest.h"
+#include "telemetry.h"
 
 /* ── Constants ──────────────────────────────── */
 #define CMD_BUF_SIZE    64
@@ -343,9 +344,11 @@ static void print_u32(uint32_t value)
 }
 
 /* Print "<count> <what>/sec, <n> us each" */
-static void bench_report(uint32_t count, const char *what)
+static void bench_report(uint8_t kind, uint32_t count, const char *what)
 {
     uint32_t us = count ? 1000000UL / count : 0;
+
+    telemetry_bench(kind, count);
 
     con_print("bench: ");
     print_u32(count);
@@ -380,7 +383,7 @@ static void cmd_bench(void)
     thread_sleep(2);        /* Let both workers see the flag and exit */
     count = bench_yields;
 
-    bench_report(count, "context switches");
+    bench_report(TEL_BENCH_SWITCHES, count, "context switches");
 
     /* Heap: allocate/free pairs in half a second */
     count = 0;
@@ -391,7 +394,7 @@ static void cmd_bench(void)
         count++;
     }
     count *= 2;
-    bench_report(count, "kmalloc+kfree pairs");
+    bench_report(TEL_BENCH_HEAP, count, "kmalloc+kfree pairs");
 }
 
 static void cmd_divzero(void)

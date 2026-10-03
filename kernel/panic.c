@@ -32,7 +32,7 @@ static void panic_show(const char *reason, frame_t *frame)
     irq_disable();
 
     tid = thread_current_tid();
-    telemetry_fault((uint8_t)(tid < 0 ? 0xFF : tid), frame->ip, frame->cs);
+    telemetry_fault((uint8_t)(tid < 0 ? 0xFF : tid), frame, reason);
 
     /* Red background for panic screen */
     con_set_color(VGA_WHITE, VGA_RED);
@@ -122,6 +122,9 @@ static void panic_show(const char *reason, frame_t *frame)
     con_set_cursor(20, 5);
     con_set_color(VGA_YELLOW, VGA_RED);
     con_print("Press RESET to restart.\n");
+
+    /* The telemetry thread will never run again; send what is buffered */
+    telemetry_flush();
 
     /* Halt forever */
     for (;;) {
