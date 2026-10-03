@@ -189,3 +189,54 @@ test('the language choice is remembered and can be changed', () => {
     const unknown = load({ language: 'ja-JP' });
     assert.strictEqual(unknown.i18n.locale(), 'en');
 });
+
+test('in-browser emulator mode: kernel bytes are decoded in the page and input goes to its serial port', async () => {
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const raw = fs.readFileSync(path.join(__dirname, 'fixtures', 'boot.bin'));
+
+    let machine = null;
+    function FakeV86(options) {
+        machine = this;
+        this.options = options;
+        this.sent = [];
+        this.add_listener = (name, handler) => { this.listener = { name, handler }; };
+        this.serial0_send = (text) => this.sent.push(text);
+    }
+
+    const page = load({ search: '?emulator', V86: FakeV86 });
+    assert.strictEqual(page.sockets.length, 0, 'no bridge connection in emulator mode');
+    assert.match(page.byId['mode-banner'].textContent, /Starting the in-browser emulator/);
+
+    await new Promise((resolve) => setImmediate(resolve));   // let the start-up promise settle
+    page.flush();
+    assert.strictEqual(machine.options.fda.url, 'emulator/phoenix8086.img');
+    assert.strictEqual(machine.listener.name, 'serial0-output-byte');
+
+    for (const byte of raw) machine.listener.handler(byte);
+    page.flush();
+    assert.strictEqual(page.byId['status-badge'].textContent, 'IN BROWSER');
+    assert.match(page.byId['mode-banner'].textContent, /real kernel running in a PC emulator/);
+    assert.strictEqual(page.byId['thread-list'].children.length, 3);
+    assert.match(page.byId['console-text'].textContent, /phoenix> /);
+    assert.strictEqual(page.byId['demo-toggle'].hidden, true);
+
+    page.byId['console-input'].value = 'ps\u001b';
+    page.byId['console-form'].listeners.submit({ preventDefault() {} });
+    assert.deepStrictEqual(machine.sent, ['ps\r'], 'input is filtered and sent to the emulated serial port');
+});
+
+test('in-browser emulator mode reports a start-up failure instead of showing nothing', async () => {
+    function BrokenV86() { throw new Error('WebAssembly is not available'); }
+    const page = load({ search: '?emulator', V86: BrokenV86 });
+    await new Promise((resolve) => setImmediate(resolve));
+    page.flush();
+    assert.match(page.byId['mode-banner'].textContent, /could not start: WebAssembly is not available/);
+    assert.strictEqual(page.byId['console-input'].disabled, true);
+});
+
+test('"?live" overrides a site configured for the emulator', () => {
+    const page = load({ search: '?emulator&live' });
+    assert.strictEqual(page.sockets.length, 1);
+    assert.strictEqual(page.byId['status-badge'].textContent, 'OFFLINE');
+});

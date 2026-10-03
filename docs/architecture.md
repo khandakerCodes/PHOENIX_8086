@@ -1,0 +1,130 @@
+# Phoenix-8086 Architecture
+
+A guide to how the system works and where each part lives in the source. For what the project aims to be, see the [specification](../projectdetails.md).
+
+## Overview
+
+```
+ BIOS ─► Stage 1 (boot sector) ─► Stage 2 (loader) ─► Kernel
+                                                         │
+        ┌───────────────┬───────────────┬────────────────┼───────────────┐
+   Interrupts       Scheduler        Memory          Storage         Telemetry
+   isr.S            scheduler.c      memory.c        disk.c          telemetry.c
+   interrupts.c     thread.c                         fat12.c         serial.c
+   panic.c          sync.c, ipc.c                    exec.c
+        └───────────────┴───────┬───────┴────────────────┴───────────────┘
+                          System calls (syscall.c)
+                                │
+                     Shell and programs (shell.c, sdk/)
+```
+
+Everything runs in 16-bit real mode with 8086 instructions only. There is no memory protection: the "kernel" and its threads share one address space by convention, not enforcement.
+
+## Memory layout
+
+Defined in `include/layout.h` and `linker/kernel.ld`.
+
+| Physical range | Contents |
+| --- | --- |
+| `00000–003FF` | Interrupt vector table |
+| `00400–004FF` | BIOS data area |
+| `07C00–07DFF` | Stage 1 |
+| `07E00–085FF` | Stage 2 |
+| `10000–1FFFF` | Kernel code segment (CS = `1000h`) |
+| `20000–2FFFF` | Kernel data segment (DS = SS = `2000h`): data, BSS, thread stacks, near heap, kernel stack at the top |
+| `30000–top` | Far arena, up to the memory size the BIOS reports |
+
+Code and data are separate 64 KB segments, each linked at offset 0. Pointers in C are 16-bit offsets into the data segment. Anything outside it (video memory, the interrupt table, the far arena) is reached with a `__far` pointer built by `MK_FP` (`kernel/hal.h`).
+
+Every thread, including loaded programs, runs with DS = SS = the kernel data segment. This one rule is what lets an interrupt handler written in C run on whatever stack was interrupted.
+
+## Boot
+
+1. **Stage 1** (`boot/stage1.asm`, one sector) starts with a FAT12 parameter block, sets up a stack, and loads Stage 2 with BIOS `INT 13h`.
+2. **Stage 2** (`boot/stage2.asm`) reads the first kernel sector, checks the image header's magic, works out how many sectors the image needs, loads them to `1000:0000`, verifies a checksum, and jumps to the kernel with the boot drive and memory size in registers.
+3. **Kernel entry** (`kernel/entry.S`) copies the data image to the data segment, zeroes the BSS, sets the segments and stack, and calls `kernel_main`.
+4. **`kernel_main`** (`kernel/kernel_main.c`) brings up the serial port, console, panic traps, memory, keyboard, scheduler, interrupts and file system, creates the shell and telemetry threads, and then becomes the idle thread.
+
+The kernel image header (magic, sizes, checksum) is written by the linker script and `tools/mkimage.py`. The build fails if the image outgrows its segment.
+
+## Threads and context switching
+
+A thread is a stack plus a task control block (`kernel/tcb.h`). The TCB stores the saved stack pointer and bookkeeping; **the registers themselves live on the thread's stack**, in the frame an interrupt pushed there.
+
+Every interrupt stub (`kernel/isr.S`) does the same thing:
+
+1. push all registers on the current stack (this is `frame_t`);
+2. load the kernel data segment into DS and ES;
+3. call a C handler with the stack pointer, `uint16_t handler(uint16_t sp)`;
+4. set SP to whatever the handler returned;
+5. pop the registers and `IRET`.
+
+If the handler returns the SP it was given, the interrupted thread resumes. If it returns another thread's saved SP, the pops and the `IRET` restore *that* thread. That is the whole context switch; there is no separate switch routine.
+
+A new thread gets a fabricated frame on its stack (`thread_create` in `kernel/thread.c`), so the first switch to it is no different from any other.
+
+Thread 0 is the boot context itself. It is never created; `sched_init` adopts it, and it runs the idle loop (`HLT`).
+
+### Scheduling
+
+`kernel/scheduler.c`. The timer runs at 100 Hz.
+
+* The highest effective priority among runnable threads runs.
+* Threads of equal priority take turns, five ticks each.
+* A thread kept waiting gains one effective priority level every ten ticks (aging) and drops back to its base priority when it runs, so nothing starves.
+* On every switch the outgoing thread's stack is checked: its guard word must be intact and its stack pointer must not be within 192 bytes of the bottom. Otherwise the thread is killed.
+
+### Blocking
+
+`kernel/sync.c`, `kernel/ipc.c`. A semaphore keeps a queue of waiting thread IDs. `sem_wait` on an unavailable semaphore marks the thread blocked and yields (`INT 81h`); `sem_signal` makes the oldest waiter ready. Mutexes, mailboxes and the keyboard buffer are built on semaphores. Critical sections use `hal_irq_save` / `hal_irq_restore`, which nest and work inside interrupt handlers.
+
+## Interrupts
+
+| Vector | Source | Handler |
+| --- | --- | --- |
+| 00h, 01h, 03h, 04h | CPU traps (divide error, single step, breakpoint, overflow) | Panic with the live registers |
+| 08h | Timer (IRQ0) | Tick accounting, then the scheduler |
+| 09h | Keyboard (IRQ1) | Scan code → layout → buffer, then the scheduler |
+| 80h | System call | `syscall_dispatch` |
+| 81h | Yield | The scheduler |
+| 82h | `kernel_panic()` | Captures registers for the panic screen |
+
+A system call handler runs on the calling thread's own stack, so a call that must wait simply calls the blocking kernel function; the thread is switched out mid-call and finishes when woken.
+
+## Memory management
+
+`kernel/memory.c`.
+
+* **Near heap:** a first-fit free list with coalescing, inside the data segment between the end of BSS and the kernel stack. `kmalloc` / `kfree`.
+* **Far arena:** paragraph-granular (16 bytes) blocks above the kernel segments, each preceded by a one-paragraph header. `far_alloc` returns a segment.
+
+## Storage and programs
+
+* **Disk** (`kernel/disk.c`): sectors are read with BIOS `INT 13h`. For each read the kernel gives the timer and keyboard interrupts back to the BIOS and takes them again afterwards. Nothing is scheduled during a read.
+* **File system** (`kernel/fat12.c`): read-only FAT12, root directory only. The FAT is loaded whole at mount.
+* **Programs** (`kernel/exec.c`, `sdk/`): a program's code is loaded into its own far segment; its data goes on the near heap and every data address in the program is adjusted at load time (relocation). See [Writing programs](programs.md).
+
+## Console, keyboard, serial
+
+* **Console** (`kernel/console.c`): writes character and attribute pairs directly to text video memory at `B800:0000`.
+* **Keyboard** (`kernel/keyboard.c`): scan code set 1. A layout is the US table plus a list of the keys that differ; four layouts are built in.
+* **Serial** (`kernel/serial.c`): polled COM1, used by telemetry in both directions.
+
+## Telemetry
+
+`kernel/telemetry.c`; protocol in [telemetry.md](telemetry.md).
+
+Events are appended to a ring buffer as small records. A telemetry thread wakes ten times a second, frames the records with a CRC, and sends them over COM1. No serial I/O happens in an interrupt handler. If the buffer fills, records are dropped and counted, and the count is reported.
+
+On the host, `bridge/` decodes the stream and relays it to the dashboard over WebSocket, or the dashboard decodes it itself when the kernel runs in the page (`dashboard/protocol.js`, `dashboard/browser.js`). The dashboard's state is a pure function of the messages it has received (`dashboard/model.js`).
+
+## How it is tested
+
+| Check | What it shows | Command |
+| --- | --- | --- |
+| Instruction-set check | No instruction newer than the 8086 in the kernel or the example programs | `make check` |
+| In-kernel self-test | Allocators, semaphores, mailboxes, sleep, system calls, layouts, file system, loader | `selftest` at the shell |
+| Integration test | The shell, scheduling, IPC, programs, panics and telemetry under QEMU | `make test` |
+| 8086 fidelity test | The same kernel on an emulated 8086 | `make test-8086` |
+| Soak test | No leaks or faults under sustained churn | `make soak` |
+| Host unit tests | Protocol decoders, bridge, dashboard model and page code | part of `make test` |

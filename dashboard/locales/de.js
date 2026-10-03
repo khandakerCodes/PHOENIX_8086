@@ -134,7 +134,11 @@
             "console.placeholderOff": "Eingabe ist nur im Live-Modus möglich",
             "fault.title": "KERNEL-PANIK",
             "fault.thread": "Thread {thread} bei Tick {tick}",
-            "fault.dismiss": "Schließen"
+            "fault.dismiss": "Schließen",
+            "mode.emulator": "IM BROWSER",
+            "banner.emulator": "IM BROWSER — ein echter Kernel, der in einem PC-Emulator in dieser Seite läuft (CPU der 386-Klasse)",
+            "banner.emulatorLoading": "Der Emulator im Browser wird gestartet …",
+            "banner.emulatorFailed": "Der Emulator im Browser konnte nicht gestartet werden: {error}"
         },
     });
 }(typeof self !== 'undefined' ? self : this));

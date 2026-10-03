@@ -134,7 +134,11 @@
             "console.placeholderOff": "La saisie n'est disponible qu'en mode direct",
             "fault.title": "PANIQUE DU NOYAU",
             "fault.thread": "Thread {thread} au tick {tick}",
-            "fault.dismiss": "Fermer"
+            "fault.dismiss": "Fermer",
+            "mode.emulator": "DANS LE NAVIGATEUR",
+            "banner.emulator": "DANS LE NAVIGATEUR — un vrai noyau exécuté dans un émulateur de PC à l'intérieur de cette page (processeur de classe 386)",
+            "banner.emulatorLoading": "Démarrage de l'émulateur dans le navigateur…",
+            "banner.emulatorFailed": "L'émulateur dans le navigateur n'a pas pu démarrer : {error}"
         },
     });
 }(typeof self !== 'undefined' ? self : this));

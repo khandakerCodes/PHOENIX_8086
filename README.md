@@ -17,6 +17,8 @@ A small preemptive operating system kernel for the Intel 8086 that explains itse
 * Programs: separately built files loaded from the disk and run as threads, with an SDK ([guide](docs/programs.md))
 * Panic screen with the live register state; CPU exception traps
 * Interactive shell with demos, a benchmark, and an in-kernel self-test
+* Keyboard layouts: US, UK, German, French
+* A dashboard in five languages, which can also run the kernel inside the browser
 
 ## Quick start
 
@@ -48,6 +50,7 @@ At the `phoenix>` prompt, type `help`. Good first commands:
 | `memory` | The memory map and allocator state |
 | `selftest` | The in-kernel unit tests |
 | `cpu` | Which processor family the kernel detects |
+| `keymap de` | Switch the keyboard layout |
 | `overflow` | A runaway recursion being stopped |
 | `panic` | The panic screen |
 
@@ -89,6 +92,12 @@ make dashboard        # in another terminal, then open http://localhost:8080
 
 The protocol is documented in [docs/telemetry.md](docs/telemetry.md). `make TELEMETRY=0` builds a kernel without it.
 
+The dashboard is available in English, German, French, Spanish and Arabic; the translations other than English have not been reviewed by native speakers yet ([how to help](docs/translating.md)).
+
+### In the browser, with nothing installed
+
+`tools/build_site.sh` assembles a static site that boots the real floppy image in [v86](https://github.com/copy/v86), a PC emulator that runs in the browser, and shows it on the dashboard. The `Demo site` workflow publishes it with GitHub Pages once Pages is enabled for the repository. See [docs/building.md](docs/building.md).
+
 ## Repository layout
 
 | Path | Contents |
@@ -106,17 +115,18 @@ The protocol is documented in [docs/telemetry.md](docs/telemetry.md). `make TELE
 
 ## Documentation
 
-* [Project specification](projectdetails.md) — what the project is and what v1.0 means
-* [Implementation plan](implementation_plan.md) — audit findings, phases, and current progress
-* [System calls](docs/syscalls.md)
-* [Writing programs](docs/programs.md)
-* [Telemetry protocol](docs/telemetry.md)
-* [Dashboard design](docs/observatory.md)
+Start with the [documentation index](docs/README.md).
+
+* [Architecture](docs/architecture.md) — how the system works and where each part lives
+* [Building and running](docs/building.md)
+* [System calls](docs/syscalls.md), [writing programs](docs/programs.md), [telemetry protocol](docs/telemetry.md)
+* [Labs](docs/labs/README.md) — three guided exercises for courses and self-study
+* [Project specification](projectdetails.md) and [implementation plan](implementation_plan.md) with current status
 
 ## Known limitations
 
 * Not yet run on real hardware. `make test-8086` runs the kernel on DOSBox-X with its CPU set to 8086, which that project labels experimental; it is not a cycle-accurate 8088 and its BIOS is not an IBM PC BIOS.
-* The dashboard's rendering has not been checked in a real browser yet. Its data model is tested against a recorded kernel session, and the rendering code was exercised against a stand-in page, but nobody has looked at it.
+* The dashboard has not been looked at in a real browser yet. Its data model and its page code are tested against a recorded kernel session using a stand-in for the browser, which catches errors and wrong content but not layout or appearance. The same goes for the in-browser demo page: its engine is tested in v86 under Node, the page itself is not.
 * Under heavy load (the `bench` command) the kernel's telemetry buffer fills and records are dropped. The drops are counted and shown, never hidden.
 * Real mode has no memory protection: any thread can overwrite any memory.
 * Disk reads go through the BIOS and pause the scheduler while they run; the file system is read-only.

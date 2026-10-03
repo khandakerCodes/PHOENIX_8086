@@ -1,0 +1,52 @@
+name: Release
+
+# Pushing a tag such as v0.6.0 builds, tests and publishes a release with
+# the floppy image, its checksum, and a recorded telemetry session.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools and emulators
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make nasm python3 python3-websockets curl qemu-system-x86 dosbox-x mtools libgmp10 libmpc3 libmpfr6
+
+      - name: Cache the ia16-elf toolchain
+        uses: actions/cache@v4
+        with:
+          path: .toolchain
+          key: toolchain-${{ hashFiles('tools/get-toolchain.sh') }}
+
+      - name: Fetch the ia16-elf toolchain
+        run: make toolchain
+
+      - name: Build and test
+        run: |
+          make all
+          make test
+          make test-8086
+
+      - name: Collect release files
+        run: |
+          mkdir release
+          cp build/phoenix8086.img "release/phoenix8086-${GITHUB_REF_NAME}.img"
+          python3 tools/record_session.py build/phoenix8086.img "release/session-${GITHUB_REF_NAME}.jsonl"
+          (cd release && sha256sum * > SHA256SUMS)
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" release/* \
+            --title "Phoenix-8086 $GITHUB_REF_NAME" \
+            --notes "See CHANGELOG.md for what changed. Boot the image with: qemu-system-i386 -drive file=phoenix8086-${GITHUB_REF_NAME}.img,format=raw,if=floppy -boot a"
