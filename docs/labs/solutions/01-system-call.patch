@@ -1,18 +1,18 @@
 diff --git a/Makefile b/Makefile
-index 02e3060..773889e 100644
+index fc64d81..ecd4661 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -109,7 +109,7 @@ KERNEL_BIN = $(BUILD_DIR)/kernel.bin
+@@ -110,7 +110,7 @@ KERNEL_BIN = $(BUILD_DIR)/kernel.bin
  FLOPPY_IMG = $(BUILD_DIR)/phoenix8086.img
  
  # Example programs built with the SDK (sdk/examples/NAME.c → NAME.BIN)
--PROGRAM_NAMES = hello primes clock threads
-+PROGRAM_NAMES = hello primes clock threads whoami
+-PROGRAM_NAMES = hello primes clock threads where
++PROGRAM_NAMES = hello primes clock threads where whoami
  PROGRAM_DIR   = $(BUILD_DIR)/programs
  PROGRAMS      = $(foreach name,$(PROGRAM_NAMES),$(PROGRAM_DIR)/$(shell echo $(name) | tr a-z A-Z).BIN)
  
 diff --git a/docs/syscalls.md b/docs/syscalls.md
-index e1b8ba6..1b68fee 100644
+index 995cdc0..9e9cb85 100644
 --- a/docs/syscalls.md
 +++ b/docs/syscalls.md
 @@ -39,6 +39,7 @@ A call marked **blocks** may suspend the calling thread until it can complete. T
@@ -24,10 +24,10 @@ index e1b8ba6..1b68fee 100644
  | 19h | `read` | BX = handle, CX = length, DX = buffer pointer | AX = bytes read | 0 at end of file; may stop the scheduler briefly (see docs/programs.md) |
  | 1Ah | `close` | BX = handle | — | Files are also closed when their thread ends |
 diff --git a/kernel/selftest.c b/kernel/selftest.c
-index 8701df3..f7faf98 100644
+index e25b1f0..4ae37a8 100644
 --- a/kernel/selftest.c
 +++ b/kernel/selftest.c
-@@ -177,6 +177,9 @@ static void test_syscalls(void)
+@@ -192,6 +192,9 @@ static void test_syscalls(void)
      expect((uint16_t)sys_call(SYS_AX(0x7F, 0), 0, 0, 0) == SYS_ERROR,
             "syscall: unknown call returns error");
  
@@ -38,10 +38,10 @@ index 8701df3..f7faf98 100644
      expect(seg != SYS_ERROR && seg >= FAR_ARENA_SEG, "syscall: alloc");
      sys_call(SYS_AX(SYS_FREE, 0), seg, 0, 0);
 diff --git a/kernel/syscall.c b/kernel/syscall.c
-index 76c40b0..de6ce0b 100644
+index d010f57..f04944c 100644
 --- a/kernel/syscall.c
 +++ b/kernel/syscall.c
-@@ -245,6 +245,10 @@ bool syscall_dispatch(frame_t *frame)
+@@ -275,6 +275,10 @@ bool syscall_dispatch(frame_t *frame)
          }
          break;
  
@@ -50,8 +50,8 @@ index 76c40b0..de6ce0b 100644
 +        break;
 +
      case SYS_OPEN:
-         /* BX = near pointer to the file name */
-         tid = file_open((const char *)frame->bx);
+         /* BX = offset of the file name */
+         copy_name(frame, frame->bx, name);
 diff --git a/kernel/syscall.h b/kernel/syscall.h
 index f6d7c8e..f1be1e0 100644
 --- a/kernel/syscall.h

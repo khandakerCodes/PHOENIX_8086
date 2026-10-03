@@ -16,7 +16,7 @@ make test
 git apply -R docs/labs/solutions/01-system-call.patch     # undo
 ```
 
-Each patch was applied, built and run before it was committed, and CI checks that every patch still applies to the current source. A patch that stops applying after a kernel change needs regenerating.
+Each patch was applied, built and run before it was committed, and CI checks that every patch still applies to the current source. A patch that stops applying after a kernel change needs regenerating: make the same change by hand on the current source, test it, and save `git diff` over the old patch.
 
 Notes on the results:
 
