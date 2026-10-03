@@ -63,7 +63,7 @@ Teaching kernels (xv6, MikeOS, ELKS and others) show the *code*. Phoenix-8086 sh
 | Firmware | IBM PC-compatible BIOS (INT 10h, 12h, 13h during boot only) |
 | Devices | PIC 8259, PIT 8253/8254, keyboard controller (port 60h), text video (colour B800h), UART 8250/16550 on COM1 |
 | Reference emulator | QEMU `qemu-system-i386` for development and CI integration tests |
-| Fidelity emulator | An 8086-only emulator (candidates: 86Box, MartyPC, 8086tiny) to prove the image runs without 186+/386 features |
+| Fidelity emulator | DOSBox-X with its CPU set to 8086 (`make test-8086`), to prove the image runs without 186+/386 features; a cycle-accurate 8088 emulator (MartyPC, 86Box) as a later addition |
 | Real hardware | Tested on at least one physical or FPGA 8088/8086 machine before v1.0 (stretch: required for 1.1) |
 
 **Toolchain:** NASM for the boot sectors; a true 16-bit C compiler (`ia16-elf-gcc`, see decision D1 in the roadmap) for the kernel; GNU Make; Python 3 for the bridge and test harness. All versions are pinned in a container image.

@@ -19,6 +19,7 @@
 #include "stats.h"
 #include "panic.h"
 #include "serial.h"
+#include "hal.h"
 
 /* Boot drive and memory info from entry.asm */
 extern uint8_t  boot_drive;
@@ -40,6 +41,8 @@ extern void idle_thread(void);
  */
 void kernel_main(void)
 {
+    uint16_t boot_flags;
+
     /* Serial port and telemetry buffer first, so early events are captured */
     serial_init();
     telemetry_init();
@@ -115,6 +118,12 @@ void kernel_main(void)
     con_println("[INIT] IRQ1 (Keyboard) -> Installed");
     con_println("[INIT] INT 80h (Syscall) -> Installed");
 
+    /*
+     * Hold interrupts off until the boot log is finished, so the new
+     * threads cannot start printing in the middle of it.
+     */
+    boot_flags = hal_irq_save();
+
     /* ── Step 6: Create shell thread ────────── */
     con_print("[INIT] Creating shell thread... ");
     int shell_tid = thread_create(shell_run, 10, "shell");
@@ -143,6 +152,8 @@ void kernel_main(void)
     con_println("============================================");
     con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
     con_println("");
+
+    hal_irq_restore(boot_flags);
 
     /*
      * The shell is now a scheduled thread. This boot context was

@@ -2,7 +2,7 @@
 
 A small preemptive operating system kernel for the Intel 8086 that explains itself while it runs. It boots from a floppy image without DOS, runs threads under a timer-driven scheduler, and streams telemetry to a web dashboard.
 
-**Status: pre-alpha.** The kernel works and is tested in QEMU. It has not yet been run on an 8086-only emulator or on real hardware (see [Known limitations](#known-limitations)).
+**Status: pre-alpha.** The kernel works and is tested in QEMU and on an emulated 8086 (DOSBox-X). It has not yet been run on real hardware (see [Known limitations](#known-limitations)).
 
 ## What works
 
@@ -26,6 +26,9 @@ sudo apt install make nasm python3 curl qemu-system-x86
 make toolchain   # fetch the ia16-elf-gcc cross compiler into .toolchain/ (about 200 MB, no root needed)
 make test        # build, check the instruction set, run the unit tests, boot in QEMU and drive the shell
 make run         # boot in a QEMU window
+
+sudo apt install dosbox-x
+make test-8086   # boot and drive the same image on an emulated 8086
 ```
 
 `make toolchain` downloads prebuilt Ubuntu 24.04 packages. On other systems, install `gcc-ia16-elf` yourself (see [tkchia/build-ia16](https://github.com/tkchia/build-ia16)); the Makefile uses `ia16-elf-gcc` from `PATH` when `.toolchain/` is absent.
@@ -40,8 +43,17 @@ At the `phoenix>` prompt, type `help`. Good first commands:
 | `syscall` | A thread that uses only `INT 80h` |
 | `memory` | The memory map and allocator state |
 | `selftest` | The in-kernel unit tests |
+| `cpu` | Which processor family the kernel detects |
 | `overflow` | A runaway recursion being stopped |
 | `panic` | The panic screen |
+
+## Is it really 8086 code?
+
+Three checks, all run in CI:
+
+1. **Static:** `make check` disassembles the kernel and fails on any instruction that does not exist on an 8086. The boot sectors are assembled with NASM's `CPU 8086`.
+2. **Dynamic:** `make test-8086` boots the image on DOSBox-X configured as an 8086 and runs the self-tests, the threading demos, mailbox IPC and system calls there.
+3. **Control:** the kernel's `cpu` command identifies the processor using 8086-legal instructions. It answers "8086/8088" on the emulated 8086 and "80286 or later" under QEMU, which shows the two environments really differ.
 
 ## Dashboard
 
@@ -96,7 +108,7 @@ The protocol is documented in [docs/telemetry.md](docs/telemetry.md). `make TELE
 
 ## Known limitations
 
-* Verified only in QEMU, which emulates a 386 or later. The instruction-set check covers the code, but nothing has yet confirmed a boot on an 8086-only machine.
+* Not yet run on real hardware. `make test-8086` runs the kernel on DOSBox-X with its CPU set to 8086, which that project labels experimental; it is not a cycle-accurate 8088 and its BIOS is not an IBM PC BIOS.
 * The dashboard's rendering has not been checked in a real browser yet. Its data model is tested against a recorded kernel session, and the rendering code was exercised against a stand-in page, but nobody has looked at it.
 * Under heavy load (the `bench` command) the kernel's telemetry buffer fills and records are dropped. The drops are counted and shown, never hidden.
 * Real mode has no memory protection: any thread can overwrite any memory.

@@ -26,6 +26,13 @@ void     hal_irq_restore(uint16_t flags);
 /* Issue INT 80h from kernel-mode test code; result in DX:AX */
 uint32_t sys_call(uint16_t ax, uint16_t bx, uint16_t cx, uint16_t dx);
 
+/* Processor family, detected at run time (see hal.S) */
+#define CPU_8086        0   /* 8086 or 8088 */
+#define CPU_80186       1   /* 80186/80188 or NEC V20/V30 */
+#define CPU_80286_PLUS  2   /* 80286 or later */
+
+uint16_t hal_cpu_class(void);
+
 /* Current code segment */
 uint16_t hal_get_cs(void);
 
