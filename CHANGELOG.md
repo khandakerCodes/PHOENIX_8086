@@ -39,6 +39,7 @@ All notable changes to this project are recorded here. The project follows [Sema
 * In-browser demo: the dashboard can boot the kernel in the v86 emulator inside the page; `tools/build_site.sh`, a JavaScript telemetry decoder, and a GitHub Pages workflow.
 * Release workflow: a version tag builds, tests and publishes the image, checksum and a telemetry capture.
 * Documentation: architecture guide, build guide, translation guide, three labs.
+* `tools/test_dashboard_browser.mjs`: the dashboard and the in-browser demo tested in headless Chromium, with screenshots kept by CI.
 
 ### Changed
 * Memory layout: kernel code at `1000:0000`, kernel data and stacks at `2000:0000`.
@@ -46,6 +47,7 @@ All notable changes to this project are recorded here. The project follows [Sema
 * `phoenix.sh` no longer kills other processes; it reports busy ports and stops.
 
 ### Fixed
+* Dashboard layout problems found in a real browser: the page could grow taller than the window and hide the bottom bar; the console view overflowed its panel; the context-switch steps wrapped; emoji icons rendered as empty boxes; list entries stayed half-faded while data was flowing; letter-spacing broke Arabic text apart.
 * The dashboard's "hide telemetry thread" filter missed switches out of that thread.
 * Dashboard no longer falls back to random data or draws random bar heights.
 * Telemetry no longer does serial I/O inside the timer interrupt, and no longer reports context switches that did not happen.

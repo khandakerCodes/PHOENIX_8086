@@ -11,7 +11,7 @@
     <!-- ═══ Top Status Bar ═══ -->
     <header class="top-bar" id="top-bar">
         <div class="top-bar__logo">
-            <span class="logo-icon">⚙</span>
+            <span class="logo-icon">◆</span>
             <span class="logo-text">Phoenix-8086</span>
             <span class="logo-badge logo-badge--offline" id="status-badge">OFFLINE</span>
             <button class="demo-toggle" id="demo-toggle" type="button">Run demo</button>
@@ -191,25 +191,25 @@
                 <h2 class="view-content__title" data-i18n="view.contextSwitch">Context Switch</h2>
                 <div class="ctx-switch-anim" id="ctx-switch-anim">
                     <div class="ctx-phase" id="ctx-phase-save">
-                        <div class="ctx-phase__icon">💾</div>
+                        <div class="ctx-phase__icon">1</div>
                         <div class="ctx-phase__label" data-i18n="ctx.save">Save Registers</div>
                         <div class="ctx-phase__desc" data-i18n="ctx.save.desc">Push registers on the thread's stack</div>
                     </div>
                     <div class="ctx-arrow">→</div>
                     <div class="ctx-phase" id="ctx-phase-select">
-                        <div class="ctx-phase__icon">🔍</div>
+                        <div class="ctx-phase__icon">2</div>
                         <div class="ctx-phase__label" data-i18n="ctx.select">Select Next</div>
                         <div class="ctx-phase__desc" data-i18n="ctx.select.desc">Priority, round-robin, aging</div>
                     </div>
                     <div class="ctx-arrow">→</div>
                     <div class="ctx-phase" id="ctx-phase-restore">
-                        <div class="ctx-phase__icon">📤</div>
+                        <div class="ctx-phase__icon">3</div>
                         <div class="ctx-phase__label" data-i18n="ctx.restore">Restore Context</div>
                         <div class="ctx-phase__desc" data-i18n="ctx.restore.desc">Load SP of the next thread, pop</div>
                     </div>
                     <div class="ctx-arrow">→</div>
                     <div class="ctx-phase" id="ctx-phase-iret">
-                        <div class="ctx-phase__icon">⚡</div>
+                        <div class="ctx-phase__icon">4</div>
                         <div class="ctx-phase__label" data-i18n="ctx.iret">IRET</div>
                         <div class="ctx-phase__desc" data-i18n="ctx.iret.desc">Resume execution</div>
                     </div>
@@ -275,7 +275,7 @@
 
             <div class="panel__section" id="thread-inspector-section">
                 <h2 class="panel__title">
-                    <span class="panel__icon">🔍</span> <span data-i18n="panel.inspector">Thread Inspector</span>
+                    <span class="panel__icon">◈</span> <span data-i18n="panel.inspector">Thread Inspector</span>
                 </h2>
                 <div class="thread-inspector" id="thread-inspector">
                     <p class="inspector-placeholder">Select a thread to inspect</p>
@@ -288,7 +288,7 @@
     <footer class="bottom-bar" id="bottom-bar">
         <div class="bottom-bar__section">
             <h2 class="bottom-bar__title">
-                <span class="panel__icon">⚡</span> <span data-i18n="panel.counters">Counters</span>
+                <span class="panel__icon">≡</span> <span data-i18n="panel.counters">Counters</span>
             </h2>
             <div class="irq-counters" id="irq-counters">
                 <div class="irq-counter">
@@ -327,7 +327,7 @@
     <!-- ═══ Fault Overlay (hidden by default) ═══ -->
     <div class="fault-overlay" id="fault-overlay" style="display: none;">
         <div class="fault-content">
-            <h1 class="fault-title">⚠ <span data-i18n="fault.title">KERNEL PANIC</span></h1>
+            <h1 class="fault-title">! <span data-i18n="fault.title">KERNEL PANIC</span></h1>
             <p class="fault-reason" id="fault-reason"></p>
             <p class="fault-thread" id="fault-thread"></p>
             <div class="fault-registers" id="fault-registers" dir="ltr"></div>

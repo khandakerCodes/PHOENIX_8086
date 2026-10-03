@@ -74,6 +74,8 @@ Replay a capture without a kernel: `python3 bridge/serial_ws_bridge.py --replay 
 make all
 ./tools/build_site.sh                       # assembles site/
 node tools/test_browser_demo.mjs site       # needs: npm install v86
+node tools/test_dashboard_browser.mjs       # needs: npm install playwright-core, and
+                                            #   npx playwright-core install chromium-headless-shell
 python3 -m http.server 8080 --directory site
 ```
 

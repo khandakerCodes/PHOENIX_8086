@@ -4,6 +4,8 @@ A small preemptive operating system kernel for the Intel 8086 that explains itse
 
 **Status: pre-alpha.** The kernel works and is tested in QEMU and on an emulated 8086 (DOSBox-X). It has not yet been run on real hardware (see [Known limitations](#known-limitations)).
 
+![The dashboard running the kernel inside the browser](docs/images/in-browser.png)
+
 ## What works
 
 * Two-stage bootloader that loads a checksummed kernel image
@@ -126,7 +128,7 @@ Start with the [documentation index](docs/README.md).
 ## Known limitations
 
 * Not yet run on real hardware. `make test-8086` runs the kernel on DOSBox-X with its CPU set to 8086, which that project labels experimental; it is not a cycle-accurate 8088 and its BIOS is not an IBM PC BIOS.
-* The dashboard has not been looked at in a real browser yet. Its data model and its page code are tested against a recorded kernel session using a stand-in for the browser, which catches errors and wrong content but not layout or appearance. The same goes for the in-browser demo page: its engine is tested in v86 under Node, the page itself is not.
+* The dashboard and the in-browser demo are tested in headless Chromium at one window size (1440×900). Other sizes, other browsers, and screen readers have not been tried.
 * Under heavy load (the `bench` command) the kernel's telemetry buffer fills and records are dropped. The drops are counted and shown, never hidden.
 * Real mode has no memory protection: any thread can overwrite any memory.
 * Disk reads go through the BIOS and pause the scheduler while they run; the file system is read-only.
