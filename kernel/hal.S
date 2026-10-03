@@ -73,3 +73,38 @@ sys_call:
     int     $0x80
     popw    %bp
     ret
+
+    .globl hal_cpu_class
+
+/*
+ * uint16_t hal_cpu_class(void)
+ * Identify the processor family using only 8086 instructions:
+ *   0 = 8086/8088, 1 = 80186/80188 or NEC V20/V30, 2 = 80286 or later.
+ *
+ * On the 8086 and 186, FLAGS bits 12-15 always read as 1. The 8086
+ * shifts by the full count in CL; the 186 and later use only the low
+ * five bits, so a shift by 33 behaves as a shift by 1.
+ */
+hal_cpu_class:
+    pushf                           /* keep the caller's flags */
+    cli
+    xorw    %ax, %ax
+    pushw   %ax
+    popf                            /* try to clear every flag */
+    pushf
+    popw    %ax
+    andw    $0xF000, %ax
+    cmpw    $0xF000, %ax
+    movw    $2, %ax
+    jne     1f                      /* bits 12-15 cleared: 286 or later */
+
+    movw    $1, %ax
+    movb    $33, %cl
+    shlw    %cl, %ax                /* 8086: 0, 186: 2 */
+    testw   %ax, %ax
+    movw    $1, %ax
+    jnz     1f
+    xorw    %ax, %ax
+1:
+    popf
+    ret

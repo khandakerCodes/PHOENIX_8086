@@ -95,10 +95,11 @@ Goal: an image that contains only 8086 instructions, on the memory layout of spe
 - [ ] Boot info block passed to the kernel instead of ad-hoc registers
 - [x] Console: far-pointer access to `B800h` without `FS`
 - [/] Opcode lint: `make check` (`tools/check8086.py`) disassembles the kernel and fails on non-8086 instructions — done; wiring into CI waits for Phase 0
-- [ ] Choose and script the fidelity emulator; add a boot test on it
+- [x] Fidelity emulator: DOSBox-X with `cputype=8086`; `make test-8086` (`tools/test_8086.py`) boots the image there and runs the self-tests, threading demos, IPC and system calls through the serial input channel; runs in CI. A control experiment confirmed the emulator does not execute a 186-only `PUSH imm16`, and the kernel's `cpu` probe reports 8086/8088 there and 286+ under QEMU
+- [ ] A second, cycle-accurate 8088 emulator (MartyPC or 86Box) and real hardware remain untested
 - [x] Fix all remaining warnings; fixed-width types reviewed for the 16-bit ABI
 
-**Exit test:** opcode lint clean; image boots to the banner on QEMU and on the 8086-only emulator. *(2026-10-03: lint clean and QEMU boot pass via `make test`; the 8086-only emulator run is still outstanding.)*
+**Exit test:** opcode lint clean; image boots to the banner on QEMU and on the 8086-only emulator. *(Met on 2026-10-03: `make check`, `make test` and `make test-8086` all pass.)*
 
 ### Phase 2 — Real Kernel (release v0.4)
 

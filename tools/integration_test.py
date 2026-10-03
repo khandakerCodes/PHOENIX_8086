@@ -188,6 +188,11 @@ def run(machine):
     else:
         check("kill command", False, "no thread created")
 
+    # QEMU is a 386 or later. The 8086 fidelity test expects the opposite answer.
+    machine.type("cpu")
+    text = machine.wait_for(r"CPU: [^\n]+\n") or ""
+    check("CPU probe reports 286 or later under QEMU", "CPU: 80286 or later" in text, text)
+
     # 8. Counters are real
     machine.type("stats")
     text = machine.wait_for(r"Runtime Statistics.*phoenix> ") or ""

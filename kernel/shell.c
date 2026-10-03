@@ -220,6 +220,7 @@ static void cmd_help(void)
     con_println("  divzero    - Trigger a divide error");
     con_println("  panic      - Trigger kernel panic");
     con_println("  reboot     - Reboot the system");
+    con_println("  cpu        - Identify the processor");
     con_println("  about      - About Phoenix-8086");
 }
 
@@ -397,6 +398,16 @@ static void cmd_bench(void)
     bench_report(TEL_BENCH_HEAP, count, "kmalloc+kfree pairs");
 }
 
+static void cmd_cpu(void)
+{
+    static const char *const names[] = {
+        "8086/8088", "80186 or V20/V30", "80286 or later"
+    };
+
+    con_print("CPU: ");
+    con_println(names[hal_cpu_class()]);
+}
+
 static void cmd_divzero(void)
 {
     volatile int zero = 0;
@@ -505,6 +516,8 @@ static void process_command(char *cmd)
         selftest_run();
     } else if (str_eq(cmd, "overflow")) {
         report_created(thread_create(demo_overflow, 6, "overflow"));
+    } else if (str_eq(cmd, "cpu")) {
+        cmd_cpu();
     } else if (str_eq(cmd, "divzero")) {
         cmd_divzero();
     } else if (str_eq(cmd, "kill")) {

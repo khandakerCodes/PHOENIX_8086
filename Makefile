@@ -13,6 +13,7 @@
 #   make image     — Create bootable floppy image
 #   make check     — Verify the kernel uses 8086 instructions only
 #   make test      — check + headless boot and shell integration tests in QEMU
+#   make test-8086 — Boot and drive the kernel on an emulated 8086 (needs DOSBox-X)
 #   make run       — Build and run in QEMU
 #   make debug     — Run in QEMU with GDB server
 #   make dashboard — Serve the visual dashboard
@@ -103,7 +104,7 @@ KERNEL_BIN = $(BUILD_DIR)/kernel.bin
 FLOPPY_IMG = $(BUILD_DIR)/phoenix8086.img
 
 # ── Phony targets ──────────────────────────────
-.PHONY: all toolchain boot kernel image check test run debug dashboard clean
+.PHONY: all toolchain boot kernel image check test test-8086 run debug dashboard clean
 
 # ── Default target ──────────────────────────────
 all: image
@@ -176,6 +177,11 @@ test: check $(FLOPPY_IMG)
 	 else echo "  node not found: skipping dashboard model tests"; fi
 	$(PYTHON) tools/smoke_test.py $(FLOPPY_IMG)
 	$(PYTHON) tools/integration_test.py $(FLOPPY_IMG)
+
+# ── 8086 fidelity test ──────────────────────────
+# QEMU emulates a 386+. This boots the image on DOSBox-X as an 8086.
+test-8086: $(FLOPPY_IMG)
+	$(PYTHON) tools/test_8086.py $(FLOPPY_IMG)
 
 # ── Run in QEMU ─────────────────────────────────
 run: $(FLOPPY_IMG)

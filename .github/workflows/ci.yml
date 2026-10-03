@@ -15,7 +15,7 @@ jobs:
       - name: Install build tools and QEMU
         run: |
           sudo apt-get update
-          sudo apt-get install -y make nasm python3 python3-websockets curl qemu-system-x86 libgmp10 libmpc3 libmpfr6
+          sudo apt-get install -y make nasm python3 python3-websockets curl qemu-system-x86 dosbox-x libgmp10 libmpc3 libmpfr6
 
       - name: Cache the ia16-elf toolchain
         uses: actions/cache@v4
@@ -37,3 +37,6 @@ jobs:
 
       - name: Test
         run: make test
+
+      - name: Test on an emulated 8086
+        run: make test-8086

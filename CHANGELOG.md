@@ -25,6 +25,8 @@ All notable changes to this project are recorded here. The project follows [Sema
 * Dashboard: Live / Replay / Demo / Offline modes that are always labelled; scheduler timeline, CPU shares, registers, memory map and thread inspector driven only by kernel data.
 * `tools/record_session.py` records a kernel session to a capture file.
 * `make TELEMETRY=0` builds a kernel without telemetry.
+* `make test-8086`: boots and drives the kernel on DOSBox-X configured as an 8086.
+* `cpu` shell command: run-time processor family detection.
 
 ### Changed
 * Memory layout: kernel code at `1000:0000`, kernel data and stacks at `2000:0000`.
