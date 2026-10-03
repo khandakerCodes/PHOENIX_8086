@@ -77,6 +77,8 @@ static int create(uint16_t segment, uint16_t entry, uint16_t argument, uint8_t p
     tcb->wait_ticks     = 0;
     tcb->sleep_until    = 0;
     tcb->wait_sem       = NULL;
+    tcb->wait_timed     = false;
+    tcb->wait_timed_out = false;
     tcb->cpu_ticks      = 0;
     tcb->last_scheduled = 0;
     tcb->stack_base     = stack_base;

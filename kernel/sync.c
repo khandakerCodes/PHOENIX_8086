@@ -49,6 +49,36 @@ void sem_wait(semaphore_t *s)
     hal_irq_restore(flags);
 }
 
+bool sem_wait_timeout(semaphore_t *s, uint16_t ticks)
+{
+    uint16_t flags = hal_irq_save();
+    bool taken = true;
+
+    s->count--;
+
+    if (s->count < 0) {
+        int tid = thread_current_tid();
+        tcb_t *tcb = thread_get_tcb(tid);
+
+        s->wait_queue[s->wait_count++] = (uint8_t)tid;
+        tcb->wait_sem = s;
+        tcb->wait_timed = true;
+        tcb->wait_timed_out = false;
+        tcb->sleep_until = tick_count + ticks;
+        tcb->state = THREAD_BLOCKED;
+        telemetry_thread_state((uint8_t)tid);
+
+        /* Resumes after sem_signal, or after the scheduler gives up waiting */
+        thread_yield();
+
+        taken = !tcb->wait_timed_out;
+        tcb->wait_timed = false;
+    }
+
+    hal_irq_restore(flags);
+    return taken;
+}
+
 bool sem_trywait(semaphore_t *s)
 {
     uint16_t flags = hal_irq_save();
@@ -82,6 +112,7 @@ void sem_signal(semaphore_t *s)
         s->wait_count--;
 
         tcb->wait_sem = NULL;
+        tcb->wait_timed = false;
         tcb->state = THREAD_READY;
         telemetry_thread_state((uint8_t)tid);
     }

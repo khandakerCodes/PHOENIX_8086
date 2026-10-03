@@ -274,6 +274,20 @@ def run(machine):
     check("program: threads (a program starts threads in its own code; mailbox, semaphore)",
           "two workers sent 10 numbers, total 1515" in text, text)
 
+    # Both disk drivers: the kernel's own floppy driver and the BIOS fallback
+    check("the native floppy driver was chosen at boot",
+          "[INIT] Disk... native floppy driver" in machine.output(), machine.output()[:900])
+    machine.type("disk bios")
+    check("switch to the BIOS disk driver", machine.wait_for(r"Disk: BIOS INT 13h") is not None)
+    machine.type("run primes.bin")
+    text = machine.wait_for(r"last digit \w+\n", timeout=30) or ""
+    check("a program loads through the BIOS driver", "largest 997" in text, text)
+    machine.type("disk native")
+    check("switch back to the native driver", machine.wait_for(r"Disk: native floppy driver") is not None)
+    machine.type("run primes.bin")
+    text = machine.wait_for(r"last digit \w+\n", timeout=30) or ""
+    check("a program loads through the native driver again", "largest 997" in text, text)
+
     machine.type("run readme.txt")
     check("a non-program file is rejected", machine.wait_for(r"not a Phoenix-8086 program") is not None)
     machine.type("run missing.bin")
@@ -294,7 +308,7 @@ def run(machine):
     text = machine.wait_for(r"selftest: \d+ passed, \d+ failed") or ""
     result = re.search(r"selftest: (\d+) passed, (\d+) failed", text)
     check("kernel self-tests pass",
-          result is not None and int(result.group(1)) >= 65 and result.group(2) == "0", text)
+          result is not None and int(result.group(1)) >= 70 and result.group(2) == "0", text)
 
     # The remaining informational commands
     machine.type("about")

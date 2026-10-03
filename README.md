@@ -15,7 +15,7 @@ A small preemptive operating system kernel for the Intel 8086 that explains itse
 * Blocking semaphores, mutexes, and mailboxes
 * System calls through `INT 80h` ([reference](docs/syscalls.md))
 * Near heap and a far-memory allocator for the memory above the kernel
-* FAT12 boot disk: the kernel lists and reads files from it
+* FAT12 boot disk: the kernel lists and reads files from it, with its own floppy controller driver
 * Programs: separately built files loaded from the disk and run as threads, with an SDK ([guide](docs/programs.md))
 * Panic screen with the live register state; CPU exception traps
 * Interactive shell with demos, a benchmark, and an in-kernel self-test
@@ -131,7 +131,7 @@ Start with the [documentation index](docs/README.md).
 * The dashboard and the in-browser demo are tested in headless Chromium at one window size (1440×900). Other sizes, other browsers, and screen readers have not been tried.
 * Under heavy load (the `bench` command) the kernel's telemetry buffer fills and records are dropped. The drops are counted and shown, never hidden.
 * Real mode has no memory protection: any thread can overwrite any memory.
-* Disk reads go through the BIOS and pause the scheduler while they run; the file system is read-only.
+* The file system is read-only. On machines where the kernel's floppy driver finds no controller it falls back to the BIOS, and a BIOS read pauses the scheduler.
 * Programs share the kernel's data segment; there is no process isolation.
 
 ## Contributing

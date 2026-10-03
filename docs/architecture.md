@@ -76,7 +76,7 @@ Thread 0 is the boot context itself. It is never created; `sched_init` adopts it
 
 ### Blocking
 
-`kernel/sync.c`, `kernel/ipc.c`. A semaphore keeps a queue of waiting thread IDs. `sem_wait` on an unavailable semaphore marks the thread blocked and yields (`INT 81h`); `sem_signal` makes the oldest waiter ready. Mutexes, mailboxes and the keyboard buffer are built on semaphores. Critical sections use `hal_irq_save` / `hal_irq_restore`, which nest and work inside interrupt handlers.
+`kernel/sync.c`, `kernel/ipc.c`. A semaphore keeps a queue of waiting thread IDs. `sem_wait` on an unavailable semaphore marks the thread blocked and yields (`INT 81h`); `sem_signal` makes the oldest waiter ready. `sem_wait_timeout` gives up after a number of ticks. Mutexes, mailboxes and the keyboard buffer are built on semaphores. Critical sections use `hal_irq_save` / `hal_irq_restore`, which nest and work inside interrupt handlers.
 
 ## Interrupts
 
@@ -85,6 +85,7 @@ Thread 0 is the boot context itself. It is never created; `sched_init` adopts it
 | 00h, 01h, 03h, 04h | CPU traps (divide error, single step, breakpoint, overflow) | Panic with the live registers |
 | 08h | Timer (IRQ0) | Tick accounting, then the scheduler |
 | 09h | Keyboard (IRQ1) | Scan code → layout → buffer, then the scheduler |
+| 0Eh | Floppy controller (IRQ6) | Wakes the thread waiting for the drive |
 | 80h | System call | `syscall_dispatch` |
 | 81h | Yield | The scheduler |
 | 82h | `kernel_panic()` | Captures registers for the panic screen |
@@ -100,7 +101,7 @@ A system call handler runs on the calling thread's own stack, so a call that mus
 
 ## Storage and programs
 
-* **Disk** (`kernel/disk.c`): sectors are read with BIOS `INT 13h`. For each read the kernel gives the timer and keyboard interrupts back to the BIOS and takes them again afterwards. Nothing is scheduled during a read.
+* **Disk** (`kernel/disk.c`, `kernel/floppy.c`): the kernel drives the floppy controller itself, with DMA channel 2 and IRQ6; a thread that reads a sector waits on a semaphore the interrupt handler signals, so other threads run meanwhile. If no controller answers, the kernel falls back to BIOS `INT 13h`, handing the timer and keyboard interrupts back to the BIOS for each read; nothing is scheduled during a BIOS read.
 * **File system** (`kernel/fat12.c`): read-only FAT12, root directory only. The FAT is loaded whole at mount.
 * **Programs** (`kernel/exec.c`, `sdk/`): a program's code is loaded into its own far segment; its data goes on the near heap and every data address in the program is adjusted at load time (relocation). See [Writing programs](programs.md).
 

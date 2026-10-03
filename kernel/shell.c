@@ -25,6 +25,7 @@
 #include "telemetry.h"
 #include "fat12.h"
 #include "exec.h"
+#include "disk.h"
 
 /* ── Constants ──────────────────────────────── */
 #define CMD_BUF_SIZE    64
@@ -226,6 +227,7 @@ static void cmd_help(void)
     con_println("  ls         - List files on the boot disk");
     con_println("  cat <file> - Print a text file");
     con_println("  run <file> - Load and run a program");
+    con_println("  disk [native|bios] - Show or choose the disk driver");
     con_println("  keymap [name]    - Show or set the keyboard layout");
     con_println("  cpu        - Identify the processor");
     con_println("  about      - About Phoenix-8086");
@@ -506,6 +508,20 @@ static void cmd_keymap(const char *name)
     }
 }
 
+static void cmd_disk(const char *arg)
+{
+    if (str_eq(arg, "native") || str_eq(arg, "bios")) {
+        if (!disk_select(str_eq(arg, "native") ? DISK_NATIVE : DISK_BIOS)) {
+            con_println("No floppy controller answered; still using the BIOS");
+        }
+    } else if (arg[0] != '\0') {
+        con_println("Usage: disk [native|bios]");
+        return;
+    }
+    con_print("Disk: ");
+    con_println(disk_driver_name());
+}
+
 static void cmd_cpu(void)
 {
     static const char *const names[] = {
@@ -633,6 +649,8 @@ static void process_command(char *cmd)
         cmd_run(arg);
     } else if (str_eq(cmd, "keymap")) {
         cmd_keymap(arg);
+    } else if (str_eq(cmd, "disk")) {
+        cmd_disk(arg);
     } else if (str_eq(cmd, "cpu")) {
         cmd_cpu();
     } else if (str_eq(cmd, "divzero")) {

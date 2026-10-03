@@ -23,6 +23,7 @@
 /* Interrupt vectors */
 #define IRQ0_VECTOR     0x08    /* Timer */
 #define IRQ1_VECTOR     0x09    /* Keyboard */
+#define FLOPPY_VECTOR   0x0E    /* Floppy controller (IRQ6) */
 #define SYSCALL_VECTOR  0x80    /* Software interrupt for system calls */
 #define YIELD_VECTOR    0x81    /* Software interrupt for voluntary yield */
 
@@ -51,6 +52,13 @@ void irq_eoi(uint8_t irq);
 /* Enable/disable interrupts */
 void irq_enable(void);
 void irq_disable(void);
+
+/*
+ * Let a driver take an interrupt line: install its handler stub and
+ * unmask the line. irq_release gives the line back to the BIOS.
+ */
+void irq_claim(uint8_t irq, uint8_t vector, void (*handler)(void));
+void irq_release(uint8_t irq, uint8_t vector);
 
 /*
  * Hand the timer and keyboard back to the BIOS so a BIOS service can

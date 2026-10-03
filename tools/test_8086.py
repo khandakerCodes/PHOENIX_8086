@@ -193,7 +193,11 @@ def run(machine):
     slept = re.search(r"\[v1\].*\[slept (\d+) ticks\]", text, re.S)
     check("INT 80h system calls work", slept is not None and 20 <= int(slept.group(1)) <= 23, text)
 
-    # Disk reads go through this emulator's BIOS, a different one from QEMU's
+    # Which disk driver this machine ended up with, and both of them if it has a controller
+    machine.command("disk")
+    text = machine.wait_for(r"Disk: [^\n]+\n") or ""
+    driver = re.search(r"Disk: ([^\n]+)", text)
+    print(f"  note  disk driver on this emulator: {driver.group(1) if driver else 'unknown'}")
     machine.command("cat readme.txt")
     check("reads a file from the FAT12 disk",
           machine.wait_for(r"Phoenix-8086 boot disk.*docs/programs\.md") is not None)
