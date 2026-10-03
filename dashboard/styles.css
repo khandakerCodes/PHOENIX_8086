@@ -1216,6 +1216,34 @@ body {
     cursor: pointer;
 }
 
+/* ── Language switcher and right-to-left layout ─ */
+.language-select {
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-accent);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+}
+
+.language-select:focus-visible { outline: 1px solid var(--accent-blue); }
+
+/* Addresses and register values read left to right in every language */
+.mem-region__range,
+.thread-card__name,
+.inspector-field__value,
+.metric__value,
+.irq-counter__value {
+    direction: ltr;
+    unicode-bidi: isolate;
+}
+
+[dir="rtl"] .mem-region {
+    border-left: none;
+    border-right: 3px solid;
+}
+
 /* ── Reduced motion ─────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {

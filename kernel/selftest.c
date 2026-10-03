@@ -19,6 +19,7 @@
 #include "hal.h"
 #include "fat12.h"
 #include "exec.h"
+#include "keyboard.h"
 
 static uint16_t passed;
 static uint16_t failed;
@@ -181,6 +182,47 @@ static void test_syscalls(void)
     kfree((void *)mbox);
 }
 
+/* ── Keyboard layouts ───────────────────────── */
+
+static void test_keymaps(void)
+{
+    char saved[3];
+    const char *current = kb_keymap_name();
+
+    saved[0] = current[0];
+    saved[1] = current[1];
+    saved[2] = '\0';
+
+    expect(kb_set_keymap("us"), "keymap: us exists");
+    expect(kb_translate(0x15, false, false) == 'y' && kb_translate(0x15, true, false) == 'Y',
+           "keymap us: Y key");
+    expect(kb_translate(0x03, true, false) == '@', "keymap us: shift-2 is @");
+    expect(kb_translate(0x10, false, true) == 0, "keymap us: no AltGr level");
+
+    expect(kb_set_keymap("uk"), "keymap: uk exists");
+    expect(kb_translate(0x03, true, false) == '"' && kb_translate(0x28, true, false) == '@',
+           "keymap uk: quote and @ are swapped");
+    expect(kb_translate(0x1E, false, false) == 'a', "keymap uk: letters fall back to us");
+
+    expect(kb_set_keymap("de"), "keymap: de exists");
+    expect(kb_translate(0x15, false, false) == 'z' && kb_translate(0x2C, false, false) == 'y',
+           "keymap de: Y and Z are swapped");
+    expect(kb_translate(0x10, false, true) == '@', "keymap de: AltGr-Q is @");
+    expect(kb_translate(0x1A, false, false) == 0x81, "keymap de: u-umlaut in code page 437");
+
+    expect(kb_set_keymap("fr"), "keymap: fr exists");
+    expect(kb_translate(0x10, false, false) == 'a' && kb_translate(0x1E, false, false) == 'q',
+           "keymap fr: A and Q are swapped");
+    expect(kb_translate(0x02, false, false) == '&' && kb_translate(0x02, true, false) == '1',
+           "keymap fr: digits need shift");
+    expect(kb_translate(0x0B, false, true) == '@', "keymap fr: AltGr-0 is @");
+
+    expect(!kb_set_keymap("xx"), "keymap: unknown name is rejected");
+    expect(kb_translate(0x7F, false, false) == 0, "keymap: out-of-range scan code gives nothing");
+
+    kb_set_keymap(saved);
+}
+
 /* ── File system and loader ─────────────────── */
 
 static void test_files(void)
@@ -238,6 +280,7 @@ uint16_t selftest_run(void)
     test_mailbox();
     test_sleep();
     test_syscalls();
+    test_keymaps();
     test_files();
 
     expect(mem_free() == heap_before, "selftest: no heap leak");

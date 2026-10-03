@@ -30,4 +30,25 @@ char kb_getchar(void);
 /* Check if a character is available (non-blocking); pair with kb_getchar */
 bool kb_haschar(void);
 
+/* ── Keyboard layouts ───────────────────────── */
+
+/*
+ * Character for a key in the current layout, or 0 if the key produces
+ * none. `scancode` is a set 1 make code (0x00-0x58). Characters above
+ * 0x7F are code page 437, the PC's text-mode character set.
+ */
+uint8_t kb_translate(uint8_t scancode, bool shift, bool altgr);
+
+/* Select a layout by name ("us", "uk", "de", "fr"); false if unknown */
+bool kb_set_keymap(const char *name);
+
+/* Name of the current layout */
+const char *kb_keymap_name(void);
+
+/*
+ * Enumerate the layouts: fills in the name and description of layout
+ * `index` and returns true, or returns false past the end.
+ */
+bool kb_keymap_info(uint8_t index, const char **name, const char **description);
+
 #endif /* PHOENIX_KEYBOARD_H */

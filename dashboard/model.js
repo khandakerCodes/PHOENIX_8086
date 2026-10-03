@@ -65,13 +65,14 @@
         return model.threads[tid];
     }
 
-    function threadLabel(model, tid) {
-        const t = model.threads[tid];
-        return '[' + tid + '] ' + (t && t.name ? t.name : '?');
-    }
-
-    function addEvent(model, kind, tick, text, tid) {
-        model.events.unshift({ kind: kind, tick: tick, text: text, tid: tid === undefined ? null : tid });
+    /*
+     * Events carry a message key and parameters, not text, so the page
+     * can show them in any language (see locales/). A parameter named
+     * tid, from or to is a thread ID.
+     */
+    function addEvent(model, kind, tick, key, params, tid) {
+        model.events.unshift({ kind: kind, tick: tick, key: key, params: params || {},
+                               tid: tid === undefined ? null : tid });
         if (model.events.length > MAX_EVENTS) {
             model.events.length = MAX_EVENTS;
         }
@@ -116,7 +117,7 @@
         BOOT_STAGE: function (model, m) {
             model.bootStage = m.stage;
             model.bootInferred = false;
-            addEvent(model, 'info', m.tick, 'Boot stage ' + m.stage);
+            addEvent(model, 'info', m.tick, 'event.boot', { stage: m.stage });
         },
 
         THREAD_CREATE: function (model, m) {
@@ -124,13 +125,12 @@
                 tid: m.tid, name: m.name, state: 'READY', priority: m.priority,
                 cpuTicks: 0, sp: null, stackBase: null, stackSize: null, exited: false,
             };
-            addEvent(model, 'info', m.tick, 'Thread created: ' + threadLabel(model, m.tid) +
-                     ' (priority ' + m.priority + ')', m.tid);
+            addEvent(model, 'info', m.tick, 'event.created', { tid: m.tid, priority: m.priority }, m.tid);
         },
 
         THREAD_EXIT: function (model, m) {
             const t = thread(model, m.tid);
-            addEvent(model, 'info', m.tick, 'Thread exited: ' + threadLabel(model, m.tid), m.tid);
+            addEvent(model, 'info', m.tick, 'event.exited', { tid: m.tid, name: t.name }, m.tid);
             t.exited = true;
             t.state = 'TERMINATED';
         },
@@ -140,10 +140,11 @@
             const priorityChanged = t.priority !== null && t.priority !== m.priority;
             t.state = m.state;
             t.priority = m.priority;
-            addEvent(model, 'state', m.tick,
-                     threadLabel(model, m.tid) + (priorityChanged
-                         ? ' priority → ' + m.priority
-                         : ' → ' + m.state), m.tid);
+            if (priorityChanged) {
+                addEvent(model, 'state', m.tick, 'event.priority', { tid: m.tid, priority: m.priority }, m.tid);
+            } else {
+                addEvent(model, 'state', m.tick, 'event.state', { tid: m.tid, state: m.state }, m.tid);
+            }
         },
 
         CONTEXT_SWITCH: function (model, m) {
@@ -174,9 +175,7 @@
             });
             model.lastSwitch = { from: m.from_tid, to: m.to_tid, tick: m.tick, regs: m.regs, changed: changed };
 
-            addEvent(model, 'switch', m.tick,
-                     'Switch: ' + threadLabel(model, m.from_tid) + ' → ' + threadLabel(model, m.to_tid),
-                     m.to_tid);
+            addEvent(model, 'switch', m.tick, 'event.switch', { from: m.from_tid, to: m.to_tid }, m.to_tid);
             inferBoot(model);
         },
 
@@ -186,8 +185,7 @@
                 model.irqRate = Math.round((m.timer - before.timer) * model.hello.hz / (m.tick - before.tick));
             }
             if (before && m.drops > before.drops) {
-                addEvent(model, 'fault', m.tick,
-                         'Kernel dropped ' + (m.drops - before.drops) + ' telemetry records (buffer full)');
+                addEvent(model, 'fault', m.tick, 'event.drops', { count: m.drops - before.drops });
             }
             model.counters = {
                 tick: m.tick, timer: m.timer, keyboard: m.keyboard, syscall: m.syscall,
@@ -204,7 +202,7 @@
 
         FAULT: function (model, m) {
             model.fault = { tid: m.tid, tick: m.tick, reason: m.reason, regs: m.regs };
-            addEvent(model, 'fault', m.tick, 'KERNEL PANIC: ' + m.reason, m.tid);
+            addEvent(model, 'fault', m.tick, 'event.panic', { reason: m.reason }, m.tid);
         },
 
         CONSOLE: function (model, m) {
@@ -214,12 +212,12 @@
         SYSCALL: function (model, m) {
             model.syscalls++;
             const name = SYSCALL_NAMES[m.func] || ('0x' + m.func.toString(16));
-            addEvent(model, 'syscall', m.tick, threadLabel(model, m.tid) + ' INT 80h ' + name, m.tid);
+            addEvent(model, 'syscall', m.tick, 'event.syscall', { tid: m.tid, name: name }, m.tid);
         },
 
         BENCH: function (model, m) {
             model.bench[m.kind] = m.count;
-            addEvent(model, 'info', m.tick, 'Benchmark ' + m.kind + ': ' + m.count + '/s');
+            addEvent(model, 'info', m.tick, 'event.bench', { kind: m.kind, count: m.count });
         },
 
         THREAD_STATS: function (model, m) {
@@ -318,23 +316,23 @@
         return used >= 0 && used <= thread.stackSize ? used : null;
     }
 
-    /** Physical memory regions, low to high. Empty until HELLO arrives. */
+    /** Physical memory regions, low to high (named by key). Empty until HELLO arrives. */
     function memoryRegions(model) {
         const h = model.hello;
         if (!h) {
             return [];
         }
         const regions = [
-            { key: 'ivt', label: 'Interrupt vectors', start: 0x00000, end: 0x00400 },
-            { key: 'bios', label: 'BIOS data', start: 0x00400, end: 0x00500 },
-            { key: 'boot', label: 'Boot loaders', start: 0x07C00, end: 0x08600 },
-            { key: 'kernel', label: 'Kernel code', start: h.codeSeg * 16, end: h.codeSeg * 16 + 0x10000 },
-            { key: 'threads', label: 'Kernel data + stacks', start: h.dataSeg * 16, end: h.dataSeg * 16 + h.heapStart },
-            { key: 'heap', label: 'Near heap', start: h.dataSeg * 16 + h.heapStart, end: h.dataSeg * 16 + h.heapEnd },
-            { key: 'stack', label: 'Kernel stack', start: h.dataSeg * 16 + h.heapEnd, end: h.dataSeg * 16 + 0x10000 },
+            { key: 'ivt', start: 0x00000, end: 0x00400 },
+            { key: 'bios', start: 0x00400, end: 0x00500 },
+            { key: 'boot', start: 0x07C00, end: 0x08600 },
+            { key: 'kernel', start: h.codeSeg * 16, end: h.codeSeg * 16 + 0x10000 },
+            { key: 'threads', start: h.dataSeg * 16, end: h.dataSeg * 16 + h.heapStart },
+            { key: 'heap', start: h.dataSeg * 16 + h.heapStart, end: h.dataSeg * 16 + h.heapEnd },
+            { key: 'stack', start: h.dataSeg * 16 + h.heapEnd, end: h.dataSeg * 16 + 0x10000 },
         ];
         if (h.farEndSeg > h.farStartSeg) {
-            regions.push({ key: 'far', label: 'Far arena', start: h.farStartSeg * 16, end: h.farEndSeg * 16 });
+            regions.push({ key: 'far', start: h.farStartSeg * 16, end: h.farEndSeg * 16 });
         }
         if (model.memory) {
             const m = model.memory;

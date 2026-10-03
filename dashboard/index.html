@@ -15,30 +15,32 @@
             <span class="logo-text">Phoenix-8086</span>
             <span class="logo-badge logo-badge--offline" id="status-badge">OFFLINE</span>
             <button class="demo-toggle" id="demo-toggle" type="button">Run demo</button>
+            <label class="visually-hidden" for="language" data-i18n="language">Language</label>
+            <select class="language-select" id="language"></select>
         </div>
         <div class="top-bar__metrics">
             <div class="metric">
-                <span class="metric__label">UPTIME</span>
+                <span class="metric__label" data-i18n="metric.uptime">UPTIME</span>
                 <span class="metric__value" id="metric-uptime">—</span>
             </div>
             <div class="metric">
-                <span class="metric__label">TICKS</span>
+                <span class="metric__label" data-i18n="metric.ticks">TICKS</span>
                 <span class="metric__value" id="metric-ticks">—</span>
             </div>
             <div class="metric">
-                <span class="metric__label">IRQ RATE</span>
+                <span class="metric__label" data-i18n="metric.irqRate">IRQ RATE</span>
                 <span class="metric__value" id="metric-irq-rate">—</span>
             </div>
             <div class="metric">
-                <span class="metric__label">CTX SWITCHES</span>
+                <span class="metric__label" data-i18n="metric.ctx">CTX SWITCHES</span>
                 <span class="metric__value" id="metric-ctx-switches">—</span>
             </div>
             <div class="metric">
-                <span class="metric__label">THREADS</span>
+                <span class="metric__label" data-i18n="metric.threads">THREADS</span>
                 <span class="metric__value" id="metric-threads">—</span>
             </div>
             <div class="metric">
-                <span class="metric__label">TELEMETRY</span>
+                <span class="metric__label" data-i18n="metric.telemetry">TELEMETRY</span>
                 <span class="metric__value" id="metric-link">—</span>
             </div>
         </div>
@@ -53,7 +55,7 @@
         <aside class="panel panel--left" id="panel-left">
             <div class="panel__section" id="thread-list-section">
                 <h2 class="panel__title">
-                    <span class="panel__icon">◉</span> Threads
+                    <span class="panel__icon">◉</span> <span data-i18n="panel.threads">Threads</span>
                 </h2>
                 <div class="thread-list" id="thread-list">
                     <div class="thread-card thread-card--empty">
@@ -64,7 +66,7 @@
 
             <div class="panel__section" id="scheduler-section">
                 <h2 class="panel__title">
-                    <span class="panel__icon">↻</span> Ready Queue
+                    <span class="panel__icon">↻</span> <span data-i18n="panel.readyQueue">Ready Queue</span>
                 </h2>
                 <div class="sched-queue" id="sched-queue">
                     <div class="sched-queue__empty">No thread data</div>
@@ -76,94 +78,94 @@
         <section class="panel panel--center" id="panel-center">
             <!-- View Tabs -->
             <div class="view-tabs" id="view-tabs">
-                <button class="view-tab view-tab--active" data-view="boot">Boot Timeline</button>
-                <button class="view-tab" data-view="scheduler">Scheduler View</button>
-                <button class="view-tab" data-view="context-switch">Context Switch</button>
-                <button class="view-tab" data-view="console">Console</button>
+                <button class="view-tab view-tab--active" data-view="boot" data-i18n="tab.boot">Boot Timeline</button>
+                <button class="view-tab" data-view="scheduler" data-i18n="tab.scheduler">Scheduler View</button>
+                <button class="view-tab" data-view="context-switch" data-i18n="tab.contextSwitch">Context Switch</button>
+                <button class="view-tab" data-view="console" data-i18n="tab.console">Console</button>
             </div>
 
             <!-- Boot Timeline View -->
             <div class="view-content view-content--active" id="view-boot">
-                <h2 class="view-content__title">Boot Timeline</h2>
+                <h2 class="view-content__title" data-i18n="view.boot">Boot Timeline</h2>
                 <div class="boot-timeline" id="boot-timeline">
                     <div class="boot-step" data-stage="1">
                         <div class="boot-step__dot"></div>
                         <div class="boot-step__line"></div>
                         <div class="boot-step__content">
-                            <span class="boot-step__label">BIOS POST</span>
-                            <span class="boot-step__desc">Implied by the kernel starting</span>
+                            <span class="boot-step__label" data-i18n="boot.bios">BIOS POST</span>
+                            <span class="boot-step__desc" data-i18n="boot.implied">Implied by the kernel starting</span>
                         </div>
                     </div>
                     <div class="boot-step" data-stage="1">
                         <div class="boot-step__dot"></div>
                         <div class="boot-step__line"></div>
                         <div class="boot-step__content">
-                            <span class="boot-step__label">Stage 1 Bootloader</span>
-                            <span class="boot-step__desc">Implied by the kernel starting</span>
+                            <span class="boot-step__label" data-i18n="boot.stage1">Stage 1 Bootloader</span>
+                            <span class="boot-step__desc" data-i18n="boot.implied">Implied by the kernel starting</span>
                         </div>
                     </div>
                     <div class="boot-step" data-stage="1">
                         <div class="boot-step__dot"></div>
                         <div class="boot-step__line"></div>
                         <div class="boot-step__content">
-                            <span class="boot-step__label">Stage 2 Loader</span>
-                            <span class="boot-step__desc">Implied by the kernel starting</span>
+                            <span class="boot-step__label" data-i18n="boot.stage2">Stage 2 Loader</span>
+                            <span class="boot-step__desc" data-i18n="boot.implied">Implied by the kernel starting</span>
                         </div>
                     </div>
                     <div class="boot-step" data-stage="1">
                         <div class="boot-step__dot"></div>
                         <div class="boot-step__line"></div>
                         <div class="boot-step__content">
-                            <span class="boot-step__label">Kernel Entry</span>
-                            <span class="boot-step__desc">Segments, BSS, serial port</span>
+                            <span class="boot-step__label" data-i18n="boot.entry">Kernel Entry</span>
+                            <span class="boot-step__desc" data-i18n="boot.entry.desc">Segments, BSS, serial port</span>
                         </div>
                     </div>
                     <div class="boot-step" data-stage="2">
                         <div class="boot-step__dot"></div>
                         <div class="boot-step__line"></div>
                         <div class="boot-step__content">
-                            <span class="boot-step__label">Console Init</span>
-                            <span class="boot-step__desc">Text mode at B800:0000</span>
+                            <span class="boot-step__label" data-i18n="boot.console">Console Init</span>
+                            <span class="boot-step__desc" data-i18n="boot.console.desc">Text mode at B800:0000</span>
                         </div>
                     </div>
                     <div class="boot-step" data-stage="3">
                         <div class="boot-step__dot"></div>
                         <div class="boot-step__line"></div>
                         <div class="boot-step__content">
-                            <span class="boot-step__label">Memory Manager</span>
-                            <span class="boot-step__desc">Near heap and far arena</span>
+                            <span class="boot-step__label" data-i18n="boot.memory">Memory Manager</span>
+                            <span class="boot-step__desc" data-i18n="boot.memory.desc">Near heap and far arena</span>
                         </div>
                     </div>
                     <div class="boot-step" data-stage="4">
                         <div class="boot-step__dot"></div>
                         <div class="boot-step__line"></div>
                         <div class="boot-step__content">
-                            <span class="boot-step__label">Scheduler Init</span>
-                            <span class="boot-step__desc">Boot context becomes the idle thread</span>
+                            <span class="boot-step__label" data-i18n="boot.scheduler">Scheduler Init</span>
+                            <span class="boot-step__desc" data-i18n="boot.scheduler.desc">Boot context becomes the idle thread</span>
                         </div>
                     </div>
                     <div class="boot-step" data-stage="5">
                         <div class="boot-step__dot"></div>
                         <div class="boot-step__line"></div>
                         <div class="boot-step__content">
-                            <span class="boot-step__label">Interrupt System</span>
-                            <span class="boot-step__desc">Timer, keyboard, INT 80h</span>
+                            <span class="boot-step__label" data-i18n="boot.interrupts">Interrupt System</span>
+                            <span class="boot-step__desc" data-i18n="boot.interrupts.desc">Timer, keyboard, INT 80h</span>
                         </div>
                     </div>
                     <div class="boot-step" data-stage="6">
                         <div class="boot-step__dot"></div>
                         <div class="boot-step__line"></div>
                         <div class="boot-step__content">
-                            <span class="boot-step__label">Shell Thread</span>
-                            <span class="boot-step__desc">First scheduled thread</span>
+                            <span class="boot-step__label" data-i18n="boot.shell">Shell Thread</span>
+                            <span class="boot-step__desc" data-i18n="boot.shell.desc">First scheduled thread</span>
                         </div>
                     </div>
                     <div class="boot-step" data-stage="7">
                         <div class="boot-step__dot"></div>
                         <div class="boot-step__line"></div>
                         <div class="boot-step__content">
-                            <span class="boot-step__label">Kernel Ready</span>
-                            <span class="boot-step__desc">Boot complete</span>
+                            <span class="boot-step__label" data-i18n="boot.ready">Kernel Ready</span>
+                            <span class="boot-step__desc" data-i18n="boot.ready.desc">Boot complete</span>
                         </div>
                     </div>
                 </div>
@@ -172,54 +174,54 @@
 
             <!-- Scheduler View -->
             <div class="view-content" id="view-scheduler">
-                <h2 class="view-content__title">Scheduler Timeline</h2>
+                <h2 class="view-content__title" data-i18n="view.scheduler">Scheduler Timeline</h2>
                 <div class="sched-timeline" id="sched-timeline">
-                    <div class="sched-timeline__gantt" id="sched-gantt"></div>
+                    <div class="sched-timeline__gantt" id="sched-gantt" dir="ltr"></div>
                     <p class="view-note" id="sched-window"></p>
                     <div class="sched-timeline__legend" id="sched-legend"></div>
                 </div>
                 <div class="sched-cpu-chart" id="sched-cpu-chart">
-                    <h3>CPU Share in This Window</h3>
+                    <h3 data-i18n="view.cpuShare">CPU Share in This Window</h3>
                     <div class="cpu-bars" id="cpu-bars"></div>
                 </div>
             </div>
 
             <!-- Context Switch View -->
             <div class="view-content" id="view-context-switch">
-                <h2 class="view-content__title">Context Switch</h2>
+                <h2 class="view-content__title" data-i18n="view.contextSwitch">Context Switch</h2>
                 <div class="ctx-switch-anim" id="ctx-switch-anim">
                     <div class="ctx-phase" id="ctx-phase-save">
                         <div class="ctx-phase__icon">💾</div>
-                        <div class="ctx-phase__label">Save Registers</div>
-                        <div class="ctx-phase__desc">Push registers on the thread's stack</div>
+                        <div class="ctx-phase__label" data-i18n="ctx.save">Save Registers</div>
+                        <div class="ctx-phase__desc" data-i18n="ctx.save.desc">Push registers on the thread's stack</div>
                     </div>
                     <div class="ctx-arrow">→</div>
                     <div class="ctx-phase" id="ctx-phase-select">
                         <div class="ctx-phase__icon">🔍</div>
-                        <div class="ctx-phase__label">Select Next</div>
-                        <div class="ctx-phase__desc">Priority, round-robin, aging</div>
+                        <div class="ctx-phase__label" data-i18n="ctx.select">Select Next</div>
+                        <div class="ctx-phase__desc" data-i18n="ctx.select.desc">Priority, round-robin, aging</div>
                     </div>
                     <div class="ctx-arrow">→</div>
                     <div class="ctx-phase" id="ctx-phase-restore">
                         <div class="ctx-phase__icon">📤</div>
-                        <div class="ctx-phase__label">Restore Context</div>
-                        <div class="ctx-phase__desc">Load SP of the next thread, pop</div>
+                        <div class="ctx-phase__label" data-i18n="ctx.restore">Restore Context</div>
+                        <div class="ctx-phase__desc" data-i18n="ctx.restore.desc">Load SP of the next thread, pop</div>
                     </div>
                     <div class="ctx-arrow">→</div>
                     <div class="ctx-phase" id="ctx-phase-iret">
                         <div class="ctx-phase__icon">⚡</div>
-                        <div class="ctx-phase__label">IRET</div>
-                        <div class="ctx-phase__desc">Resume execution</div>
+                        <div class="ctx-phase__label" data-i18n="ctx.iret">IRET</div>
+                        <div class="ctx-phase__desc" data-i18n="ctx.iret.desc">Resume execution</div>
                     </div>
                 </div>
                 <div class="ctx-switch-detail" id="ctx-switch-detail">
                     <div class="ctx-thread-box" id="ctx-from-thread">
-                        <h3>From Thread</h3>
+                        <h3 data-i18n="ctx.from">From Thread</h3>
                         <span class="ctx-thread-name" id="ctx-from-name">—</span>
                     </div>
                     <div class="ctx-switch-arrow">⟹</div>
                     <div class="ctx-thread-box" id="ctx-to-thread">
-                        <h3>To Thread</h3>
+                        <h3 data-i18n="ctx.to">To Thread</h3>
                         <span class="ctx-thread-name" id="ctx-to-name">—</span>
                     </div>
                 </div>
@@ -228,13 +230,13 @@
 
             <!-- Console View -->
             <div class="view-content" id="view-console">
-                <h2 class="view-content__title">Kernel Console Mirror</h2>
-                <div class="console-output" id="console-output">
+                <h2 class="view-content__title" data-i18n="view.console">Kernel Console Mirror</h2>
+                <div class="console-output" id="console-output" dir="ltr">
                     <pre id="console-text">No console output received.</pre>
                 </div>
                 <form class="console-form" id="console-form" autocomplete="off">
-                    <label class="visually-hidden" for="console-input">Shell command</label>
-                    <input class="console-input" id="console-input" type="text" maxlength="60" disabled>
+                    <label class="visually-hidden" for="console-input" data-i18n="console.label">Shell command</label>
+                    <input class="console-input" id="console-input" type="text" maxlength="60" dir="ltr" disabled>
                 </form>
             </div>
         </section>
@@ -243,9 +245,9 @@
         <aside class="panel panel--right" id="panel-right">
             <div class="panel__section" id="register-section">
                 <h2 class="panel__title">
-                    <span class="panel__icon">⬡</span> Registers
+                    <span class="panel__icon">⬡</span> <span data-i18n="panel.registers">Registers</span>
                 </h2>
-                <div class="register-grid" id="register-grid">
+                <div class="register-grid" id="register-grid" dir="ltr">
                     <div class="register" id="reg-ax"><span class="register__name">AX</span><span class="register__val">----</span></div>
                     <div class="register" id="reg-bx"><span class="register__name">BX</span><span class="register__val">----</span></div>
                     <div class="register" id="reg-cx"><span class="register__name">CX</span><span class="register__val">----</span></div>
@@ -264,7 +266,7 @@
 
             <div class="panel__section" id="memory-section">
                 <h2 class="panel__title">
-                    <span class="panel__icon">▦</span> Memory Map
+                    <span class="panel__icon">▦</span> <span data-i18n="panel.memoryMap">Memory Map</span>
                 </h2>
                 <div class="memory-map" id="memory-map">
                     <div class="sched-queue__empty">No memory layout received</div>
@@ -273,7 +275,7 @@
 
             <div class="panel__section" id="thread-inspector-section">
                 <h2 class="panel__title">
-                    <span class="panel__icon">🔍</span> Thread Inspector
+                    <span class="panel__icon">🔍</span> <span data-i18n="panel.inspector">Thread Inspector</span>
                 </h2>
                 <div class="thread-inspector" id="thread-inspector">
                     <p class="inspector-placeholder">Select a thread to inspect</p>
@@ -286,27 +288,27 @@
     <footer class="bottom-bar" id="bottom-bar">
         <div class="bottom-bar__section">
             <h2 class="bottom-bar__title">
-                <span class="panel__icon">⚡</span> Counters
+                <span class="panel__icon">⚡</span> <span data-i18n="panel.counters">Counters</span>
             </h2>
             <div class="irq-counters" id="irq-counters">
                 <div class="irq-counter">
-                    <span class="irq-counter__label">Timer</span>
+                    <span class="irq-counter__label" data-i18n="counter.timer">Timer</span>
                     <span class="irq-counter__value" id="irq-timer">—</span>
                 </div>
                 <div class="irq-counter">
-                    <span class="irq-counter__label">Keyboard</span>
+                    <span class="irq-counter__label" data-i18n="counter.keyboard">Keyboard</span>
                     <span class="irq-counter__value" id="irq-keyboard">—</span>
                 </div>
                 <div class="irq-counter">
-                    <span class="irq-counter__label">Syscall</span>
+                    <span class="irq-counter__label" data-i18n="counter.syscall">Syscall</span>
                     <span class="irq-counter__value" id="irq-syscall">—</span>
                 </div>
                 <div class="irq-counter">
-                    <span class="irq-counter__label">Ctx Switch</span>
+                    <span class="irq-counter__label" data-i18n="counter.ctx">Ctx Switch</span>
                     <span class="irq-counter__value" id="irq-ctx">—</span>
                 </div>
                 <div class="irq-counter">
-                    <span class="irq-counter__label">Dropped</span>
+                    <span class="irq-counter__label" data-i18n="counter.dropped">Dropped</span>
                     <span class="irq-counter__value" id="irq-drops">—</span>
                 </div>
             </div>
@@ -314,7 +316,7 @@
         <div class="bottom-bar__section bottom-bar__section--log">
             <label class="event-filter">
                 <input type="checkbox" id="event-filter" checked>
-                Hide the telemetry thread's own sleeps and switches
+                <span data-i18n="events.filter">Hide the telemetry thread's own sleeps and switches</span>
             </label>
             <div class="event-stream" id="event-stream">
                 <div class="event-item event-item--info">No events received</div>
@@ -325,14 +327,20 @@
     <!-- ═══ Fault Overlay (hidden by default) ═══ -->
     <div class="fault-overlay" id="fault-overlay" style="display: none;">
         <div class="fault-content">
-            <h1 class="fault-title">⚠ KERNEL PANIC</h1>
+            <h1 class="fault-title">⚠ <span data-i18n="fault.title">KERNEL PANIC</span></h1>
             <p class="fault-reason" id="fault-reason"></p>
             <p class="fault-thread" id="fault-thread"></p>
-            <div class="fault-registers" id="fault-registers"></div>
-            <button class="fault-dismiss" id="fault-dismiss" type="button">Dismiss</button>
+            <div class="fault-registers" id="fault-registers" dir="ltr"></div>
+            <button class="fault-dismiss" id="fault-dismiss" type="button" data-i18n="fault.dismiss">Dismiss</button>
         </div>
     </div>
 
+    <script src="i18n.js"></script>
+    <script src="locales/en.js"></script>
+    <script src="locales/de.js"></script>
+    <script src="locales/fr.js"></script>
+    <script src="locales/es.js"></script>
+    <script src="locales/ar.js"></script>
     <script src="model.js"></script>
     <script src="demo.js"></script>
     <script src="app.js"></script>
