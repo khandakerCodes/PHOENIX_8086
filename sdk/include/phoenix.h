@@ -29,6 +29,17 @@ static inline char px_getc(void)                { return (char)PX_CALL(0x03, 0, 
 /* Threads and time */
 static inline unsigned px_version(void)         { return (unsigned)PX_CALL(0x00, 0, 0, 0, 0); }
 static inline void px_exit(void)                { PX_CALL(0x05, 0, 0, 0, 0); }
+
+/*
+ * Start another thread in this program. It runs `function` and exits
+ * when the function returns. The program's memory stays loaded until
+ * its last thread has ended. Returns the thread ID.
+ */
+void px_thread_entry(void);
+static inline unsigned px_thread_create(void (*function)(void), unsigned priority)
+{
+    return (unsigned)PX_CALL(0x04, 0, px_thread_entry, priority, function);
+}
 static inline void px_yield(void)               { PX_CALL(0x06, 0, 0, 0, 0); }
 static inline void px_sleep(unsigned ticks)     { PX_CALL(0x07, 0, 0, ticks, 0); }
 static inline unsigned long px_ticks(void)      { return PX_CALL(0x08, 0, 0, 0, 0); }
@@ -37,9 +48,11 @@ static inline unsigned long px_ticks(void)      { return PX_CALL(0x08, 0, 0, 0, 
 static inline unsigned px_sem_create(int count) { return (unsigned)PX_CALL(0x09, 0, count, 0, 0); }
 static inline void px_sem_wait(unsigned sem)    { PX_CALL(0x0A, 0, sem, 0, 0); }
 static inline void px_sem_signal(unsigned sem)  { PX_CALL(0x0B, 0, sem, 0, 0); }
+static inline unsigned px_sem_destroy(unsigned sem) { return (unsigned)PX_CALL(0x11, 0, sem, 0, 0); }
 static inline unsigned px_mbox_create(void)     { return (unsigned)PX_CALL(0x0C, 0, 0, 0, 0); }
 static inline void px_mbox_send(unsigned mbox, unsigned msg) { PX_CALL(0x0D, 0, mbox, msg, 0); }
 static inline unsigned px_mbox_recv(unsigned mbox) { return (unsigned)PX_CALL(0x0E, 0, mbox, 0, 0); }
+static inline unsigned px_mbox_destroy(unsigned mbox) { return (unsigned)PX_CALL(0x12, 0, mbox, 0, 0); }
 
 /* Far memory, in 16-byte paragraphs; returns a segment */
 static inline unsigned px_alloc(unsigned paragraphs) { return (unsigned)PX_CALL(0x0F, 0, paragraphs, 0, 0); }

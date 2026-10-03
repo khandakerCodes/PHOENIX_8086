@@ -35,6 +35,16 @@ typedef struct {
     uint16_t flags;
 } frame_t;
 
+/*
+ * A loaded program's memory. Every thread running in the program holds
+ * a reference; the memory is freed when the last of them ends.
+ */
+typedef struct program {
+    uint16_t segment;       /* Far segment holding the code */
+    void    *data;          /* Near heap block holding data + bss */
+    uint8_t  threads;       /* Threads currently running in this program */
+} program_t;
+
 /* FLAGS bits used by the kernel */
 #define FLAGS_CF            0x0001
 #define FLAGS_IF            0x0200
@@ -68,9 +78,8 @@ typedef struct {
     uint32_t cpu_ticks;     /* CPU time consumed (in timer ticks) */
     uint32_t last_scheduled;/* Tick when last scheduled */
 
-    /* Memory owned by a loaded program; freed when the thread ends */
-    uint16_t prog_segment;  /* Far segment holding the code, or 0 */
-    void    *prog_data;     /* Near heap block holding data + bss, or NULL */
+    /* Loaded program this thread runs in, or NULL for a kernel thread */
+    struct program *program;
 
     char     name[12];      /* Human-readable thread name */
 

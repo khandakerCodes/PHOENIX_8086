@@ -192,7 +192,9 @@ class Decoder:
         if message is None:
             self.bad_frames += 1
             return
-        if self._last_seq is not None:
+        # The first record of a boot restarts the numbering: not a loss
+        restarted = message["type"] == "BOOT_STAGE" and message.get("stage") == 1
+        if self._last_seq is not None and not restarted:
             self.lost_frames += (message["seq"] - self._last_seq - 1) & 0xFF
         self._last_seq = message["seq"]
         self.frames += 1

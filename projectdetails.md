@@ -170,6 +170,7 @@ No region may overlap another. The build fails if any image exceeds its region.
 | 09h–0Bh | `sem_create`, `sem_wait`, `sem_signal` | Semaphores |
 | 0Ch–0Eh | `mbox_create`, `mbox_send`, `mbox_recv` | Mailboxes |
 | 0Fh–10h | `alloc`, `free` | Far-arena memory |
+| 11h–12h | `sem_destroy`, `mbox_destroy` | Release semaphores and mailboxes |
 | 18h–1Bh | `open`, `read`, `close`, `exec` | Files and programs |
 
 ### 4.9 Drivers

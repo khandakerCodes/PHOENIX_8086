@@ -17,7 +17,9 @@
  * every 16-bit data address in the program; the loader adds the
  * block's address to each (relocation).
  *
- * The thread owns both allocations; they are freed when it ends.
+ * The program's memory is shared by every thread running in it (a
+ * program can start more with the thread_create system call) and is
+ * freed when the last of them ends.
  * Real mode has no protection: a program can overwrite the kernel.
  */
 
@@ -121,6 +123,7 @@ int exec_program(const char *name, uint8_t *error)
     char thread_name[12];
     fat_file_t file;
     header_t header;
+    program_t *program = NULL;
     uint16_t text_segment = 0;
     uint8_t *data = NULL;
     uint8_t *chunk = NULL;
@@ -160,7 +163,8 @@ int exec_program(const char *name, uint8_t *error)
     text_segment = far_alloc((header.text_size + 15) / 16);
     /* Always allocate a data block, so relocated addresses are never NULL */
     data = kmalloc(data_total ? data_total : 2);
-    if (chunk == NULL || text_segment == 0 || data == NULL) {
+    program = kmalloc(sizeof(program_t));
+    if (chunk == NULL || text_segment == 0 || data == NULL || program == NULL) {
         status = EXEC_NO_MEMORY;
         goto done;
     }
@@ -183,7 +187,10 @@ int exec_program(const char *name, uint8_t *error)
     }
 
     program_name(name, thread_name);
-    tid = thread_create_program(text_segment, header.entry, data, EXEC_PRIORITY, thread_name);
+    program->segment = text_segment;
+    program->data    = data;
+    program->threads = 0;
+    tid = thread_create_program(program, header.entry, 0, EXEC_PRIORITY, thread_name);
     if (tid < 0) {
         status = EXEC_NO_THREAD;
     }
@@ -191,9 +198,10 @@ int exec_program(const char *name, uint8_t *error)
 done:
     kfree(chunk);
     if (tid < 0) {
-        /* The thread never took ownership */
+        /* No thread took a reference */
         far_free(text_segment);
         kfree(data);
+        kfree(program);
     }
     if (error) {
         *error = status;

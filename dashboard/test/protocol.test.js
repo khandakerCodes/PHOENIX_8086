@@ -54,3 +54,18 @@ test('CRC matches the reference check value', () => {
     const bytes = Uint8Array.from(Buffer.from('123456789'));
     assert.strictEqual(Protocol.crc16(bytes, bytes.length), 0x29B1);
 });
+
+test('a reboot restarts the numbering without counting a loss', () => {
+    const frame = (type, seq, payload) => {
+        const content = [1, type, seq, 0, 0, 0, 0, ...payload];
+        const crc = Protocol.crc16(Uint8Array.from(content), content.length);
+        return [0x7E, ...content, crc & 0xFF, crc >> 8, 0x7E];
+    };
+    const decoder = new Protocol.Decoder();
+    decoder.feed(frame(9, 200, [0x41]));     // CONSOLE, late in a session
+    decoder.feed(frame(1, 0, [1]));          // BOOT_STAGE 1: the machine rebooted
+    decoder.feed(frame(1, 1, [2]));
+    assert.strictEqual(decoder.lostFrames, 0);
+    decoder.feed(frame(1, 5, [3]));
+    assert.strictEqual(decoder.lostFrames, 3);
+});

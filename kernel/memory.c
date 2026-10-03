@@ -53,6 +53,7 @@ typedef struct {
     uint16_t magic;     /* FAR_MAGIC */
     uint16_t paras;     /* Size of the data area in paragraphs */
     uint8_t  used;
+    uint8_t  owner;     /* Thread that allocated it, or FAR_NO_OWNER */
 } far_hdr_t;
 
 #define FAR_MAGIC       0x4D46  /* "FM" */
@@ -108,6 +109,11 @@ static void far_merge_free(void)
 
 uint16_t far_alloc(uint16_t paragraphs)
 {
+    return far_alloc_owned(paragraphs, FAR_NO_OWNER);
+}
+
+uint16_t far_alloc_owned(uint16_t paragraphs, uint8_t owner)
+{
     uint16_t flags;
     uint16_t seg;
     uint16_t result = 0;
@@ -133,6 +139,7 @@ uint16_t far_alloc(uint16_t paragraphs)
         }
 
         hdr->used = true;
+        hdr->owner = owner;
         result = seg + 1;
         break;
     }
@@ -152,6 +159,30 @@ void far_free(uint16_t segment)
     hdr = FAR_HDR(segment - 1);
     if (hdr->magic == FAR_MAGIC && hdr->used) {
         hdr->used = false;
+        far_merge_free();
+    }
+    hal_irq_restore(flags);
+}
+
+void far_free_owned(int tid)
+{
+    uint16_t flags;
+    uint16_t seg;
+    bool freed = false;
+
+    if (far_start == 0) return;
+
+    flags = hal_irq_save();
+    for (seg = far_start; seg < far_end; seg += 1 + FAR_HDR(seg)->paras) {
+        far_hdr_t __far *hdr = FAR_HDR(seg);
+
+        if (hdr->magic != FAR_MAGIC) break;
+        if (hdr->used && hdr->owner == (uint8_t)tid) {
+            hdr->used = false;
+            freed = true;
+        }
+    }
+    if (freed) {
         far_merge_free();
     }
     hal_irq_restore(flags);

@@ -48,7 +48,7 @@ At the `phoenix>` prompt, type `help`. Good first commands:
 | `ipc` | A producer and a consumer talking through a mailbox |
 | `syscall` | A thread that uses only `INT 80h` |
 | `ls`, `cat readme.txt` | The files on the FAT12 boot disk |
-| `run primes.bin` | A program loaded from the disk |
+| `run primes.bin`, `run threads.bin` | Programs loaded from the disk; the second starts threads of its own |
 | `memory` | The memory map and allocator state |
 | `selftest` | The in-kernel unit tests |
 | `cpu` | Which processor family the kernel detects |
