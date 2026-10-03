@@ -45,6 +45,16 @@ void far_free(uint16_t segment);
 /* Free paragraphs in the far arena */
 uint16_t far_free_paras(void);
 
+/* Allocator bounds, for diagnostics and telemetry */
+typedef struct {
+    uint16_t heap_start;    /* Near heap: first byte (offset in the data segment) */
+    uint16_t heap_end;      /* Near heap: one past the last byte */
+    uint16_t far_start;     /* Far arena: first segment (0 if none) */
+    uint16_t far_end;       /* Far arena: one past the last segment */
+} mem_layout_t;
+
+void mem_get_layout(mem_layout_t *layout);
+
 /* Print memory map to console */
 void mem_print_map(void);
 

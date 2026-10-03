@@ -3,217 +3,225 @@
 """
 Phoenix-8086 — Serial-to-WebSocket Telemetry Bridge
 
-Reads telemetry packets from QEMU's serial output (stdin or pipe),
-parses the binary framing, and relays structured JSON data over
-WebSocket to the visual dashboard.
+Live mode (default): connects to the kernel's serial port (QEMU started
+with "-serial tcp:127.0.0.1:9876,server,nowait"), decodes telemetry
+protocol v1, and relays each message as JSON to every dashboard
+connected over WebSocket. Text typed in a dashboard is written back to
+the serial port. With --capture the session is also recorded to a file.
 
-Packet format:
-    [START_BYTE (0xFE)] [TYPE] [LENGTH] [DATA...] [CHECKSUM]
+Replay mode (--replay FILE): no kernel involved; a recorded capture is
+played back to the dashboards with its original timing (see --speed).
 
-WebSocket server runs on port 9090.
+The bridge only relays what the kernel sent. It adds one message type
+of its own, BRIDGE, which describes the link:
+
+    {"type": "BRIDGE", "mode": "live" | "replay", "serial": bool,
+     "frames": n, "bad_frames": n, "lost_frames": n, "reset": bool}
+
+"reset" is true when a new session starts (the dashboard clears itself).
+New dashboards first receive the messages of the session so far.
 """
 
+import argparse
 import asyncio
+import collections
 import json
 import sys
-import struct
+import time
 
-# Try to import websockets; fall back gracefully if not available
 try:
-    import websockets
-    HAS_WEBSOCKETS = True
-except ImportError:
-    HAS_WEBSOCKETS = False
-    print("[BRIDGE] Warning: 'websockets' module not found.")
-    print("[BRIDGE] Install with: pip3 install websockets")
-    print("[BRIDGE] Running in log-only mode (no WebSocket relay).")
+    from bridge.capture import CaptureWriter, read_capture
+    from bridge.protocol import Decoder
+except ImportError:     # run as a script: python3 bridge/serial_ws_bridge.py
+    from capture import CaptureWriter, read_capture
+    from protocol import Decoder
 
-# ── Constants ──────────────────────────────────
-START_BYTE = 0xFE
-WS_PORT = 9090
-
-# Telemetry type names
-TYPE_NAMES = {
-    0x01: "BOOT_STAGE",
-    0x02: "THREAD_EVENT",
-    0x03: "CONTEXT_SWITCH",
-    0x04: "IRQ_COUNTER",
-    0x05: "REG_SNAPSHOT",
-    0x06: "MEM_SUMMARY",
-    0x07: "FAULT",
-}
-
-# ── Connected WebSocket clients ────────────────
-connected_clients = set()
+BACKLOG_SIZE = 20000        # Messages kept for dashboards that connect late
+MAX_INPUT_LENGTH = 256      # Characters accepted from a dashboard at once
+RETRY_SECONDS = 1.0
+STATUS_SECONDS = 1.0
 
 
-def parse_packet(raw_bytes):
-    """Parse a telemetry packet into a JSON-serializable dict."""
-    if len(raw_bytes) < 4:
-        return None
-
-    start = raw_bytes[0]
-    if start != START_BYTE:
-        return None
-
-    pkt_type = raw_bytes[1]
-    length = raw_bytes[2]
-
-    if len(raw_bytes) < 3 + length + 1:
-        return None
-
-    data = raw_bytes[3:3 + length]
-    checksum = raw_bytes[3 + length]
-
-    # Verify checksum
-    calc_checksum = pkt_type ^ length
-    for b in data:
-        calc_checksum ^= b
-
-    if calc_checksum != checksum:
-        return None
-
-    # Build JSON payload
-    type_name = TYPE_NAMES.get(pkt_type, f"UNKNOWN_{pkt_type:02X}")
-    payload = {
-        "type": type_name,
-        "data": list(data),
-        "raw_type": pkt_type,
-    }
-
-    # Parse specific types
-    if pkt_type == 0x01:  # BOOT_STAGE
-        payload["stage"] = data[0] if data else 0
-
-    elif pkt_type == 0x02:  # THREAD_EVENT
-        if len(data) >= 2:
-            payload["event"] = data[0]
-            payload["tid"] = data[1]
-
-    elif pkt_type == 0x03:  # CONTEXT_SWITCH
-        if len(data) >= 2:
-            payload["from_tid"] = data[0]
-            payload["to_tid"] = data[1]
-
-    elif pkt_type == 0x04:  # IRQ_COUNTER
-        if len(data) >= 8:
-            payload["timer"] = struct.unpack_from("<H", bytes(data), 0)[0]
-            payload["keyboard"] = struct.unpack_from("<H", bytes(data), 2)[0]
-            payload["syscall"] = struct.unpack_from("<H", bytes(data), 4)[0]
-            payload["context_switches"] = struct.unpack_from("<H", bytes(data), 6)[0]
-
-    elif pkt_type == 0x07:  # FAULT
-        if len(data) >= 5:
-            payload["tid"] = data[0]
-            payload["ip"] = struct.unpack_from("<H", bytes(data), 1)[0]
-            payload["cs"] = struct.unpack_from("<H", bytes(data), 3)[0]
-
-    return payload
+def sanitize_input(text):
+    """
+    Keystrokes a dashboard may send to the kernel: printable ASCII,
+    Enter and Backspace. Anything else is dropped.
+    """
+    allowed = bytearray()
+    for ch in str(text)[:MAX_INPUT_LENGTH]:
+        code = ord(ch)
+        if ch in ("\n", "\r"):
+            allowed.append(0x0D)
+        elif ch in ("\b", "\x7f"):
+            allowed.append(0x08)
+        elif 0x20 <= code < 0x7F:
+            allowed.append(code)
+    return bytes(allowed)
 
 
-async def broadcast(message):
-    """Send a message to all connected WebSocket clients."""
-    if connected_clients:
-        msg_json = json.dumps(message)
-        await asyncio.gather(
-            *[client.send(msg_json) for client in connected_clients],
-            return_exceptions=True,
-        )
+class Bridge:
+    def __init__(self, mode):
+        self.mode = mode
+        self.clients = set()
+        self.backlog = collections.deque(maxlen=BACKLOG_SIZE)
+        self.decoder = Decoder()
+        self.serial_writer = None
+        self.capture = None
+        self.started = time.monotonic()
 
+    # ── Messages out ────────────────────────────
 
-async def ws_handler(websocket):
-    """Handle a new WebSocket connection."""
-    connected_clients.add(websocket)
-    print(f"[BRIDGE] Client connected ({len(connected_clients)} total)")
-    try:
-        async for message in websocket:
-            # Dashboard might send commands back; log them
-            print(f"[BRIDGE] Received from client: {message}")
-    except websockets.exceptions.ConnectionClosed:
-        pass
-    finally:
-        connected_clients.discard(websocket)
-        print(f"[BRIDGE] Client disconnected ({len(connected_clients)} total)")
+    def status(self, reset=False):
+        return {"type": "BRIDGE", "mode": self.mode,
+                "serial": self.serial_writer is not None,
+                "frames": self.decoder.frames,
+                "bad_frames": self.decoder.bad_frames,
+                "lost_frames": self.decoder.lost_frames,
+                "reset": reset}
 
+    async def send_all(self, message):
+        if not self.clients:
+            return
+        text = json.dumps(message)
+        await asyncio.gather(*(client.send(text) for client in self.clients),
+                             return_exceptions=True)
 
-async def get_input_stream():
-    """Attempt to connect to QEMU serial TCP port 9876; fallback to stdin if unavailable."""
-    try:
-        reader, writer = await asyncio.wait_for(asyncio.open_connection('127.0.0.1', 9876), timeout=1.0)
-        print("[BRIDGE] Connected to QEMU serial TCP port 9876")
-        return reader
-    except (asyncio.TimeoutError, ConnectionRefusedError, OSError):
-        loop = asyncio.get_event_loop()
-        reader = asyncio.StreamReader()
-        protocol = asyncio.StreamReaderProtocol(reader)
-        await loop.connect_read_pipe(lambda: protocol, sys.stdin.buffer)
-        return reader
+    async def publish(self, message):
+        """Relay one kernel message: backlog, capture file, dashboards."""
+        self.backlog.append(message)
+        if self.capture:
+            self.capture.write(time.monotonic() - self.started, message)
+        await self.send_all(message)
 
+    async def new_session(self):
+        self.backlog.clear()
+        self.decoder = Decoder()
+        await self.send_all(self.status(reset=True))
 
-async def serial_reader():
-    """Read serial data from TCP or stdin and parse telemetry packets & text console logs."""
-    reader = await get_input_stream()
-    buffer = bytearray()
-    line_buf = bytearray()
+    # ── Dashboards ──────────────────────────────
 
-    while True:
+    async def handle_client(self, websocket):
+        await websocket.send(json.dumps(self.status(reset=True)))
+        for message in list(self.backlog):
+            await websocket.send(json.dumps(message))
+        self.clients.add(websocket)
+        print(f"[BRIDGE] Dashboard connected ({len(self.clients)} total)")
         try:
-            chunk = await reader.read(1024)
-            if not chunk:
-                await asyncio.sleep(0.5)
-                reader = await get_input_stream()
-                continue
+            async for raw in websocket:
+                await self.handle_client_message(raw)
         except Exception:
-            await asyncio.sleep(0.5)
-            reader = await get_input_stream()
-            continue
+            pass
+        finally:
+            self.clients.discard(websocket)
+            print(f"[BRIDGE] Dashboard disconnected ({len(self.clients)} total)")
 
-        buffer.extend(chunk)
+    async def handle_client_message(self, raw):
+        try:
+            message = json.loads(raw)
+        except (ValueError, TypeError):
+            return
+        if not isinstance(message, dict) or message.get("type") != "input":
+            return
+        data = sanitize_input(message.get("text", ""))
+        if data and self.serial_writer is not None:
+            self.serial_writer.write(data)
+            await self.serial_writer.drain()
 
-        while len(buffer) > 0:
-            if buffer[0] == START_BYTE:
-                if len(buffer) < 4:
-                    break
-                length = buffer[2]
-                packet_size = 3 + length + 1
-                if len(buffer) < packet_size:
-                    break
-                packet = parse_packet(buffer[:packet_size])
-                buffer = buffer[packet_size:]
-                if packet:
-                    print(f"[TELEMETRY] {packet['type']}: {json.dumps(packet)}")
-                    await broadcast(packet)
-            else:
-                b = buffer.pop(0)
-                if b == ord('\n') or b == ord('\r'):
-                    if line_buf:
-                        text_line = line_buf.decode('utf-8', errors='replace').rstrip()
-                        if text_line:
-                            print(f"[CONSOLE] {text_line}")
-                            await broadcast({"type": "CONSOLE", "text": text_line})
-                        line_buf.clear()
-                else:
-                    line_buf.append(b)
+    # ── Live mode ───────────────────────────────
+
+    async def run_live(self, host, port):
+        while True:
+            try:
+                reader, writer = await asyncio.open_connection(host, port)
+            except OSError:
+                await asyncio.sleep(RETRY_SECONDS)
+                continue
+
+            print(f"[BRIDGE] Connected to serial port at {host}:{port}")
+            self.serial_writer = writer
+            await self.new_session()
+            try:
+                while True:
+                    chunk = await reader.read(4096)
+                    if not chunk:
+                        break
+                    for message in self.decoder.feed(chunk):
+                        await self.publish(message)
+            except OSError:
+                pass
+            finally:
+                self.serial_writer = None
+                writer.close()
+                print("[BRIDGE] Serial connection closed; waiting for the kernel")
+                await self.send_all(self.status())
+
+    async def run_status(self):
+        while True:
+            await asyncio.sleep(STATUS_SECONDS)
+            await self.send_all(self.status())
+
+    # ── Replay mode ─────────────────────────────
+
+    async def run_replay(self, path, speed, loop):
+        entries = read_capture(path)
+        print(f"[BRIDGE] Replaying {len(entries)} messages from {path} at {speed}x")
+        while True:
+            await self.new_session()
+            start = time.monotonic()
+            for seconds, message in entries:
+                delay = seconds / speed - (time.monotonic() - start)
+                if delay > 0:
+                    await asyncio.sleep(delay)
+                self.decoder.frames += 1
+                await self.publish(message)
+            if not loop:
+                print("[BRIDGE] Replay finished; dashboards keep the final state")
+                await asyncio.Event().wait()
+            await asyncio.sleep(2.0)
 
 
-async def main():
-    """Main entry point: start WebSocket server and serial reader."""
-    if HAS_WEBSOCKETS:
-        server = await websockets.serve(ws_handler, "localhost", WS_PORT)
-        print(f"[BRIDGE] WebSocket server on ws://localhost:{WS_PORT}")
-    else:
-        server = None
+async def serve(args):
+    import websockets
 
-    print("[BRIDGE] Reading telemetry from stdin...")
+    bridge = Bridge("replay" if args.replay else "live")
+    if args.capture and not args.replay:
+        bridge.capture = CaptureWriter(args.capture)
+        print(f"[BRIDGE] Recording to {args.capture}")
 
-    await serial_reader()
+    async with websockets.serve(bridge.handle_client, args.ws_host, args.ws_port):
+        print(f"[BRIDGE] WebSocket server on ws://{args.ws_host}:{args.ws_port}")
+        if args.replay:
+            await bridge.run_replay(args.replay, args.speed, args.loop)
+        else:
+            await asyncio.gather(bridge.run_live(args.serial_host, args.serial_port),
+                                 bridge.run_status())
 
-    if server:
-        server.close()
+
+def main():
+    parser = argparse.ArgumentParser(description="Phoenix-8086 telemetry bridge")
+    parser.add_argument("--serial-host", default="127.0.0.1")
+    parser.add_argument("--serial-port", type=int, default=9876)
+    parser.add_argument("--ws-host", default="localhost")
+    parser.add_argument("--ws-port", type=int, default=9090)
+    parser.add_argument("--capture", metavar="FILE", help="record the live session to FILE")
+    parser.add_argument("--replay", metavar="FILE", help="replay a capture instead of going live")
+    parser.add_argument("--speed", type=float, default=1.0, help="replay speed factor (default 1)")
+    parser.add_argument("--loop", action="store_true", help="restart the replay when it ends")
+    args = parser.parse_args()
+
+    if args.speed <= 0:
+        parser.error("--speed must be positive")
+
+    try:
+        import websockets  # noqa: F401
+    except ImportError:
+        sys.exit("The 'websockets' package is required: pip install -r bridge/requirements.txt")
+
+    try:
+        asyncio.run(serve(args))
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == "__main__":
-    print("╔═══════════════════════════════════════════╗")
-    print("║  Phoenix-8086 Telemetry Bridge            ║")
-    print("╚═══════════════════════════════════════════╝")
-    asyncio.run(main())
+    main()

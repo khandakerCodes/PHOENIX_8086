@@ -323,6 +323,14 @@ uint16_t mem_used(void)
     return total_allocated;
 }
 
+void mem_get_layout(mem_layout_t *layout)
+{
+    layout->heap_start = heap_start;
+    layout->heap_end   = heap_end;
+    layout->far_start  = far_start;
+    layout->far_end    = far_end;
+}
+
 /* Print "ssss:oooo" */
 static void print_seg_off(uint16_t seg, uint16_t off)
 {

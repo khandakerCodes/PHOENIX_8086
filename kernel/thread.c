@@ -117,7 +117,7 @@ int thread_create(void (*entry)(void), uint8_t priority, const char *name)
     tcb->state  = THREAD_READY;
     tcb->active = true;
 
-    telemetry_thread_event(0, (uint8_t)tid);
+    telemetry_thread_created((uint8_t)tid);
 
     hal_irq_restore(flags);
     return tid;
@@ -140,7 +140,7 @@ void thread_terminate(int tid)
     tcb->state  = THREAD_TERMINATED;
     tcb->active = false;
 
-    telemetry_thread_event(1, (uint8_t)tid);
+    telemetry_thread_exited((uint8_t)tid);
 }
 
 void thread_destroy(int tid)
@@ -181,6 +181,7 @@ void thread_suspend(int tid)
         (tcb_table[tid].state == THREAD_READY ||
          tcb_table[tid].state == THREAD_RUNNING)) {
         tcb_table[tid].state = THREAD_BLOCKED;
+        telemetry_thread_state((uint8_t)tid);
         if (tid == current_tid) {
             thread_yield();
         }
@@ -200,6 +201,7 @@ void thread_resume(int tid)
         tcb_table[tid].state == THREAD_BLOCKED &&
         tcb_table[tid].wait_sem == NULL) {
         tcb_table[tid].state = THREAD_READY;
+        telemetry_thread_state((uint8_t)tid);
     }
     hal_irq_restore(flags);
 }
@@ -235,6 +237,7 @@ bool thread_set_priority(int tid, uint8_t priority)
     if (tcb_table[tid].active) {
         tcb_table[tid].priority     = priority;
         tcb_table[tid].eff_priority = priority;
+        telemetry_thread_state((uint8_t)tid);
         ok = true;
     }
     hal_irq_restore(flags);

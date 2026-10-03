@@ -21,6 +21,9 @@ void kb_init(void);
 /* Handle a raw scancode (called from ISR) */
 void kb_handle_scancode(uint8_t scancode);
 
+/* Add a character as if it had been typed (used for serial input) */
+void kb_inject_char(char c);
+
 /* Get a character from the keyboard buffer (blocking) */
 char kb_getchar(void);
 

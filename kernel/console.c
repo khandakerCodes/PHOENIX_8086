@@ -9,6 +9,8 @@
 
 #include "console.h"
 #include "hal.h"
+#include "serial.h"
+#include "telemetry.h"
 
 /* ── Internal state ─────────────────────────── */
 static uint8_t  cursor_row = 0;
@@ -22,12 +24,17 @@ static uint8_t  current_color = VGA_DEFAULT_COLOR;
  */
 #define VGA_PTR ((uint16_t __far *)MK_FP(0xB800, 0))
 
-static void serial_putchar(char c)
+/*
+ * Mirror console output off the machine: as CONSOLE telemetry records
+ * normally, or as plain serial text when telemetry is compiled out.
+ */
+static void mirror_putchar(char c)
 {
-    /* Mirror output to COM1 (0x3F8) for serial console */
-    uint16_t timeout = 1000;
-    while ((inb(0x3F8 + 5) & 0x20) == 0 && --timeout);
-    outb(0x3F8, c);
+#if CONFIG_TELEMETRY
+    telemetry_console_char(c);
+#else
+    serial_putc((uint8_t)c);
+#endif
 }
 
 /* ── Internal: update hardware cursor ───────── */
@@ -107,7 +114,7 @@ void con_putchar(char c)
     /* Threads share the cursor; keep each character update atomic */
     uint16_t flags = hal_irq_save();
 
-    serial_putchar(c);
+    mirror_putchar(c);
 
     if (c == '\n') {
         /* Newline: move to start of next line */

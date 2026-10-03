@@ -39,11 +39,16 @@ OBJDUMP = $(CROSS)objdump
 PYTHON  = python3
 QEMU    = qemu-system-i386
 
+# ── Options ─────────────────────────────────────
+# TELEMETRY=0 compiles the telemetry system out (run 'make clean' when switching)
+TELEMETRY ?= 1
+
 # ── Flags ───────────────────────────────────────
 ARCHFLAGS  = -march=i8086 -mtune=i8086 -mcmodel=small
 NASMFLAGS  = -f bin
 CFLAGS     = $(ARCHFLAGS) -ffreestanding -fno-builtin \
              -fno-delete-null-pointer-checks \
+             -DCONFIG_TELEMETRY=$(TELEMETRY) \
              -Wall -Wextra -Os -MMD -MP -c
 ASFLAGS    = $(ARCHFLAGS) -MMD -MP -c
 LDFLAGS    = -T linker/kernel.ld --no-check-sections
@@ -79,7 +84,11 @@ KERNEL_C_SRCS = $(KERNEL_DIR)/kernel_main.c \
                 $(KERNEL_DIR)/stats.c \
                 $(KERNEL_DIR)/idle.c \
                 $(KERNEL_DIR)/selftest.c \
-                $(KERNEL_DIR)/telemetry.c
+                $(KERNEL_DIR)/serial.c
+
+ifeq ($(TELEMETRY),1)
+KERNEL_C_SRCS += $(KERNEL_DIR)/telemetry.c
+endif
 
 # ── Object files ────────────────────────────────
 KERNEL_S_OBJS = $(patsubst $(KERNEL_DIR)/%.S,$(BUILD_DIR)/%.o,$(KERNEL_S_SRCS))
@@ -162,6 +171,7 @@ check: $(KERNEL_ELF)
 
 # ── Automated tests ─────────────────────────────
 test: check $(FLOPPY_IMG)
+	$(PYTHON) -m unittest discover -s bridge -t .
 	$(PYTHON) tools/smoke_test.py $(FLOPPY_IMG)
 	$(PYTHON) tools/integration_test.py $(FLOPPY_IMG)
 

@@ -16,24 +16,23 @@ import sys
 import tempfile
 import time
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from bridge.protocol import Decoder  # noqa: E402
+
 EXPECTED = [b"Phoenix-8086 Microkernel", b"Interrupt system... OK", b"boot complete"]
 TIMEOUT = 20
-TEL_START_BYTE = 0xFE
 
 
 def console_text(stream):
-    """Drop telemetry frames ([0xFE][type][len][data][checksum]) from the serial stream."""
-    text = bytearray()
-    i = 0
-    while i < len(stream):
-        if stream[i] == TEL_START_BYTE:
-            if i + 2 >= len(stream):
-                break
-            i += 3 + stream[i + 2] + 1
-        else:
-            text.append(stream[i])
-            i += 1
-    return bytes(text)
+    """
+    Console text from the serial stream: the CONSOLE telemetry records,
+    or the raw bytes if the kernel was built with TELEMETRY=0.
+    """
+    decoder = Decoder()
+    messages = decoder.feed(stream)
+    if decoder.frames == 0:
+        return bytes(stream)
+    return "".join(m["text"] for m in messages if m["type"] == "CONSOLE").encode()
 
 
 def main():
