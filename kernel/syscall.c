@@ -108,15 +108,27 @@ bool syscall_dispatch(frame_t *frame)
         con_print((const char *)frame->bx);
         break;
 
-    case SYS_THREAD_CREATE:
-        /* BX = entry address, CL = priority */
-        tid = thread_create((void (*)(void))frame->bx,
-                            (uint8_t)(frame->cx & 0xFF), NULL);
+    case SYS_THREAD_CREATE: {
+        /*
+         * BX = entry address in the caller's code segment, CL = priority,
+         * DX = a value handed to the new thread in SI.
+         */
+        tcb_t *caller = thread_get_tcb(thread_current_tid());
+
+        if (caller->program && frame->cs == caller->program->segment) {
+            /* A program starting another thread in itself */
+            tid = thread_create_program(caller->program, frame->bx, frame->dx,
+                                        (uint8_t)(frame->cx & 0xFF), caller->name);
+        } else {
+            tid = thread_create((void (*)(void))frame->bx,
+                                (uint8_t)(frame->cx & 0xFF), NULL);
+        }
         if (tid < 0) {
             error = true;
         }
         frame->ax = (uint16_t)tid;
         break;
+    }
 
     case SYS_THREAD_EXIT:
         /* The scheduler switches away and never resumes this frame */
@@ -203,7 +215,8 @@ bool syscall_dispatch(frame_t *frame)
 
     case SYS_ALLOC:
         /* BX = paragraphs */
-        frame->ax = far_alloc(frame->bx);
+        /* Owned by the caller, so it is reclaimed if the thread ends without freeing it */
+        frame->ax = far_alloc_owned(frame->bx, (uint8_t)thread_current_tid());
         if (frame->ax == 0) {
             error = true;
         }
@@ -212,6 +225,24 @@ bool syscall_dispatch(frame_t *frame)
     case SYS_FREE:
         /* BX = segment */
         far_free(frame->bx);
+        break;
+
+    case SYS_SEM_DESTROY:
+        /* Refused while threads wait on it: they would never wake */
+        if (frame->bx && ((semaphore_t *)frame->bx)->wait_count == 0) {
+            kfree((void *)frame->bx);
+        } else {
+            error = true;
+        }
+        break;
+
+    case SYS_MBOX_DESTROY:
+        if (frame->bx && ((mailbox_t *)frame->bx)->items.wait_count == 0 &&
+            ((mailbox_t *)frame->bx)->space.wait_count == 0) {
+            kfree((void *)frame->bx);
+        } else {
+            error = true;
+        }
         break;
 
     case SYS_OPEN:

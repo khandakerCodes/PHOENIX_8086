@@ -20,7 +20,7 @@
 #define SYS_PUTC            0x01    /* AL = character */
 #define SYS_PUTS            0x02    /* BX = near pointer to string */
 #define SYS_GETC            0x03    /* → AL = character (blocks) */
-#define SYS_THREAD_CREATE   0x04    /* BX = entry, CL = priority → AX = TID */
+#define SYS_THREAD_CREATE   0x04    /* BX = entry, CL = priority, DX = argument (in SI) → AX = TID */
 #define SYS_THREAD_EXIT     0x05
 #define SYS_YIELD           0x06
 #define SYS_SLEEP           0x07    /* CX = ticks */
@@ -33,6 +33,8 @@
 #define SYS_MBOX_RECV       0x0E    /* BX = handle → AX = message (blocks) */
 #define SYS_ALLOC           0x0F    /* BX = paragraphs → AX = segment */
 #define SYS_FREE            0x10    /* BX = segment */
+#define SYS_SEM_DESTROY     0x11    /* BX = handle; fails while threads are waiting */
+#define SYS_MBOX_DESTROY    0x12    /* BX = handle; fails while threads are waiting */
 #define SYS_OPEN            0x18    /* BX = file name → AX = file handle */
 #define SYS_READ            0x19    /* BX = handle, CX = length, DX = buffer → AX = bytes read */
 #define SYS_CLOSE           0x1A    /* BX = handle */

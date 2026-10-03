@@ -43,8 +43,8 @@ static void str_copy(char *dst, const char *src, int max)
  * Common thread setup. `segment`:`entry` is where the thread starts
  * executing; kernel threads pass the kernel's own code segment.
  */
-static int create(uint16_t segment, uint16_t entry, uint8_t priority, const char *name,
-                  uint16_t prog_segment, void *prog_data)
+static int create(uint16_t segment, uint16_t entry, uint16_t argument, uint8_t priority,
+                  const char *name, program_t *program)
 {
     int tid;
     uint16_t flags;
@@ -81,8 +81,10 @@ static int create(uint16_t segment, uint16_t entry, uint8_t priority, const char
     tcb->last_scheduled = 0;
     tcb->stack_base     = stack_base;
     tcb->stack_size     = THREAD_STACK_SIZE;
-    tcb->prog_segment   = prog_segment;
-    tcb->prog_data      = prog_data;
+    tcb->program        = program;
+    if (program) {
+        program->threads++;
+    }
 
     if (name) {
         str_copy(tcb->name, name, 12);
@@ -112,7 +114,7 @@ static int create(uint16_t segment, uint16_t entry, uint8_t priority, const char
     frame->es    = KERNEL_DATA_SEG;
     frame->ds    = KERNEL_DATA_SEG;
     frame->di    = 0;
-    frame->si    = 0;
+    frame->si    = argument;
     frame->bp    = 0;
     frame->bx    = 0;
     frame->dx    = 0;
@@ -135,13 +137,13 @@ static int create(uint16_t segment, uint16_t entry, uint8_t priority, const char
 
 int thread_create(void (*entry)(void), uint8_t priority, const char *name)
 {
-    return create(hal_get_cs(), (uint16_t)entry, priority, name, 0, NULL);
+    return create(hal_get_cs(), (uint16_t)entry, 0, priority, name, NULL);
 }
 
-int thread_create_program(uint16_t segment, uint16_t entry, void *data,
+int thread_create_program(program_t *program, uint16_t entry, uint16_t argument,
                           uint8_t priority, const char *name)
 {
-    return create(segment, entry, priority, name, segment, data);
+    return create(program->segment, entry, argument, priority, name, program);
 }
 
 /*
@@ -159,19 +161,23 @@ void thread_terminate(int tid)
     }
 
     /*
-     * Release a loaded program's memory. Safe even if this is the
-     * running thread: it is executing kernel code on its own stack by
-     * now and never returns to the program.
+     * Leave the loaded program, freeing its memory if this was its
+     * last thread. Safe even if this is the running thread: it is
+     * executing kernel code on its own stack by now and never returns
+     * to the program.
      */
-    if (tcb->prog_segment) {
-        far_free(tcb->prog_segment);
-        tcb->prog_segment = 0;
-    }
-    if (tcb->prog_data) {
-        kfree(tcb->prog_data);
-        tcb->prog_data = NULL;
+    if (tcb->program) {
+        program_t *program = tcb->program;
+
+        tcb->program = NULL;
+        if (--program->threads == 0) {
+            far_free(program->segment);
+            kfree(program->data);
+            kfree(program);
+        }
     }
     file_close_owned(tid);
+    far_free_owned(tid);
 
     tcb->state  = THREAD_TERMINATED;
     tcb->active = false;

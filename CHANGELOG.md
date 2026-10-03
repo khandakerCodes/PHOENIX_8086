@@ -39,6 +39,10 @@ All notable changes to this project are recorded here. The project follows [Sema
 * In-browser demo: the dashboard can boot the kernel in the v86 emulator inside the page; `tools/build_site.sh`, a JavaScript telemetry decoder, and a GitHub Pages workflow.
 * Release workflow: a version tag builds, tests and publishes the image, checksum and a telemetry capture.
 * Documentation: architecture guide, build guide, translation guide, three labs.
+* Programs can start threads in their own code (`px_thread_create`); a program's memory is shared by its threads and freed when the last one ends. New example `threads`.
+* System calls 11h–12h: `sem_destroy`, `mbox_destroy`. Far memory is reclaimed when the thread that allocated it ends.
+* Kernel version string (`0.6-dev`) in the banner and `about`.
+* Integration checks for `about`, `uptime`, `interrupts`, `scheduler`, `registers`, `clear` and `reboot`.
 * `tools/test_dashboard_browser.mjs`: the dashboard and the in-browser demo tested in headless Chromium, with screenshots kept by CI.
 
 ### Changed
@@ -47,6 +51,7 @@ All notable changes to this project are recorded here. The project follows [Sema
 * `phoenix.sh` no longer kills other processes; it reports busy ports and stops.
 
 ### Fixed
+* `reboot` lost its last console line, and the telemetry decoders counted a reboot as lost frames.
 * Dashboard layout problems found in a real browser: the page could grow taller than the window and hide the bottom bar; the console view overflowed its panel; the context-switch steps wrapped; emoji icons rendered as empty boxes; list entries stayed half-faded while data was flowing; letter-spacing broke Arabic text apart.
 * The dashboard's "hide telemetry thread" filter missed switches out of that thread.
 * Dashboard no longer falls back to random data or draws random bar heights.

@@ -185,7 +185,9 @@
             this.badFrames++;
             return;
         }
-        if (this.lastSeq !== null) {
+        /* The first record of a boot restarts the numbering: not a loss */
+        const restarted = message.type === 'BOOT_STAGE' && message.stage === 1;
+        if (this.lastSeq !== null && !restarted) {
             this.lostFrames += (message.seq - this.lastSeq - 1) & 0xFF;
         }
         this.lastSeq = message.seq;

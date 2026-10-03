@@ -54,6 +54,15 @@ class FramingTest(unittest.TestCase):
         decoder.feed(encode_frame(TYPE_IDS["BOOT_STAGE"], 3, 0, b"\x04"))    # 1 and 2 missing
         self.assertEqual(decoder.lost_frames, 2)
 
+    def test_a_reboot_restarts_the_numbering_without_counting_a_loss(self):
+        decoder = Decoder()
+        decoder.feed(encode_frame(TYPE_IDS["CONSOLE"], 200, 900, b"bye"))
+        decoder.feed(encode_frame(TYPE_IDS["BOOT_STAGE"], 0, 0, b"\x01"))
+        decoder.feed(encode_frame(TYPE_IDS["BOOT_STAGE"], 1, 0, b"\x02"))
+        self.assertEqual(decoder.lost_frames, 0)
+        decoder.feed(encode_frame(TYPE_IDS["BOOT_STAGE"], 5, 0, b"\x03"))
+        self.assertEqual(decoder.lost_frames, 3)
+
     def test_bytes_outside_frames_are_counted_not_decoded(self):
         decoder = Decoder()
         self.assertEqual(decoder.feed(b"boot noise"), [])

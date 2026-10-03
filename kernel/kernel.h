@@ -11,7 +11,10 @@
 
 #include "../include/types.h"
 
-/* ── Boot information (set by entry.asm) ────── */
+/* ── Version ────────────────────────────────── */
+#define PHOENIX_VERSION "0.6-dev"
+
+/* ── Boot information (set by entry.S) ──────── */
 extern uint8_t  boot_drive;
 extern uint16_t mem_kb;
 

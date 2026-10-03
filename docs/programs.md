@@ -38,13 +38,13 @@ A program runs with DS, ES and SS pointing at the kernel data segment, like ever
 
 The price is **relocation**: the data block can land anywhere on the heap, so the program file lists every place that holds a data address, and the loader adds the block's address to each one. Code addresses are not relocated.
 
-When the program's thread ends, by returning from `main`, calling `px_exit`, or being killed, the kernel frees its code, its data, and any files it left open.
+A program can start more threads in its own code with `px_thread_create` (see `sdk/examples/threads.c`). Each thread ends by returning from its function, calling `px_exit`, or being killed; the kernel then closes the files it left open and frees the far memory it allocated. The program's code and data are freed when its last thread has ended.
 
 ### Limits
 
 * Programs share the kernel's 64 KB data segment. A program's data and bss come out of the same heap the kernel uses (about 30 KB free).
 * There is no memory protection in real mode. A program can overwrite the kernel or another program.
-* `thread_create` (call 04h) takes a code offset in the kernel's segment, so a program cannot use it to start a thread in its own code. Use `px_exec` to start another program.
+* A program's memory is freed when its *last* thread ends, so worker threads may outlive `main`. Far memory from `px_alloc` belongs to the thread that allocated it.
 * Programs are found in the root directory only, by 8.3 name.
 
 ## File format

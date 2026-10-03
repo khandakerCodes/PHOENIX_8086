@@ -127,7 +127,7 @@ Goal: preemptive multitasking that actually runs threads. This is the largest ph
 **2d. System calls**
 - [x] INT 80h stub passes the saved frame to C; results written back to the frame's `AX` and carry flag (fixes B7)
 - [x] Implement the table in spec §4.8: calls 00h–10h (file calls 18h–1Bh reserved for Phase 4); `docs/syscalls.md`. Blocking calls run on the caller's stack and block in place
-- [ ] Calls to destroy semaphores and mailboxes; release a thread's far memory on exit
+- [x] Calls to destroy semaphores and mailboxes (11h, 12h); a thread's far memory is released when it ends
 
 **2e. Memory**
 - [x] Near heap on linker-provided bounds; far-arena allocator above `30000h` sized from INT 12h (fixes B10)
@@ -141,7 +141,7 @@ Goal: preemptive multitasking that actually runs threads. This is the largest ph
 
 **Tests added in this phase**
 - [/] Unit tests: done as an in-kernel `selftest` command (heap, far arena, semaphore, mutex, mailbox, sleep, system calls) so they run against the real 16-bit code; host-compiled tests and scheduler-selection tests not yet
-- [/] Integration tests (`tools/integration_test.py`, run by `make test`): prompt, `help`, three CPU-bound threads interleave, exit reaping, producer/consumer, syscalls, sleep accuracy, kill, counters, self-test, memory map, `nice`, `sleep`, `bench`, stack-overflow detection, panic and divide-error screens — done; `reboot`, `registers`, `scheduler`, `interrupts`, `clear`, `about` not covered
+- [x] Integration tests (`tools/integration_test.py`, run by `make test`): every shell command, scheduling, IPC, system calls, programs, stack-overflow detection, panic and divide-error screens, reboot
 
 **Exit test:** integration suite green; `ps` shows ≥4 threads with growing CPU ticks while the shell stays responsive. *(2026-10-03: suite green on QEMU with idle, shell and three demo threads running together.)*
 
@@ -178,7 +178,7 @@ Goal: run separately built programs from disk.
 - [ ] Programs get their own data segment. They currently share the kernel's (DS = SS = kernel data), which keeps the interrupt path simple but limits their data to the kernel heap; separate segments need a stack switch on every interrupt
 - [ ] Native floppy driver, so disk reads do not pause the scheduler
 - [ ] Subdirectories, long file names, and writing
-- [ ] `thread_create` for programs (entry in the caller's code segment)
+- [x] `thread_create` for programs: a program's threads share its memory, which is freed when the last one ends (`sdk/examples/threads.c`)
 
 **Exit test:** a program built outside the kernel tree is copied onto the image with standard host tools and runs from the shell. *(Met on 2026-10-03: the integration test copies a program onto the image with `mcopy` from mtools and the kernel lists and runs it; CI installs mtools so this runs on every push. The SDK examples also run on the emulated 8086. The program itself was built by the project Makefile, not in a separate tree.)*
 
@@ -194,7 +194,7 @@ Goal: run separately built programs from disk.
 - [/] Build guides — Ubuntu 24.04 and WSL2 verified; macOS and other distributions written but not verified (`docs/building.md`)
 - [ ] Documentation site generated from `docs/` (the documents are readable on GitHub; no generated site)
 - [/] Three course labs (`docs/labs/`) — written; worked solutions not written, and nobody has worked through them yet
-- [ ] Freeze syscall ABI v1 and telemetry protocol v1 — deliberately not done while known gaps remain (no destroy calls, `thread_create` unusable from programs)
+- [ ] Freeze syscall ABI v1 and telemetry protocol v1 — the gaps that blocked this are closed; freezing is a maintainer decision, to be made when cutting v0.9
 
 **Exit test:** every item in spec §9 except the public demo is met. *(Not met: see the open items above and the dashboard browser check.)*
 

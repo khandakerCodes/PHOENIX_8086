@@ -25,7 +25,7 @@ The telemetry thread is an ordinary thread, so its own sleeps and context switch
 | `7E` | 1 | Frame delimiter, before and after every frame |
 | version | 1 | Protocol version (1) |
 | type | 1 | Record type |
-| seq | 1 | Increments by one per frame sent, wraps at 256; a gap means frames were lost on the wire |
+| seq | 1 | Increments by one per frame sent, wraps at 256; a gap means frames were lost on the wire. A `BOOT_STAGE` record for stage 1 marks a (re)boot and restarts the numbering |
 | tick | 4 | Kernel tick when the event happened (100 ticks per second) |
 | payload | 0–64 | Depends on the type |
 | crc | 2 | CRC-16/CCITT-FALSE (polynomial 1021h, initial value FFFFh) over version through payload |

@@ -166,7 +166,7 @@ def run(machine):
     text = machine.wait_for(r"selftest: \d+ passed, \d+ failed") or ""
     result = re.search(r"selftest: (\d+) passed, (\d+) failed", text)
     check("kernel self-tests pass",
-          result is not None and int(result.group(1)) >= 45 and result.group(2) == "0", text)
+          result is not None and int(result.group(1)) >= 65 and result.group(2) == "0", text)
 
     for _ in range(3):
         machine.command("create")
@@ -201,6 +201,9 @@ def run(machine):
     text = machine.wait_for(r"last digit \w+\n") or ""
     check("loads and runs a program from the disk",
           "primes below 1000: 168" in text and "largest 997" in text and "last digit seven" in text, text)
+    machine.command("run threads.bin")
+    text = machine.wait_for(r"threads: two workers sent \d+ numbers, total \d+\n") or ""
+    check("a program starts threads in its own code", "total 1515" in text, text)
     machine.command("run clock.bin")
     text = machine.wait_for(r"first line of README\.TXT: [^\n]*\n") or ""
     check("a program sleeps and reads a file",

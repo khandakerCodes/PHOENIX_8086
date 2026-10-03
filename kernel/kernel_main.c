@@ -67,7 +67,7 @@ void kernel_main(void)
     con_println("");
 
     con_set_color(VGA_WHITE, VGA_BLACK);
-    con_println("Phoenix-8086 Microkernel v0.1");
+    con_println("Phoenix-8086 Microkernel v" PHOENIX_VERSION);
     con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
     con_println("A Bare-Metal Preemptive OS for the Intel 8086");
     con_println("============================================");

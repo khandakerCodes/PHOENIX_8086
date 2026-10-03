@@ -39,6 +39,16 @@ uint16_t mem_used(void);
  */
 uint16_t far_alloc(uint16_t paragraphs);
 
+/*
+ * The same, recording the thread that asked for it, so the block can
+ * be reclaimed if that thread ends without freeing it.
+ */
+#define FAR_NO_OWNER    0xFF
+uint16_t far_alloc_owned(uint16_t paragraphs, uint8_t owner);
+
+/* Free every block a thread still owns (called when the thread ends) */
+void far_free_owned(int tid);
+
 /* Free a block returned by far_alloc */
 void far_free(uint16_t segment);
 

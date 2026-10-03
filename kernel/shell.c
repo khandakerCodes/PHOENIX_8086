@@ -8,6 +8,7 @@
  */
 
 #include "shell.h"
+#include "kernel.h"
 #include "console.h"
 #include "keyboard.h"
 #include "thread.h"
@@ -241,6 +242,7 @@ static void cmd_about(void)
     con_println(" |_|   |_| |_|\\___/ \\___|_| |_|_/_/\\_\\  \\___/ \\___/ \\___/ \\___/");
     con_println("");
     con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
+    con_println("  Version " PHOENIX_VERSION);
     con_println("  A Bare-Metal Preemptive Microkernel for the Intel 8086");
     con_println("  Designed for educational demonstration and systems study");
     con_println("");
@@ -556,6 +558,7 @@ static void cmd_kill(const char *arg)
 static void cmd_reboot(void)
 {
     con_println("Rebooting...");
+    telemetry_flush();      /* the telemetry thread will not get another turn */
 
     /* Jump to BIOS reset vector at FFFF:0000 */
     __asm__ __volatile__(
@@ -658,7 +661,7 @@ void shell_run(void)
     /* Print welcome banner */
     con_set_color(VGA_LIGHT_GREEN, VGA_BLACK);
     con_println("");
-    con_println("Phoenix-8086 Kernel Shell v1.0");
+    con_println("Phoenix-8086 Kernel Shell");
     con_println("Type 'help' for available commands.");
     con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
     con_println("");

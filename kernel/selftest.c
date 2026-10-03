@@ -83,6 +83,20 @@ static void test_far(void)
     far_free(b);
     expect(far_free_paras() == before, "far: free space fully restored");
 
+    /* Blocks tagged with an owner are reclaimed in one call; others are left alone */
+    a = far_alloc_owned(8, 200);
+    b = far_alloc_owned(8, 200);
+    p = (uint8_t __far *)MK_FP(far_alloc(8), 0);
+    p[0] = 0x77;
+    far_free_owned(200);
+    /* Both owned blocks are free again and merged: 8 + 8 + one header fits at a */
+    expect(a != 0 && b == a + 9 && far_alloc(17) == a,
+           "far: an owner's blocks are reclaimed together");
+    expect(p[0] == 0x77, "far: a block with no owner is left alone");
+    far_free(a);
+    far_free((uint16_t)((uint32_t)p >> 16));
+    expect(far_free_paras() == before, "far: everything is free again");
+
     expect(far_alloc(0xFFFF) == 0, "far: oversized request fails");
     expect(far_alloc(0) == 0, "far: zero-size request fails");
 }
@@ -172,14 +186,18 @@ static void test_syscalls(void)
     sys_call(SYS_AX(SYS_SEM_WAIT, 0), sem, 0, 0);       /* count 1 → 0, no block */
     sys_call(SYS_AX(SYS_SEM_SIGNAL, 0), sem, 0, 0);
     expect(((semaphore_t *)sem)->count == 1, "syscall: sem_wait and sem_signal");
-    kfree((void *)sem);
+    expect((uint16_t)sys_call(SYS_AX(SYS_SEM_DESTROY, 0), sem, 0, 0) != SYS_ERROR,
+           "syscall: sem_destroy");
+    expect((uint16_t)sys_call(SYS_AX(SYS_SEM_DESTROY, 0), 0, 0, 0) == SYS_ERROR,
+           "syscall: sem_destroy rejects a null handle");
 
     mbox = (uint16_t)sys_call(SYS_AX(SYS_MBOX_CREATE, 0), 0, 0, 0);
     expect(mbox != SYS_ERROR, "syscall: mbox_create");
     sys_call(SYS_AX(SYS_MBOX_SEND, 0), mbox, 0x1234, 0);
     expect((uint16_t)sys_call(SYS_AX(SYS_MBOX_RECV, 0), mbox, 0, 0) == 0x1234,
            "syscall: mbox_send and mbox_recv");
-    kfree((void *)mbox);
+    expect((uint16_t)sys_call(SYS_AX(SYS_MBOX_DESTROY, 0), mbox, 0, 0) != SYS_ERROR,
+           "syscall: mbox_destroy");
 }
 
 /* ── Keyboard layouts ───────────────────────── */

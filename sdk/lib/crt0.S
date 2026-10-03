@@ -13,6 +13,7 @@
 
     .globl _start
     .globl px_syscall
+    .globl px_thread_entry
 
 _start:
     call    main
@@ -22,6 +23,18 @@ _start:
     int     $0x80
 1:
     jmp     1b
+
+/*
+ * px_thread_entry — where a thread started with px_thread_create
+ * begins. The kernel passes the function to run in SI; when it
+ * returns, the thread exits.
+ */
+px_thread_entry:
+    call    *%si
+    movb    $0x05, %ah
+    int     $0x80
+2:
+    jmp     2b
 
 /*
  * unsigned long px_syscall(unsigned ax, unsigned bx, unsigned cx, unsigned dx)

@@ -250,7 +250,8 @@ def run(machine):
     machine.type("ls")
     text = machine.wait_for(r"\d+ file\(s\)", timeout=30) or ""
     check("ls lists the files on the FAT12 disk",
-          all(name in text for name in ("README.TXT", "HELLO.BIN", "PRIMES.BIN", "CLOCK.BIN")), text)
+          all(name in text for name in ("README.TXT", "HELLO.BIN", "PRIMES.BIN", "CLOCK.BIN",
+                                        "THREADS.BIN")), text)
     machine.type("cat readme.txt")
     check("cat prints a file", machine.wait_for(r"Phoenix-8086 boot disk.*docs/programs\.md", timeout=30) is not None)
 
@@ -268,27 +269,55 @@ def run(machine):
           elapsed is not None and 75 <= int(elapsed.group(1)) <= 80 and
           "first line of README.TXT: Phoenix-8086 boot disk" in text, text)
 
+    machine.type("run threads.bin")
+    text = machine.wait_for(r"threads: two workers sent \d+ numbers, total \d+\n", timeout=30) or ""
+    check("program: threads (a program starts threads in its own code; mailbox, semaphore)",
+          "two workers sent 10 numbers, total 1515" in text, text)
+
     machine.type("run readme.txt")
     check("a non-program file is rejected", machine.wait_for(r"not a Phoenix-8086 program") is not None)
     machine.type("run missing.bin")
     check("a missing program is reported", machine.wait_for(r"file not found") is not None)
 
-    time.sleep(0.5)
+    time.sleep(1.0)
     machine.type("memory")
     text = machine.wait_for(r"Far free:\s+\d+ KB.*phoenix> ") or ""
     after = re.search(r"Heap free:\s+(\d+).*Far free:\s+(\d+) KB", text, re.S)
-    check("programs give their memory back",
+    check("programs give their memory back, including far memory left allocated",
           before is not None and after is not None and before.groups() == after.groups(),
           f"{before and before.groups()} → {after and after.groups()}")
     programs = {m["name"] for m in machine.telemetry("THREAD_CREATE")}
-    check("telemetry: program threads", {"hello", "primes", "clock"} <= programs, str(programs))
+    check("telemetry: program threads", {"hello", "primes", "clock", "threads"} <= programs, str(programs))
 
     # 9. In-kernel unit tests: heap, far arena, semaphore, mutex, mailbox, sleep, syscalls, files
     machine.type("selftest")
     text = machine.wait_for(r"selftest: \d+ passed, \d+ failed") or ""
     result = re.search(r"selftest: (\d+) passed, (\d+) failed", text)
     check("kernel self-tests pass",
-          result is not None and int(result.group(1)) >= 60 and result.group(2) == "0", text)
+          result is not None and int(result.group(1)) >= 65 and result.group(2) == "0", text)
+
+    # The remaining informational commands
+    machine.type("about")
+    check("about command", machine.wait_for(r"Version [\w.-]+.*Threads: \d+.*Uptime: \d+s") is not None)
+    machine.type("uptime")
+    check("uptime command", machine.wait_for(r"Uptime: \d+m \d+s") is not None)
+    machine.type("interrupts")
+    text = machine.wait_for(r"Interrupt Counters.*Context Switches: \d+") or ""
+    timer = re.search(r"Timer \(IRQ0\):\s+(\d+)", text)
+    keyboard = re.search(r"Keyboard \(IRQ1\):\s+(\d+)", text)
+    check("interrupts command", timer is not None and int(timer.group(1)) > 100 and
+          keyboard is not None and int(keyboard.group(1)) > 50, text)
+    machine.type("scheduler")
+    text = machine.wait_for(r"Scheduler Queue.*Ready threads:.*phoenix> ") or ""
+    check("scheduler command", "Current: TID 1" in text and "idle" in text, text)
+    machine.type("registers")
+    text = machine.wait_for(r"Register Dump.*FLAGS=0x[0-9A-F]{4}") or ""
+    check("registers command",
+          re.search(r"CS=0x1000\s+DS=0x2000\s+ES=0x[0-9A-F]{4}\s+SS=0x2000", text) is not None, text)
+    machine.type("clear")
+    time.sleep(0.5)
+    machine.type("ticks")
+    check("clear command leaves the shell working", machine.wait_for(r"Ticks: \d+") is not None)
 
     # 10. Memory map reports the real layout
     machine.type("memory")
@@ -359,6 +388,27 @@ def run_panic(machine, command, reason):
           str(faults))
 
 
+def run_reboot(machine):
+    """The reboot command restarts the machine and the kernel boots again."""
+    if machine.wait_for(r"phoenix> ") is None:
+        check("reboot: boot", False)
+        return
+    machine.type("reboot")
+    check("reboot: the command announces itself", machine.wait_for(r"Rebooting") is not None)
+    machine.mark = len(machine.output())
+    check("reboot: the kernel boots a second time",
+          machine.wait_for(r"boot complete.*phoenix> ", timeout=40) is not None,
+          machine.output()[machine.mark:][-200:])
+    stages = [m["stage"] for m in machine.telemetry("BOOT_STAGE")]
+    check("reboot: boot stages are reported twice", stages.count(7) == 2, str(stages))
+    machine.type("ticks")
+    check("reboot: the shell works afterwards", machine.wait_for(r"Ticks: \d+") is not None)
+    decoder = machine.decoder
+    check("reboot: telemetry stays consistent across the restart",
+          decoder.bad_frames == 0 and decoder.lost_frames == 0,
+          f"bad={decoder.bad_frames} lost={decoder.lost_frames}")
+
+
 def run_outside_program(image, program):
     """
     Copy a program onto a copy of the image with mtools, an independent
@@ -396,6 +446,7 @@ def main():
         ("main", run),
         ("panic", lambda m: run_panic(m, "panic", "User-triggered panic")),
         ("divzero", lambda m: run_panic(m, "divzero", "Divide error")),
+        ("reboot", run_reboot),
     ]
     for name, scenario in scenarios:
         with tempfile.TemporaryDirectory() as tmp:

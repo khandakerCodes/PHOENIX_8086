@@ -22,11 +22,12 @@
 int thread_create(void (*entry)(void), uint8_t priority, const char *name);
 
 /*
- * Create a thread that runs a loaded program: code at segment:entry in
- * far memory, data in a near heap block. The thread takes ownership of
- * both and frees them when it ends. Returns the thread ID or -1.
+ * Create a thread inside a loaded program, starting at `entry` in the
+ * program's code segment with `argument` in the SI register. The
+ * thread holds a reference to the program, whose memory is freed when
+ * its last thread ends. Returns the thread ID or -1.
  */
-int thread_create_program(uint16_t segment, uint16_t entry, void *data,
+int thread_create_program(program_t *program, uint16_t entry, uint16_t argument,
                           uint8_t priority, const char *name);
 
 /* Destroy a thread by ID */

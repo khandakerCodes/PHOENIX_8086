@@ -79,12 +79,17 @@ def cycle(machine, number):
     command(machine, "ipc", r"TID=\d+.*TID=\d+")
     command(machine, "syscall", r"TID=\d+")
     command(machine, "run clock.bin", r"Started")
+    wait_until_quiet(machine)
+
+    # A program with several threads of its own, sharing its memory
+    command(machine, "run threads.bin", r"Started")
     victim = re.search(r"TID=(\d+)", command(machine, "create", r"TID=\d+")).group(1)
     command(machine, f"kill {victim}", r"Killing thread")
     wait_until_quiet(machine)
     output = machine.output()
     expect("[ipc done]" in output and "[syscall done]" in output and
-           "first line of README.TXT: Phoenix-8086 boot disk" in output,
+           "first line of README.TXT: Phoenix-8086 boot disk" in output and
+           "total 1515" in output,
            "a demo did not complete")
 
     if number % SELFTEST_EVERY == 0:
