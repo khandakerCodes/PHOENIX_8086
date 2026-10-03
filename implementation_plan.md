@@ -157,7 +157,7 @@ Goal: the dashboard shows only the truth, and sessions can be replayed.
 - [x] Dashboard: state model split from rendering (`model.js`); Live / Replay / Demo / Offline modes with a permanent on-screen label; no random data anywhere (fixes B14)
 - [x] Dashboard: real memory map, register diff on switch, fault view, console input
 - [x] No external requests: system font stacks instead of a font CDN
-- [x] Dashboard model tests driven by a recorded capture (`node --test dashboard/test/`)
+- [x] Dashboard model tests driven by a recorded capture (`node --test dashboard/test/*.test.js`)
 - [ ] Look at the dashboard in a real browser and fix what is wrong; add a browser-based rendering test
 - [ ] Replay controls in the dashboard (pause, seek); replay is currently controlled from the bridge command line
 - [x] A flood of events such as `bench` overflows the 4 KB ring; high-volume records are limited to three quarters of it so console text and faults still get through, and the drops are counted

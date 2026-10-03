@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /**
- * Tests for the dashboard model. Run: node --test dashboard/test/
+ * Tests for the dashboard model. Run: node --test dashboard/test/*.test.js
  *
  * The fixture is a real kernel session recorded by tools/record_session.py:
  * boot, three demo threads, ps, ipc, syscall, memory, panic.

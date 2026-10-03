@@ -172,7 +172,7 @@ check: $(KERNEL_ELF)
 # ── Automated tests ─────────────────────────────
 test: check $(FLOPPY_IMG)
 	$(PYTHON) -m unittest discover -q -b -s bridge -t .
-	@if command -v node >/dev/null; then node --test dashboard/test/; \
+	@if command -v node >/dev/null; then node --test dashboard/test/*.test.js; \
 	 else echo "  node not found: skipping dashboard model tests"; fi
 	$(PYTHON) tools/smoke_test.py $(FLOPPY_IMG)
 	$(PYTHON) tools/integration_test.py $(FLOPPY_IMG)
