@@ -2,21 +2,28 @@
 /*
  * Phoenix-8086 — ISR Stubs and Context Switch (GAS, 8086 only)
  *
- * Every stub saves the full register context on the current
- * thread's stack (the layout is frame_t in tcb.h), passes the
- * resulting stack pointer to its C handler, and resumes whatever
- * stack pointer the handler returns:
+ * Every stub saves the full register context (frame_t in tcb.h),
+ * makes sure it is running on the current thread's kernel stack,
+ * passes the saved context to its C handler, and resumes whatever
+ * context the handler returns:
  *
- *     uint16_t handler(uint16_t sp);
+ *     uint16_t handler(uint16_t context);
  *
- * Returning the same SP resumes the interrupted thread. Returning
- * another thread's saved SP is the context switch: the pops and
- * the IRET below then restore that thread instead. All stacks live
- * in the kernel data segment, so SS never changes.
+ * Returning the same context resumes the interrupted thread. Returning
+ * another thread's saved context is the context switch.
+ *
+ * Two cases on entry (see context_t in tcb.h):
+ *
+ *   Interrupted kernel code. SS is already the kernel data segment and
+ *   the frame was pushed on the thread's kernel stack. Nothing to move.
+ *
+ *   Interrupted a program. SS is the program's own data segment. C
+ *   code cannot run there (the compiler assumes SS = DS), so the stub
+ *   switches to the thread's kernel stack, copies the frame onto it,
+ *   and records where the program's stack was. On the way out it
+ *   copies the frame back and returns on the program's stack.
  *
  * The 8086 has no PUSHA/POPA, so registers are pushed one by one.
- * The interrupted code may have DS pointing anywhere (far pointer
- * access), so DS/ES are reloaded from kernel_ds before calling C.
  */
 
     .arch i8086,jumps
@@ -24,6 +31,9 @@
     .section .text
 
     .globl kernel_ds
+
+#define FRAME_SIZE  24      /* sizeof(frame_t) */
+#define FRAME_WORDS 12
 
 /* Kernel data segment, written once by entry.S */
 kernel_ds:
@@ -47,11 +57,57 @@ kernel_ds:
     movw    %ax, %es
     cld
 
-    movw    %sp, %ax                /* SP now points at the frame */
+    movw    %ss, %bx
+    cmpw    %ax, %bx
+    je      1f                      /* Already on a kernel stack */
+
+    /* Came from a program: BX:SP is the frame on the program's stack */
+    movw    %sp, %si
+    movw    %ax, %ss
+    movw    kernel_stack_top, %sp   /* This thread's kernel stack, empty */
+    pushw   %bx                     /* user_ss */
+    pushw   %si                     /* user_sp */
+    subw    $FRAME_SIZE, %sp
+    movw    %sp, %di                /* ES:DI = frame on the kernel stack */
+    movw    %bx, %ds                /* DS:SI = frame on the program's stack */
+    movw    $FRAME_WORDS, %cx
+    rep     movsw
+    movw    %ax, %ds
+    movw    $1, %bx
+    jmp     2f
+1:
+    xorw    %bx, %bx
+2:
+    pushw   %bx                     /* from_program */
+
+    movw    %sp, %ax                /* SP now points at the context */
     pushw   %ax
     call    \handler
-    movw    %ax, %sp                /* Resume the frame the handler chose */
+    jmp     isr_resume              /* AX = the context to resume */
+.endm
 
+/*
+ * Resume the context in AX: the second half of every stub.
+ */
+isr_resume:
+    movw    %ax, %sp
+    cld
+    popw    %ax                     /* from_program */
+    testw   %ax, %ax
+    jz      3f
+
+    /* Back to a program: put the frame on its stack and switch to it */
+    movw    %sp, %bp
+    movw    %sp, %si                /* DS:SI = frame on the kernel stack */
+    movw    FRAME_SIZE(%bp), %di    /* user_sp */
+    movw    FRAME_SIZE+2(%bp), %es  /* user_ss; ES:DI = frame on the program's stack */
+    movw    $FRAME_WORDS, %cx
+    rep     movsw
+    movw    FRAME_SIZE(%bp), %cx
+    movw    FRAME_SIZE+2(%bp), %bx
+    movw    %bx, %ss
+    movw    %cx, %sp
+3:
     popw    %es
     popw    %ds
     popw    %di
@@ -62,7 +118,6 @@ kernel_ds:
     popw    %cx
     popw    %ax
     iret
-.endm
 
 /* Timer ISR (IRQ0 — Vector 0x08) */
 ISR_STUB timer_isr, timer_handler

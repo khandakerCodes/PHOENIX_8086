@@ -23,28 +23,35 @@ Because the floppy is a FAT12 volume, you can also copy a program onto an existi
 
 * `sdk/include/phoenix.h` — one wrapper per system call: console, sleep and ticks, semaphores, mailboxes, far memory, files, and starting other programs. [docs/syscalls.md](syscalls.md) describes the calls.
 * No C library. `int` is 16 bits, `long` is 32 bits, pointers are 16 bits.
-* About 2 KB of stack. Keep large arrays `static`.
+* About 2 KB of stack per thread. Keep large arrays `static`.
 * Only 8086 instructions; `make check` verifies every example program.
 
 ## How a program is loaded
 
 | Part | Where it goes | Notes |
 | --- | --- | --- |
-| Code | Its own segment in far memory | Runs with CS pointing there, so code offsets need no adjustment |
-| Data and constants | A block on the kernel's near heap | Followed by the zeroed bss |
-| Stack | The thread's stack | Same as for kernel threads |
+| Code | A code segment of its own in far memory | The thread runs with CS pointing there |
+| Data, constants and bss | A data segment of its own in far memory | The thread runs with DS, ES and SS pointing there. Data starts at offset 16; the bytes below it are unused, so a null pointer never points at anything |
+| Stacks | After the bss, in the same data segment | 2 KB for each of up to four threads |
 
-A program runs with DS, ES and SS pointing at the kernel data segment, like every other thread. That keeps the interrupt and system-call paths identical for kernel threads and programs, and it means a pointer passed to a system call is an ordinary pointer.
+Because both parts are linked at fixed offsets inside their own segments, nothing has to be adjusted when the program is loaded, and the program's pointers are plain 16-bit offsets into its own data segment. A program can use up to about 56 KB of data and bss, independent of the kernel's heap; `sdk/examples/where.c` prints where it was loaded and uses 50 KB.
 
-The price is **relocation**: the data block can land anywhere on the heap, so the program file lists every place that holds a data address, and the loader adds the block's address to each one. Code addresses are not relocated.
+### Calling the kernel
 
-A program can start more threads in its own code with `px_thread_create` (see `sdk/examples/threads.c`). Each thread ends by returning from its function, calling `px_exit`, or being killed; the kernel then closes the files it left open and frees the far memory it allocated. The program's code and data are freed when its last thread has ended.
+A pointer a program passes to a system call is an offset in the *program's* data segment. The kernel finds it through the caller's saved DS, so strings and buffers do not need to be anywhere special.
+
+When an interrupt or a system call arrives while a program is running, the processor is on the program's stack, in the program's segment. The kernel's handlers are C code and need the kernel's segment, so the interrupt stub switches to a kernel stack that every thread has, copies the saved registers there, and switches back on the way out (`kernel/isr.S`).
+
+### Threads
+
+A program can start more threads in its own code with `px_thread_create` (see `sdk/examples/threads.c`). Each gets one of the program's stacks. A thread ends by returning from its function, calling `px_exit`, or being killed; the kernel then closes the files it left open and frees the far memory it allocated. The program's code and data are freed when its last thread has ended, so worker threads may outlive `main`.
 
 ### Limits
 
-* Programs share the kernel's 64 KB data segment. A program's data and bss come out of the same heap the kernel uses (about 30 KB free).
-* There is no memory protection in real mode. A program can overwrite the kernel or another program.
-* A program's memory is freed when its *last* thread ends, so worker threads may outlive `main`. Far memory from `px_alloc` belongs to the thread that allocated it.
+* There is no memory protection in real mode. A program has its own segments, but nothing stops it writing outside them.
+* At most four threads per program, each with a 2 KB stack. An overflow of a program's stack is not detected (an overflow of a kernel stack is).
+* One object cannot exceed 32,767 bytes with this compiler.
+* Far memory from `px_alloc` belongs to the thread that allocated it.
 * Programs are found in the root directory only, by 8.3 name.
 
 ## File format
@@ -53,16 +60,16 @@ Built by `sdk/mkprog.py`; loaded by `kernel/exec.c`. All fields are little-endia
 
 | Offset | Size | Field |
 | --- | --- | --- |
-| 0 | 4 | Magic `PXE1` |
+| 0 | 4 | Magic `PXE2` |
 | 4 | 2 | Text size in bytes |
 | 6 | 2 | Data size in bytes (initialised data and constants) |
 | 8 | 2 | Bss size in bytes |
 | 10 | 2 | Entry point, an offset into the text |
-| 12 | 2 | Number of text relocations |
-| 14 | 2 | Number of data relocations |
-| 16 | … | Text, then data, then the text relocations, then the data relocations |
+| 12 | 2 | Offset of the data within the data segment (16) |
+| 14 | 2 | Reserved, zero |
+| 16 | … | Text, then data |
 
-A relocation is the 16-bit offset of a word, inside the text or inside the data, that holds a data address. The loader rejects a file whose sizes do not add up to the file length or whose relocations point outside their region.
+The loader rejects a file whose sizes do not add up to the file length, or whose data, bss and stacks would not fit in one segment.
 
 ## Disk access
 

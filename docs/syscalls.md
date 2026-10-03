@@ -12,7 +12,7 @@ int 80h
 ; carry flag clear = success, set = error (AX = FFFFh)
 ```
 
-All other registers are preserved. Pointers are near pointers in the kernel data segment, which is also where a loaded program's data lives; real mode has no memory protection, so the kernel does not validate them beyond a NULL check.
+All other registers are preserved. A pointer argument is an offset in the *caller's* data segment; the kernel reaches it through the caller's saved DS. Real mode has no memory protection, so pointers are not validated.
 
 A call marked **blocks** may suspend the calling thread until it can complete. The thread is switched out in the middle of the call and resumes there when woken.
 
@@ -49,7 +49,7 @@ A call marked **blocks** may suspend the calling thread until it can complete. T
 * Semaphores and mailboxes are not destroyed automatically when their creator ends; call `sem_destroy` / `mbox_destroy`.
 * Far memory belongs to the thread that allocated it and is freed when that thread ends, even if another thread of the same program is still using it.
 * `mbox_recv` cannot report an error in AX, because every 16-bit value is a valid message; check the carry flag.
-* Handles are raw pointers and are not validated.
+* Semaphore and mailbox handles are opaque numbers (addresses in the kernel's heap) and are not validated.
 
 ## Example
 

@@ -69,16 +69,13 @@ def read_volume(image):
 
 
 def check_program(name, data):
-    if data[:4] != b"PXE1":
+    if data[:4] != b"PXE2":
         check(f"{name}: program magic", False, repr(data[:4]))
         return
-    text, init, _bss, entry, text_relocs, data_relocs = struct.unpack_from("<6H", data, 4)
-    expected = 16 + text + init + 2 * (text_relocs + data_relocs)
-    relocs = struct.unpack_from(f"<{text_relocs + data_relocs}H", data, 16 + text + init)
-    in_range = (all(r <= text - 2 for r in relocs[:text_relocs]) and
-                all(r <= init - 2 for r in relocs[text_relocs:]))
-    check(f"{name}: header matches the file and relocations are in range",
-          expected == len(data) and entry < text and in_range,
+    text, init, _bss, entry, data_start, reserved = struct.unpack_from("<6H", data, 4)
+    expected = 16 + text + init
+    check(f"{name}: header matches the file",
+          expected == len(data) and entry < text and data_start == 16 and reserved == 0,
           f"expected {expected} bytes, file has {len(data)}")
 
 

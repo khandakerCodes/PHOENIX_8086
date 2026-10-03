@@ -39,6 +39,7 @@ All notable changes to this project are recorded here. The project follows [Sema
 * In-browser demo: the dashboard can boot the kernel in the v86 emulator inside the page; `tools/build_site.sh`, a JavaScript telemetry decoder, and a GitHub Pages workflow.
 * Release workflow: a version tag builds, tests and publishes the image, checksum and a telemetry capture.
 * Documentation: architecture guide, build guide, translation guide, three labs.
+* Programs run in their own code and data segments (up to about 56 KB of data each) instead of sharing the kernel's data segment. The interrupt stubs switch to a per-thread kernel stack when they interrupt a program. System calls take pointers in the caller's segment. Program file format `PXE2`, without relocations. New example `where`.
 * Native floppy controller driver (`kernel/floppy.c`): disk reads no longer pause the scheduler where a controller is present; BIOS `INT 13h` remains as the fallback. `disk` shell command.
 * `sem_wait_timeout`: a semaphore wait that gives up after a number of ticks.
 * Programs can start threads in their own code (`px_thread_create`); a program's memory is shared by its threads and freed when the last one ends. New example `threads`.

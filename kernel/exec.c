@@ -5,22 +5,23 @@
  * Loads a program built with the SDK (file format: sdk/mkprog.py) and
  * runs it as a thread.
  *
- *   text  → its own segment in far memory; the thread runs with CS
- *           pointing there, so code offsets need no adjustment
- *   data  → a block on the kernel's near heap, followed by the zeroed
- *           bss. The program keeps DS = SS = the kernel data segment,
- *           like every other thread, so the interrupt and system call
- *           paths are unchanged and pointers passed to system calls
- *           are ordinary near pointers.
+ * A program gets two segments of far memory:
  *
- * Because the data block can land anywhere on the heap, the file lists
- * every 16-bit data address in the program; the loader adds the
- * block's address to each (relocation).
+ *   code  → its text. The thread runs with CS pointing here.
+ *   data  → its initialised data, its zeroed bss, and the stacks of
+ *           its threads. The thread runs with DS = ES = SS pointing
+ *           here, so the program's pointers are offsets into its own
+ *           segment and it cannot run out of the kernel's heap.
+ *
+ * Both parts are linked at fixed offsets within their segments, so
+ * nothing needs adjusting at load time. Data starts at PROG_DATA_START
+ * rather than 0, leaving address 0 unused: a null pointer never points
+ * at anything.
  *
  * The program's memory is shared by every thread running in it (a
  * program can start more with the thread_create system call) and is
  * freed when the last of them ends.
- * Real mode has no protection: a program can overwrite the kernel.
+ * Real mode has no protection: a program can still overwrite the kernel.
  */
 
 #include "exec.h"
@@ -37,8 +38,7 @@ typedef struct {
     uint16_t data_size;
     uint16_t bss_size;
     uint16_t entry;
-    uint16_t text_relocs;
-    uint16_t data_relocs;
+    uint16_t data_start;
 } header_t;
 
 static uint16_t get16(const uint8_t *p)
@@ -63,10 +63,11 @@ static bool read_exact(fat_file_t *file, uint8_t *buffer, uint16_t length)
     return fat_read(file, buffer, length) == length;
 }
 
-/* Read `size` bytes of the file into far memory at segment:0 */
-static bool read_far(fat_file_t *file, uint16_t segment, uint16_t size, uint8_t *chunk)
+/* Read `size` bytes of the file into far memory at segment:offset */
+static bool read_far(fat_file_t *file, uint16_t segment, uint16_t offset, uint16_t size,
+                     uint8_t *chunk)
 {
-    uint8_t __far *dest = (uint8_t __far *)MK_FP(segment, 0);
+    uint8_t __far *dest = (uint8_t __far *)MK_FP(segment, offset);
     uint16_t done = 0;
 
     while (done < size) {
@@ -83,40 +84,6 @@ static bool read_far(fat_file_t *file, uint16_t segment, uint16_t size, uint8_t 
     return true;
 }
 
-/*
- * Apply one relocation table. Each entry is the offset of a 16-bit
- * word, inside a region `limit` bytes long, that holds a data address.
- */
-static uint8_t relocate(fat_file_t *file, uint16_t count, uint16_t limit, uint8_t *chunk,
-                        uint16_t text_segment, uint8_t *data, bool in_text)
-{
-    while (count > 0) {
-        uint16_t batch = count > CHUNK / 2 ? CHUNK / 2 : count;
-        uint16_t i;
-
-        if (!read_exact(file, chunk, batch * 2)) return EXEC_READ_ERROR;
-
-        for (i = 0; i < batch; i++) {
-            uint16_t offset = get16(&chunk[i * 2]);
-
-            if (limit < 2 || offset > limit - 2) return EXEC_BAD_FORMAT;
-
-            if (in_text) {
-                uint8_t __far *word = (uint8_t __far *)MK_FP(text_segment, offset);
-                uint16_t value = (word[0] | ((uint16_t)word[1] << 8)) + (uint16_t)data;
-                word[0] = (uint8_t)value;
-                word[1] = (uint8_t)(value >> 8);
-            } else {
-                uint16_t value = get16(&data[offset]) + (uint16_t)data;
-                data[offset] = (uint8_t)value;
-                data[offset + 1] = (uint8_t)(value >> 8);
-            }
-        }
-        count -= batch;
-    }
-    return EXEC_OK;
-}
-
 int exec_program(const char *name, uint8_t *error)
 {
     uint8_t raw[HEADER_SIZE];
@@ -124,10 +91,11 @@ int exec_program(const char *name, uint8_t *error)
     fat_file_t file;
     header_t header;
     program_t *program = NULL;
-    uint16_t text_segment = 0;
-    uint8_t *data = NULL;
+    uint16_t code_segment = 0;
+    uint16_t data_segment = 0;
     uint8_t *chunk = NULL;
-    uint16_t data_total, i;
+    uint32_t data_end;
+    uint16_t stack_area, i;
     uint8_t status = EXEC_OK;
     int tid = -1;
 
@@ -137,59 +105,63 @@ int exec_program(const char *name, uint8_t *error)
     }
 
     if (!read_exact(&file, raw, HEADER_SIZE) ||
-        raw[0] != 'P' || raw[1] != 'X' || raw[2] != 'E' || raw[3] != '1') {
+        raw[0] != 'P' || raw[1] != 'X' || raw[2] != 'E' || raw[3] != '2') {
         status = EXEC_BAD_FORMAT;
         goto done;
     }
-    header.text_size   = get16(&raw[4]);
-    header.data_size   = get16(&raw[6]);
-    header.bss_size    = get16(&raw[8]);
-    header.entry       = get16(&raw[10]);
-    header.text_relocs = get16(&raw[12]);
-    header.data_relocs = get16(&raw[14]);
+    header.text_size  = get16(&raw[4]);
+    header.data_size  = get16(&raw[6]);
+    header.bss_size   = get16(&raw[8]);
+    header.entry      = get16(&raw[10]);
+    header.data_start = get16(&raw[12]);
 
-    data_total = header.data_size + header.bss_size;
+    /* Data, bss and the thread stacks must all fit in one 64 KB segment */
+    data_end = (uint32_t)PROG_DATA_START + header.data_size + header.bss_size;
+    stack_area = (uint16_t)((data_end + 1) & ~1UL);
 
     /* The sizes must be consistent with each other and with the file */
     if (header.text_size == 0 || header.entry >= header.text_size ||
-        data_total < header.data_size ||
-        (uint32_t)HEADER_SIZE + header.text_size + header.data_size +
-            ((uint32_t)header.text_relocs + header.data_relocs) * 2 != file.size) {
+        header.data_start != PROG_DATA_START ||
+        data_end + (uint32_t)PROG_MAX_THREADS * PROG_STACK_SIZE > 0xFFF0UL ||
+        (uint32_t)HEADER_SIZE + header.text_size + header.data_size != file.size) {
         status = EXEC_BAD_FORMAT;
         goto done;
     }
 
     chunk = kmalloc(CHUNK);
-    text_segment = far_alloc((header.text_size + 15) / 16);
-    /* Always allocate a data block, so relocated addresses are never NULL */
-    data = kmalloc(data_total ? data_total : 2);
     program = kmalloc(sizeof(program_t));
-    if (chunk == NULL || text_segment == 0 || data == NULL || program == NULL) {
+    code_segment = far_alloc((header.text_size + 15) / 16);
+    data_segment = far_alloc((stack_area + PROG_MAX_THREADS * PROG_STACK_SIZE + 15) / 16);
+    if (chunk == NULL || program == NULL || code_segment == 0 || data_segment == 0) {
         status = EXEC_NO_MEMORY;
         goto done;
     }
 
-    if (!read_far(&file, text_segment, header.text_size, chunk) ||
-        !read_exact(&file, data, header.data_size)) {
+    if (!read_far(&file, code_segment, 0, header.text_size, chunk) ||
+        !read_far(&file, data_segment, PROG_DATA_START, header.data_size, chunk)) {
         status = EXEC_READ_ERROR;
         goto done;
     }
-    for (i = header.data_size; i < data_total; i++) {
-        data[i] = 0;
+
+    /* Zero the unused bytes below the data, and the bss above it */
+    {
+        uint8_t __far *data = (uint8_t __far *)MK_FP(data_segment, 0);
+
+        for (i = 0; i < PROG_DATA_START; i++) {
+            data[i] = 0;
+        }
+        for (i = PROG_DATA_START + header.data_size; i < stack_area; i++) {
+            data[i] = 0;
+        }
     }
 
-    status = relocate(&file, header.text_relocs, header.text_size, chunk, text_segment, data, true);
-    if (status == EXEC_OK) {
-        status = relocate(&file, header.data_relocs, header.data_size, chunk, text_segment, data, false);
-    }
-    if (status != EXEC_OK) {
-        goto done;
-    }
+    program->code_segment  = code_segment;
+    program->data_segment  = data_segment;
+    program->stack_area    = stack_area;
+    program->threads       = 0;
+    program->stacks_in_use = 0;
 
     program_name(name, thread_name);
-    program->segment = text_segment;
-    program->data    = data;
-    program->threads = 0;
     tid = thread_create_program(program, header.entry, 0, EXEC_PRIORITY, thread_name);
     if (tid < 0) {
         status = EXEC_NO_THREAD;
@@ -199,8 +171,8 @@ done:
     kfree(chunk);
     if (tid < 0) {
         /* No thread took a reference */
-        far_free(text_segment);
-        kfree(data);
+        far_free(code_segment);
+        far_free(data_segment);
         kfree(program);
     }
     if (error) {

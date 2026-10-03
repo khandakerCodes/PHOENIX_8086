@@ -110,7 +110,7 @@ KERNEL_BIN = $(BUILD_DIR)/kernel.bin
 FLOPPY_IMG = $(BUILD_DIR)/phoenix8086.img
 
 # Example programs built with the SDK (sdk/examples/NAME.c → NAME.BIN)
-PROGRAM_NAMES = hello primes clock threads
+PROGRAM_NAMES = hello primes clock threads where
 PROGRAM_DIR   = $(BUILD_DIR)/programs
 PROGRAMS      = $(foreach name,$(PROGRAM_NAMES),$(PROGRAM_DIR)/$(shell echo $(name) | tr a-z A-Z).BIN)
 
@@ -186,9 +186,8 @@ $(PROGRAM_DIR)/crt0.o: sdk/lib/crt0.S | $(PROGRAM_DIR)
 $(PROGRAM_DIR)/%.o: sdk/examples/%.c sdk/include/phoenix.h | $(PROGRAM_DIR)
 	$(CC) $(SDK_CFLAGS) -o $@ $<
 
-# Link with -q so the relocations survive for mkprog.py
 $(PROGRAM_DIR)/%.elf: $(PROGRAM_DIR)/%.o $(PROGRAM_DIR)/crt0.o sdk/program.ld
-	$(LD) -T sdk/program.ld --no-check-sections -q -o $@ $(PROGRAM_DIR)/crt0.o $< \
+	$(LD) -T sdk/program.ld --no-check-sections -o $@ $(PROGRAM_DIR)/crt0.o $< \
 	    $$($(CC) $(ARCHFLAGS) -print-libgcc-file-name)
 
 define PROGRAM_RULE

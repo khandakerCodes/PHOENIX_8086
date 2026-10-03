@@ -62,7 +62,7 @@ void telemetry_thread_exited(uint8_t tid);
 void telemetry_thread_state(uint8_t tid);
 void telemetry_context_switch(uint8_t from_tid, uint8_t to_tid, uint16_t to_sp);
 void telemetry_syscall(uint8_t tid, uint8_t func);
-void telemetry_fault(uint8_t tid, const frame_t *frame, const char *reason);
+void telemetry_fault(uint8_t tid, const frame_t *frame, uint16_t sp, const char *reason);
 void telemetry_bench(uint8_t kind, uint32_t count);
 void telemetry_console_char(char c);
 
@@ -80,8 +80,8 @@ static inline void telemetry_thread_state(uint8_t tid) { (void)tid; }
 static inline void telemetry_context_switch(uint8_t from_tid, uint8_t to_tid, uint16_t to_sp)
 { (void)from_tid; (void)to_tid; (void)to_sp; }
 static inline void telemetry_syscall(uint8_t tid, uint8_t func) { (void)tid; (void)func; }
-static inline void telemetry_fault(uint8_t tid, const frame_t *frame, const char *reason)
-{ (void)tid; (void)frame; (void)reason; }
+static inline void telemetry_fault(uint8_t tid, const frame_t *frame, uint16_t sp, const char *reason)
+{ (void)tid; (void)frame; (void)sp; (void)reason; }
 static inline void telemetry_bench(uint8_t kind, uint32_t count) { (void)kind; (void)count; }
 static inline void telemetry_flush(void) {}
 

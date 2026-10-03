@@ -2,14 +2,13 @@
 /*
  * Phoenix-8086 SDK — Program Linker Script
  *
- * A program has two parts, each linked at offset 0:
+ * A program has two parts, each loaded into a segment of its own:
  *
- *   .text          runs in its own code segment (far memory)
- *   .data + .bss   live in the kernel's data segment, wherever the
- *                  loader finds room; the loader adds that address to
- *                  every data reference listed by sdk/mkprog.py
- *
- * Link with "-q" so the relocations stay in the output for mkprog.py.
+ *   .text          the code segment, starting at offset 0
+ *   .data + .bss   the data segment, starting at offset 16. The first
+ *                  16 bytes are left unused so that no object has
+ *                  address 0 and a null pointer is never valid. The
+ *                  loader puts the thread stacks after the bss.
  */
 
 OUTPUT_ARCH(i386)
@@ -23,7 +22,7 @@ SECTIONS
         *(.text.*)
     } =0x90909090
 
-    .data 0 : {
+    .data 16 : {
         *(.rodata)
         *(.rodata.*)
         *(.data)

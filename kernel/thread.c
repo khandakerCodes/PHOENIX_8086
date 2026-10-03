@@ -26,6 +26,12 @@ static uint8_t thread_stacks[MAX_THREADS][THREAD_STACK_SIZE];
 /* Currently running thread ID */
 static int current_tid = -1;
 
+/*
+ * Top of the current thread's kernel stack. The ISR stubs load SP from
+ * here when an interrupt arrives while a program is running.
+ */
+uint16_t kernel_stack_top;
+
 /* ── Internal helpers ───────────────────────── */
 
 static void str_copy(char *dst, const char *src, int max)
@@ -50,8 +56,10 @@ static int create(uint16_t segment, uint16_t entry, uint16_t argument, uint8_t p
     uint16_t flags;
     uint16_t stack_base;
     uint16_t *stack_top;
+    context_t *context;
     frame_t *frame;
     tcb_t *tcb;
+    uint8_t stack = 0;
 
     flags = hal_irq_save();
 
@@ -64,6 +72,17 @@ static int create(uint16_t segment, uint16_t entry, uint16_t argument, uint8_t p
     if (tid >= MAX_THREADS) {
         hal_irq_restore(flags);
         return -1;  /* No free slots */
+    }
+
+    /* A program thread also needs one of the program's stacks */
+    if (program) {
+        while (stack < PROG_MAX_THREADS && (program->stacks_in_use & (1 << stack))) {
+            stack++;
+        }
+        if (stack >= PROG_MAX_THREADS) {
+            hal_irq_restore(flags);
+            return -1;
+        }
     }
 
     tcb = &tcb_table[tid];
@@ -84,8 +103,10 @@ static int create(uint16_t segment, uint16_t entry, uint16_t argument, uint8_t p
     tcb->stack_base     = stack_base;
     tcb->stack_size     = THREAD_STACK_SIZE;
     tcb->program        = program;
+    tcb->program_stack  = stack;
     if (program) {
         program->threads++;
+        program->stacks_in_use |= (uint8_t)(1 << stack);
     }
 
     if (name) {
@@ -100,21 +121,39 @@ static int create(uint16_t segment, uint16_t entry, uint16_t argument, uint8_t p
     *(uint16_t *)stack_base = STACK_GUARD_VALUE;
 
     /*
-     * Set up the initial stack. From the top down:
-     *
-     *   return address  → thread_exit, so a kernel thread whose entry
-     *                     function simply returns ends cleanly (a
-     *                     program ends itself with the exit system call)
-     *   frame_t         → the register frame the ISR stub restores
-     *                     the first time this thread is scheduled;
-     *                     its IRET jumps to entry with interrupts on
+     * Build the context the ISR stub resumes the first time this
+     * thread is scheduled (context_t in tcb.h). Its IRET jumps to the
+     * entry point with interrupts on.
      */
     stack_top = (uint16_t *)(stack_base + THREAD_STACK_SIZE);
-    *--stack_top = (uint16_t)thread_exit;
 
-    frame = (frame_t *)stack_top - 1;
-    frame->es    = KERNEL_DATA_SEG;
-    frame->ds    = KERNEL_DATA_SEG;
+    if (program) {
+        /*
+         * Program thread: it runs on a stack in the program's data
+         * segment, and its kernel stack holds only the saved context.
+         * Room for the frame is left at the top of the program's stack,
+         * where the stub will put it before the IRET.
+         */
+        user_context_t *user = (user_context_t *)stack_top - 1;
+        uint16_t user_top = program->stack_area + (stack + 1) * PROG_STACK_SIZE;
+
+        user->user_ss = program->data_segment;
+        user->user_sp = user_top - sizeof(frame_t);
+        context = &user->context;
+        context->from_program = 1;
+    } else {
+        /*
+         * Kernel thread: above the context sits a return address, so
+         * an entry function that simply returns lands in thread_exit.
+         */
+        *--stack_top = (uint16_t)thread_exit;
+        context = (context_t *)stack_top - 1;
+        context->from_program = 0;
+    }
+
+    frame = &context->frame;
+    frame->es    = program ? program->data_segment : KERNEL_DATA_SEG;
+    frame->ds    = frame->es;
     frame->di    = 0;
     frame->si    = argument;
     frame->bp    = 0;
@@ -126,7 +165,7 @@ static int create(uint16_t segment, uint16_t entry, uint16_t argument, uint8_t p
     frame->cs    = segment;
     frame->flags = FLAGS_INITIAL;
 
-    tcb->sp     = (uint16_t)frame;
+    tcb->sp     = (uint16_t)context;
     tcb->ss     = KERNEL_DATA_SEG;
     tcb->state  = THREAD_READY;
     tcb->active = true;
@@ -145,7 +184,7 @@ int thread_create(void (*entry)(void), uint8_t priority, const char *name)
 int thread_create_program(program_t *program, uint16_t entry, uint16_t argument,
                           uint8_t priority, const char *name)
 {
-    return create(program->segment, entry, argument, priority, name, program);
+    return create(program->code_segment, entry, argument, priority, name, program);
 }
 
 /*
@@ -172,9 +211,10 @@ void thread_terminate(int tid)
         program_t *program = tcb->program;
 
         tcb->program = NULL;
+        program->stacks_in_use &= (uint8_t)~(1 << tcb->program_stack);
         if (--program->threads == 0) {
-            far_free(program->segment);
-            kfree(program->data);
+            far_free(program->code_segment);
+            far_free(program->data_segment);
             kfree(program);
         }
     }
@@ -312,6 +352,7 @@ int thread_current_tid(void)
 void thread_set_current(int tid)
 {
     current_tid = tid;
+    kernel_stack_top = tcb_table[tid].stack_base + tcb_table[tid].stack_size;
 }
 
 int thread_count(void)

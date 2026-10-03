@@ -8,7 +8,7 @@ You will learn how a request travels from a program to the kernel and back: the 
 
 ## Background
 
-A program calls the kernel with `INT 80h`, function number in AH. The interrupt stub in `kernel/isr.S` pushes every register onto the caller's stack and passes a pointer to that block, the *frame*, to `syscall_handler` in `kernel/interrupts.c`, which calls `syscall_dispatch` in `kernel/syscall.c`.
+A program calls the kernel with `INT 80h`, function number in AH. The interrupt stub in `kernel/isr.S` saves every register, moves that block (the *frame*) onto the thread's kernel stack if the caller was a program, and passes it to `syscall_handler` in `kernel/interrupts.c`, which calls `syscall_dispatch` in `kernel/syscall.c`.
 
 The dispatcher reads its arguments from the frame (`frame->bx`, `frame->cx`, ...) and writes its result into `frame->ax`. When the stub pops the registers and returns, the caller finds that value in AX. Setting `error = true` makes the caller see the carry flag set and AX = FFFFh.
 

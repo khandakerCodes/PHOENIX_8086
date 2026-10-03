@@ -251,7 +251,7 @@ def run(machine):
     text = machine.wait_for(r"\d+ file\(s\)", timeout=30) or ""
     check("ls lists the files on the FAT12 disk",
           all(name in text for name in ("README.TXT", "HELLO.BIN", "PRIMES.BIN", "CLOCK.BIN",
-                                        "THREADS.BIN")), text)
+                                        "THREADS.BIN", "WHERE.BIN")), text)
     machine.type("cat readme.txt")
     check("cat prints a file", machine.wait_for(r"Phoenix-8086 boot disk.*docs/programs\.md", timeout=30) is not None)
 
@@ -273,6 +273,16 @@ def run(machine):
     text = machine.wait_for(r"threads: two workers sent \d+ numbers, total \d+\n", timeout=30) or ""
     check("program: threads (a program starts threads in its own code; mailbox, semaphore)",
           "two workers sent 10 numbers, total 1515" in text, text)
+
+    machine.type("run where.bin")
+    text = machine.wait_for(r"where: (50000 bytes|memory check)[^\n]*\n", timeout=40) or ""
+    where = re.search(r"cs=([0-9A-F]{4}) ds=([0-9A-F]{4}) ss=([0-9A-F]{4})", text)
+    check("program: runs in segments of its own (code, and data + stack)",
+          where is not None and where.group(2) == where.group(3) and
+          where.group(2) != "2000" and where.group(1) not in ("1000", where.group(2)) and
+          int(where.group(1), 16) >= 0x3000 and int(where.group(2), 16) >= 0x3000, text)
+    check("program: has 50 KB of zeroed memory, more than the kernel heap",
+          "50000 bytes of my own, zeroed and writable" in text, text)
 
     # Both disk drivers: the kernel's own floppy driver and the BIOS fallback
     check("the native floppy driver was chosen at boot",

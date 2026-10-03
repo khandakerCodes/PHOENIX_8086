@@ -112,9 +112,9 @@ uint16_t keyboard_handler(uint16_t sp)
 uint16_t syscall_handler(uint16_t sp)
 {
     irq_syscall_count++;
-    telemetry_syscall((uint8_t)sched_current(), (uint8_t)(((frame_t *)sp)->ax >> 8));
+    telemetry_syscall((uint8_t)sched_current(), (uint8_t)(CONTEXT_FRAME(sp)->ax >> 8));
 
-    if (syscall_dispatch((frame_t *)sp)) {
+    if (syscall_dispatch(CONTEXT_FRAME(sp))) {
         return sched_switch(sp);
     }
     return sp;

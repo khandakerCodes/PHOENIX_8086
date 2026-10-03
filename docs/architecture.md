@@ -36,7 +36,7 @@ Defined in `include/layout.h` and `linker/kernel.ld`.
 
 Code and data are separate 64 KB segments, each linked at offset 0. Pointers in C are 16-bit offsets into the data segment. Anything outside it (video memory, the interrupt table, the far arena) is reached with a `__far` pointer built by `MK_FP` (`kernel/hal.h`).
 
-Every thread, including loaded programs, runs with DS = SS = the kernel data segment. This one rule is what lets an interrupt handler written in C run on whatever stack was interrupted.
+Kernel threads run with DS = SS = the kernel data segment. A loaded program runs in two far segments of its own, one for code and one for data and stacks. Kernel C code always runs with SS = DS = the kernel data segment, which the compiler assumes; the interrupt stubs guarantee it by switching to a kernel stack when they interrupt a program.
 
 ## Boot
 
@@ -55,13 +55,15 @@ Every interrupt stub (`kernel/isr.S`) does the same thing:
 
 1. push all registers on the current stack (this is `frame_t`);
 2. load the kernel data segment into DS and ES;
-3. call a C handler with the stack pointer, `uint16_t handler(uint16_t sp)`;
-4. set SP to whatever the handler returned;
-5. pop the registers and `IRET`.
+3. if the interrupted code was a program (SS is not the kernel's), switch to this thread's kernel stack, copy the frame onto it, and note where the program's stack was;
+4. call a C handler with a pointer to the saved context, `uint16_t handler(uint16_t context)`;
+5. resume whatever context the handler returned: if it belongs to a program, copy the frame back to the program's stack and switch to it; then pop the registers and `IRET`.
 
-If the handler returns the SP it was given, the interrupted thread resumes. If it returns another thread's saved SP, the pops and the `IRET` restore *that* thread. That is the whole context switch; there is no separate switch routine.
+If the handler returns the context it was given, the interrupted thread resumes. If it returns another thread's saved context, that thread resumes instead. That is the whole context switch; there is no separate switch routine.
 
-A new thread gets a fabricated frame on its stack (`thread_create` in `kernel/thread.c`), so the first switch to it is no different from any other.
+Every thread has a 2 KB kernel stack. A kernel thread runs on it all the time. A program thread runs on a stack in its program's data segment and uses its kernel stack only while the kernel is working for it.
+
+A new thread gets a fabricated context on its kernel stack (`create` in `kernel/thread.c`), so the first switch to it is no different from any other.
 
 Thread 0 is the boot context itself. It is never created; `sched_init` adopts it, and it runs the idle loop (`HLT`).
 
@@ -72,7 +74,7 @@ Thread 0 is the boot context itself. It is never created; `sched_init` adopts it
 * The highest effective priority among runnable threads runs.
 * Threads of equal priority take turns, five ticks each.
 * A thread kept waiting gains one effective priority level every ten ticks (aging) and drops back to its base priority when it runs, so nothing starves.
-* On every switch the outgoing thread's stack is checked: its guard word must be intact and its stack pointer must not be within 192 bytes of the bottom. Otherwise the thread is killed.
+* On every switch the outgoing thread's kernel stack is checked: its guard word must be intact and its stack pointer must not be within 192 bytes of the bottom. Otherwise the thread is killed.
 
 ### Blocking
 
@@ -103,7 +105,7 @@ A system call handler runs on the calling thread's own stack, so a call that mus
 
 * **Disk** (`kernel/disk.c`, `kernel/floppy.c`): the kernel drives the floppy controller itself, with DMA channel 2 and IRQ6; a thread that reads a sector waits on a semaphore the interrupt handler signals, so other threads run meanwhile. If no controller answers, the kernel falls back to BIOS `INT 13h`, handing the timer and keyboard interrupts back to the BIOS for each read; nothing is scheduled during a BIOS read.
 * **File system** (`kernel/fat12.c`): read-only FAT12, root directory only. The FAT is loaded whole at mount.
-* **Programs** (`kernel/exec.c`, `sdk/`): a program's code is loaded into its own far segment; its data goes on the near heap and every data address in the program is adjusted at load time (relocation). See [Writing programs](programs.md).
+* **Programs** (`kernel/exec.c`, `sdk/`): a program's code is loaded into one far segment and its data, bss and thread stacks into another. System calls reach the program's memory through its saved DS. See [Writing programs](programs.md).
 
 ## Console, keyboard, serial
 

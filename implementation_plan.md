@@ -171,11 +171,12 @@ Goal: run separately built programs from disk.
 
 - [x] Floppy image is FAT12: BPB in Stage 1, Stage 2 and the kernel in the reserved sectors (`tools/mkfat12.py`); `fsck.fat` accepts it
 - [x] Disk read layer through BIOS INT 13h with the timer and keyboard handed back for the duration (`kernel/disk.c`); read-only FAT12 driver (`kernel/fat12.c`); `ls`, `cat`, `run`
-- [x] Program format (header + text + data + relocations) and loader (`kernel/exec.c`): code in the far arena, data on the near heap, thread owns and frees both
+- [x] Program format (header + text + data) and loader (`kernel/exec.c`): code and data in the far arena, freed when the program's last thread ends
 - [x] File and `exec` system calls (18h–1Bh)
 - [x] `sdk/`: header, startup code, linker script, `mkprog.py`, three example programs; `docs/programs.md`
 - [x] Tests: independent image and program-file check (`tools/test_image.py`), file and loader assertions in `selftest`, programs run in the QEMU integration test and on the emulated 8086
-- [ ] Programs get their own data segment. They currently share the kernel's (DS = SS = kernel data), which keeps the interrupt path simple but limits their data to the kernel heap; separate segments need a stack switch on every interrupt
+- [x] Programs get their own code and data segments (data, bss and thread stacks; up to about 56 KB). The interrupt stubs switch to a per-thread kernel stack when a program is interrupted; system calls read pointer arguments through the caller's DS; load-time relocation is gone (file format `PXE2`). Verified on QEMU and the emulated 8086, and under the soak test
+- [ ] Detect overflow of a program's own stack (kernel stacks are checked)
 - [x] Native floppy driver (`kernel/floppy.c`: controller, DMA channel 2, IRQ6), so disk reads do not pause the scheduler; chosen at boot when a controller answers, with the BIOS as fallback. Native on QEMU and v86; DOSBox-X falls back to the BIOS, so the 8086 test covers the BIOS path. Not tried on real hardware
 - [ ] Subdirectories, long file names, and writing
 - [x] `thread_create` for programs: a program's threads share its memory, which is freed when the last one ends (`sdk/examples/threads.c`)
