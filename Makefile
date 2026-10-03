@@ -17,6 +17,7 @@
 #   make soak      — Churn threads, IPC and programs for SOAK_SECONDS (default 120)
 #   make run       — Build and run in QEMU
 #   make debug     — Run in QEMU with GDB server
+#   make disasm    — Print the kernel's disassembly (pipe it into less)
 #   make dashboard — Serve the visual dashboard
 #   make clean     — Remove all build artifacts
 #
@@ -110,7 +111,7 @@ KERNEL_BIN = $(BUILD_DIR)/kernel.bin
 FLOPPY_IMG = $(BUILD_DIR)/phoenix8086.img
 
 # Example programs built with the SDK (sdk/examples/NAME.c → NAME.BIN)
-PROGRAM_NAMES = hello primes clock threads where
+PROGRAM_NAMES = hello primes clock threads where greet
 PROGRAM_DIR   = $(BUILD_DIR)/programs
 PROGRAMS      = $(foreach name,$(PROGRAM_NAMES),$(PROGRAM_DIR)/$(shell echo $(name) | tr a-z A-Z).BIN)
 
@@ -118,7 +119,7 @@ PROGRAMS      = $(foreach name,$(PROGRAM_NAMES),$(PROGRAM_DIR)/$(shell echo $(na
 DISK_FILES = disk/README.TXT $(PROGRAMS)
 
 # ── Phony targets ──────────────────────────────
-.PHONY: all toolchain boot kernel image check test test-8086 soak run debug dashboard clean
+.PHONY: all toolchain boot kernel image check test test-8086 soak disasm run debug dashboard clean
 
 # ── Default target ──────────────────────────────
 all: image
@@ -204,6 +205,10 @@ check: $(KERNEL_ELF) $(PROGRAMS)
 	@for name in $(PROGRAM_NAMES); do \
 	    $(PYTHON) tools/check8086.py $(OBJDUMP) $(PROGRAM_DIR)/$$name.elf --start 0 || exit 1; \
 	done
+
+# ── Disassembly, for looking up an address from a panic ──
+disasm: $(KERNEL_ELF)
+	@$(OBJDUMP) -d -mi8086 $(KERNEL_ELF)
 
 # ── Automated tests ─────────────────────────────
 test: check $(FLOPPY_IMG)

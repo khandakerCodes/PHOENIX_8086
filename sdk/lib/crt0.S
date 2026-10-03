@@ -13,6 +13,7 @@
 
     .globl _start
     .globl px_syscall
+    .globl px_syscall32
     .globl px_thread_entry
 
 _start:
@@ -37,10 +38,14 @@ px_thread_entry:
     jmp     2b
 
 /*
- * unsigned long px_syscall(unsigned ax, unsigned bx, unsigned cx, unsigned dx)
- * Issue INT 80h; the result comes back in DX:AX.
+ * unsigned      px_syscall(unsigned ax, unsigned bx, unsigned cx, unsigned dx)
+ * unsigned long px_syscall32(unsigned ax, unsigned bx, unsigned cx, unsigned dx)
+ *
+ * Issue INT 80h. The same code under two names: the result is in AX
+ * for the first and in DX:AX for the second.
  */
 px_syscall:
+px_syscall32:
     pushw   %bp
     movw    %sp, %bp
     movw    4(%bp), %ax

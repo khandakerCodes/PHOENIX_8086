@@ -51,6 +51,7 @@ A program can start more threads in its own code with `px_thread_create` (see `s
 * There is no memory protection in real mode. A program has its own segments, but nothing stops it writing outside them.
 * At most four threads per program, each with a 2 KB stack. An overflow of a program's stack is not detected (an overflow of a kernel stack is).
 * One object cannot exceed 32,767 bytes with this compiler.
+* **Compiler pitfall:** `ia16-elf-gcc` 6.3 at `-Os` can drop the store when a 32-bit function result is narrowed to a byte, and can push the wrong value when a byte is extracted from a 32-bit value inside a call's argument list. The SDK's wrappers avoid both. In your own code, assign such a value to a 16-bit variable first.
 * Far memory from `px_alloc` belongs to the thread that allocated it.
 * Programs are found in the root directory only, by 8.3 name.
 

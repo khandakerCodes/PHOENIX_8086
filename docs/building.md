@@ -41,6 +41,7 @@ Optional:
 | `make soak SOAK_SECONDS=600` | Churn threads, IPC and programs for the given time |
 | `make run` | Boot in a QEMU window |
 | `make debug` | Boot in QEMU waiting for GDB on port 1234 |
+| `make disasm` | Print the kernel's disassembly, for looking up an address from a panic |
 | `make dashboard` | Serve the dashboard at http://localhost:8080 |
 | `make clean` | Remove `build/` |
 
@@ -90,7 +91,7 @@ Pushing a tag such as `v0.6.0` runs the `Release` workflow: it builds, runs `mak
 * `make debug`, then in another terminal: `gdb -ex 'target remote :1234' -ex 'set architecture i8086'`. Addresses are segment × 16 + offset: kernel code is at `0x10000` plus the offset shown in `build/kernel.elf`.
 * The shell has `ps`, `memory`, `stats`, `interrupts`, `scheduler` and `registers`.
 * `selftest` runs the in-kernel unit tests.
-* A panic prints the registers at the point of failure; look the IP up in `ia16-elf-objdump -d build/kernel.elf`.
+* A panic prints the registers at the point of failure; look the IP up in `make disasm | less`.
 
 ## Known compiler pitfall
 

@@ -203,7 +203,7 @@ Goal: run separately built programs from disk.
 
 - [/] Browser demo: the dashboard boots the image in v86 inside the page (`dashboard/browser.js`, `tools/build_site.sh`). The engine is tested under Node with the real emulator, and the page itself in headless Chromium (boot, typed command, program load). Nothing is hosted until GitHub Pages is enabled and the `Demo site` workflow is run
 - [/] Release pipeline: `.github/workflows/release.yml` builds, tests and publishes on a version tag. Never run: no tag has been pushed
-- [/] README with quick start and a screenshot — written; no recording; the 15-minute quick start has not been tried by a newcomer
+- [/] README with quick start, screenshots, diagrams, a guided tour and a glossary, plus a user manual (`docs/manual.md`) — written, every example taken from a real run; no recording; the 15-minute quick start has not been tried by a newcomer
 - [/] Starter tasks listed in `CONTRIBUTING.md`; no GitHub issues created
 - [ ] Publish the 1.x roadmap
 - [ ] Announce to OS-development, retro-computing, and education communities
