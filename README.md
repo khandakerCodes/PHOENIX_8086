@@ -13,6 +13,8 @@ A small preemptive operating system kernel for the Intel 8086 that explains itse
 * Blocking semaphores, mutexes, and mailboxes
 * System calls through `INT 80h` ([reference](docs/syscalls.md))
 * Near heap and a far-memory allocator for the memory above the kernel
+* FAT12 boot disk: the kernel lists and reads files from it
+* Programs: separately built files loaded from the disk and run as threads, with an SDK ([guide](docs/programs.md))
 * Panic screen with the live register state; CPU exception traps
 * Interactive shell with demos, a benchmark, and an in-kernel self-test
 
@@ -41,6 +43,8 @@ At the `phoenix>` prompt, type `help`. Good first commands:
 | `ps` | Thread table with states and CPU time |
 | `ipc` | A producer and a consumer talking through a mailbox |
 | `syscall` | A thread that uses only `INT 80h` |
+| `ls`, `cat readme.txt` | The files on the FAT12 boot disk |
+| `run primes.bin` | A program loaded from the disk |
 | `memory` | The memory map and allocator state |
 | `selftest` | The in-kernel unit tests |
 | `cpu` | Which processor family the kernel detects |
@@ -93,7 +97,9 @@ The protocol is documented in [docs/telemetry.md](docs/telemetry.md). `make TELE
 | `kernel/` | Kernel sources (C and GNU assembler) |
 | `include/` | Shared types and the memory layout |
 | `linker/` | Kernel linker script |
-| `tools/` | Toolchain fetcher, image finalizer, instruction-set check, tests |
+| `sdk/` | Header, startup code, linker script and builder for programs, with examples |
+| `disk/` | Files copied onto the boot floppy |
+| `tools/` | Toolchain fetcher, image builders, instruction-set check, tests |
 | `bridge/` | Telemetry decoder, capture files, and the serial-to-WebSocket bridge (Python) |
 | `dashboard/` | Web dashboard |
 | `docs/` | System-call and telemetry references, dashboard design, archived documents |
@@ -103,6 +109,7 @@ The protocol is documented in [docs/telemetry.md](docs/telemetry.md). `make TELE
 * [Project specification](projectdetails.md) — what the project is and what v1.0 means
 * [Implementation plan](implementation_plan.md) — audit findings, phases, and current progress
 * [System calls](docs/syscalls.md)
+* [Writing programs](docs/programs.md)
 * [Telemetry protocol](docs/telemetry.md)
 * [Dashboard design](docs/observatory.md)
 
@@ -112,7 +119,8 @@ The protocol is documented in [docs/telemetry.md](docs/telemetry.md). `make TELE
 * The dashboard's rendering has not been checked in a real browser yet. Its data model is tested against a recorded kernel session, and the rendering code was exercised against a stand-in page, but nobody has looked at it.
 * Under heavy load (the `bench` command) the kernel's telemetry buffer fills and records are dropped. The drops are counted and shown, never hidden.
 * Real mode has no memory protection: any thread can overwrite any memory.
-* No file system or program loader yet.
+* Disk reads go through the BIOS and pause the scheduler while they run; the file system is read-only.
+* Programs share the kernel's data segment; there is no process isolation.
 
 ## Contributing
 

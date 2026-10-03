@@ -11,7 +11,10 @@ than 1 or CL.
 
 The boot sectors are covered separately by NASM's "CPU 8086".
 
-Usage: check8086.py <objdump> build/kernel.elf
+Usage: check8086.py <objdump> build/kernel.elf [--start OFFSET]
+
+The kernel's first 16 bytes are its image header, so the default start
+offset is 16; programs built with the SDK start at 0.
 """
 
 import re
@@ -83,9 +86,12 @@ def check(addr, raw, text):
 
 def main():
     objdump, elf = sys.argv[1], sys.argv[2]
-    # The first 16 bytes of .text are the image header (data, not code)
+    start = KERNEL_HDR_SIZE
+    if "--start" in sys.argv:
+        start = int(sys.argv[sys.argv.index("--start") + 1], 0)
+    # Skip any header bytes at the start of .text (data, not code)
     out = subprocess.run([objdump, "-d", "-mi8086",
-                          f"--start-address={KERNEL_HDR_SIZE}", elf], check=True,
+                          f"--start-address={start}", "-j", ".text", elf], check=True,
                          capture_output=True, text=True).stdout
 
     total, failures = 0, []
@@ -108,7 +114,7 @@ def main():
         sys.exit(1)
     if total == 0:
         sys.exit("8086 check: no instructions found")
-    print(f"  8086 check: {total} instructions, all 8086-compatible")
+    print(f"  8086 check: {elf}: {total} instructions, all 8086-compatible")
 
 
 if __name__ == "__main__":

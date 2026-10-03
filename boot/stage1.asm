@@ -8,6 +8,8 @@
 ;;   1. Set up segment registers and stack
 ;;   2. Save the boot drive number
 ;;   3. Load Stage 2 from disk (sectors 2–5 → 0x7E00)
+;;
+;; The sector starts with a FAT12 BIOS Parameter Block.
 ;;   4. Far jump to Stage 2 entry
 ;;
 ;; Assembled with:  nasm -f bin boot/stage1.asm -o build/stage1.bin
@@ -24,6 +26,39 @@ STAGE2_LOAD_SEG     equ 0x0000
 STAGE2_LOAD_OFF     equ 0x7E00
 STAGE2_SECTORS      equ 4              ; 4 sectors = 2 KB for Stage 2
 STAGE2_START_SECTOR equ 2              ; Stage 2 starts at sector 2
+
+; ────────────────────────────────────────────────
+; FAT12 BIOS Parameter Block
+;
+; The floppy is a valid FAT12 volume, so any operating system can
+; copy files onto it. Stage 2 and the kernel live in the reserved
+; sectors in front of the first FAT. tools/mkfat12.py reads these
+; fields to lay out the image; kernel/fat12.c reads them at mount.
+; ────────────────────────────────────────────────
+RESERVED_SECTORS    equ 136             ; boot sector + Stage 2 + kernel (LBA 0-135)
+
+    jmp short _start
+    nop
+
+    db "PHOENIX "                       ; OEM name
+    dw 512                              ; Bytes per sector
+    db 1                                ; Sectors per cluster
+    dw RESERVED_SECTORS                 ; Reserved sectors
+    db 2                                ; Number of FATs
+    dw 224                              ; Root directory entries
+    dw 2880                             ; Total sectors (1.44 MB)
+    db 0xF0                             ; Media descriptor
+    dw 9                                ; Sectors per FAT
+    dw 18                               ; Sectors per track
+    dw 2                                ; Heads
+    dd 0                                ; Hidden sectors
+    dd 0                                ; Total sectors (32-bit, unused)
+    db 0                                ; Drive number
+    db 0                                ; Reserved
+    db 0x29                             ; Extended boot signature
+    dd 0x8086F00D                       ; Volume serial number
+    db "PHOENIX8086"                    ; Volume label
+    db "FAT12   "                       ; File system type
 
 ; ────────────────────────────────────────────────
 ; Entry point — BIOS jumps here after POST

@@ -27,6 +27,12 @@ All notable changes to this project are recorded here. The project follows [Sema
 * `make TELEMETRY=0` builds a kernel without telemetry.
 * `make test-8086`: boots and drives the kernel on DOSBox-X configured as an 8086.
 * `cpu` shell command: run-time processor family detection.
+* The boot floppy is a FAT12 volume (`tools/mkfat12.py`); Stage 2 and the kernel live in its reserved sectors.
+* Read-only FAT12 driver and BIOS disk access; `ls` and `cat` shell commands.
+* Program loader with load-time relocation; `run` shell command; programs free their memory and files on exit.
+* SDK (`sdk/`): `phoenix.h`, startup code, linker script, `mkprog.py`, and three example programs.
+* System calls 18h–1Bh: `open`, `read`, `close`, `exec`.
+* `tools/test_image.py`: independent check of the floppy image and program files.
 
 ### Changed
 * Memory layout: kernel code at `1000:0000`, kernel data and stacks at `2000:0000`.

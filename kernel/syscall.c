@@ -26,8 +26,61 @@
 #include "sync.h"
 #include "ipc.h"
 #include "memory.h"
+#include "fat12.h"
+#include "exec.h"
+#include "hal.h"
 
 extern void thread_terminate(int tid);
+
+/* ── Open files ─────────────────────────────── */
+
+/* A small system-wide table; a handle is an index into it */
+static struct {
+    bool       used;
+    int        owner;
+    fat_file_t file;
+} open_files[MAX_OPEN_FILES];
+
+static int file_open(const char *name)
+{
+    uint16_t flags;
+    fat_file_t file;
+    int handle;
+
+    if (!fat_open(name, &file)) {
+        return -1;
+    }
+
+    flags = hal_irq_save();
+    for (handle = 0; handle < MAX_OPEN_FILES; handle++) {
+        if (!open_files[handle].used) {
+            open_files[handle].used  = true;
+            open_files[handle].owner = thread_current_tid();
+            open_files[handle].file  = file;
+            break;
+        }
+    }
+    hal_irq_restore(flags);
+
+    return handle < MAX_OPEN_FILES ? handle : -1;
+}
+
+static bool file_valid(uint16_t handle)
+{
+    return handle < MAX_OPEN_FILES && open_files[handle].used &&
+           open_files[handle].owner == thread_current_tid();
+}
+
+void file_close_owned(int tid)
+{
+    int handle;
+
+    for (handle = 0; handle < MAX_OPEN_FILES; handle++) {
+        if (open_files[handle].used && open_files[handle].owner == tid) {
+            open_files[handle].used = false;
+        }
+    }
+}
 
 bool syscall_dispatch(frame_t *frame)
 {
@@ -159,6 +212,41 @@ bool syscall_dispatch(frame_t *frame)
     case SYS_FREE:
         /* BX = segment */
         far_free(frame->bx);
+        break;
+
+    case SYS_OPEN:
+        /* BX = near pointer to the file name */
+        tid = file_open((const char *)frame->bx);
+        if (tid < 0) {
+            error = true;
+        }
+        frame->ax = (uint16_t)tid;
+        break;
+
+    case SYS_READ:
+        /* BX = handle, CX = length, DX = near pointer to the buffer */
+        if (file_valid(frame->bx)) {
+            frame->ax = fat_read(&open_files[frame->bx].file, (uint8_t *)frame->dx, frame->cx);
+        } else {
+            error = true;
+        }
+        break;
+
+    case SYS_CLOSE:
+        if (file_valid(frame->bx)) {
+            open_files[frame->bx].used = false;
+        } else {
+            error = true;
+        }
+        break;
+
+    case SYS_EXEC:
+        /* BX = near pointer to the program file name */
+        tid = exec_program((const char *)frame->bx, NULL);
+        if (tid < 0) {
+            error = true;
+        }
+        frame->ax = (uint16_t)tid;
         break;
 
     default:

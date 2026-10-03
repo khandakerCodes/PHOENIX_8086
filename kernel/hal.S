@@ -108,3 +108,72 @@ hal_cpu_class:
 1:
     popf
     ret
+
+    .globl bios_disk_read
+    .globl bios_disk_reset
+
+/*
+ * uint16_t bios_disk_read(uint16_t drive, uint16_t cylinder, uint16_t head,
+ *                         uint16_t sector, void *buffer)
+ * Read one sector into DS:buffer with BIOS INT 13h. Returns 0 on
+ * success, otherwise 0x100 | BIOS status. The caller must have put the
+ * BIOS back in charge of the timer first (irq_bios_enter); interrupts
+ * are on during the call and off again on return.
+ */
+bios_disk_read:
+    pushw   %bp
+    movw    %sp, %bp
+    pushw   %si
+    pushw   %di
+    pushw   %es
+    pushw   %ds
+
+    movb    4(%bp), %dl             /* drive */
+    movb    6(%bp), %ch             /* cylinder */
+    movb    8(%bp), %dh             /* head */
+    movb    10(%bp), %cl            /* sector (1-based) */
+    movw    12(%bp), %bx            /* ES:BX = buffer */
+    pushw   %ds
+    popw    %es
+    movw    $0x0201, %ax            /* AH=02 read, AL=1 sector */
+    sti
+    int     $0x13
+    cli
+    cld
+
+    popw    %ds
+    jc      1f
+    xorw    %ax, %ax
+    jmp     2f
+1:
+    movb    %ah, %al
+    movb    $1, %ah
+2:
+    popw    %es
+    popw    %di
+    popw    %si
+    popw    %bp
+    ret
+
+/* void bios_disk_reset(uint16_t drive) — BIOS INT 13h AH=00 */
+bios_disk_reset:
+    pushw   %bp
+    movw    %sp, %bp
+    pushw   %si
+    pushw   %di
+    pushw   %es
+    pushw   %ds
+
+    movb    4(%bp), %dl
+    xorw    %ax, %ax
+    sti
+    int     $0x13
+    cli
+    cld
+
+    popw    %ds
+    popw    %es
+    popw    %di
+    popw    %si
+    popw    %bp
+    ret

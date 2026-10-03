@@ -20,6 +20,7 @@
 #include "panic.h"
 #include "serial.h"
 #include "hal.h"
+#include "fat12.h"
 
 /* Boot drive and memory info from entry.asm */
 extern uint8_t  boot_drive;
@@ -117,6 +118,17 @@ void kernel_main(void)
     con_println("[INIT] IRQ0 (Timer)    -> Installed");
     con_println("[INIT] IRQ1 (Keyboard) -> Installed");
     con_println("[INIT] INT 80h (Syscall) -> Installed");
+
+    /* ── File system (needs interrupts: disk reads go through the BIOS) ── */
+    con_print("[INIT] File system... ");
+    if (fat_mount()) {
+        con_set_color(VGA_LIGHT_GREEN, VGA_BLACK);
+        con_println("FAT12 mounted");
+    } else {
+        con_set_color(VGA_YELLOW, VGA_BLACK);
+        con_println("no FAT12 volume");
+    }
+    con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
 
     /*
      * Hold interrupts off until the boot log is finished, so the new

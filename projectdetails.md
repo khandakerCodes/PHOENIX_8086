@@ -170,7 +170,7 @@ No region may overlap another. The build fails if any image exceeds its region.
 | 09h–0Bh | `sem_create`, `sem_wait`, `sem_signal` | Semaphores |
 | 0Ch–0Eh | `mbox_create`, `mbox_send`, `mbox_recv` | Mailboxes |
 | 0Fh–10h | `alloc`, `free` | Far-arena memory |
-| 18h–1Bh | `open`, `read`, `close`, `exec` | Files and programs (v0.6) |
+| 18h–1Bh | `open`, `read`, `close`, `exec` | Files and programs |
 
 ### 4.9 Drivers
 
@@ -183,7 +183,7 @@ No region may overlap another. The build fails if any image exceeds its region.
 
 * The boot floppy is a valid **FAT12** volume, so any host OS can add files to it.
 * Read-only FAT12 driver: root directory, cluster chains, 8.3 names.
-* Programs are flat binaries with a small header, loaded into the far arena and run as threads using the syscall ABI.
+* Programs are files with a small header, text, data and a relocation table. Text is loaded into the far arena and runs in its own code segment. In the 0.x line a program's data lives in the kernel data segment and is relocated at load time, so every thread keeps DS = SS = kernel data; a separate data segment per program is a 1.x goal.
 * An SDK (`sdk/`) provides headers, a C runtime stub, a linker script, and example programs.
 
 ### 4.11 Shell, debug monitor, panic

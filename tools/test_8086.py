@@ -166,7 +166,7 @@ def run(machine):
     text = machine.wait_for(r"selftest: \d+ passed, \d+ failed") or ""
     result = re.search(r"selftest: (\d+) passed, (\d+) failed", text)
     check("kernel self-tests pass",
-          result is not None and int(result.group(1)) >= 30 and result.group(2) == "0", text)
+          result is not None and int(result.group(1)) >= 45 and result.group(2) == "0", text)
 
     for _ in range(3):
         machine.command("create")
@@ -192,6 +192,19 @@ def run(machine):
     text = machine.wait_for(r"\[syscall done\]") or ""
     slept = re.search(r"\[v1\].*\[slept (\d+) ticks\]", text, re.S)
     check("INT 80h system calls work", slept is not None and 20 <= int(slept.group(1)) <= 23, text)
+
+    # Disk reads go through this emulator's BIOS, a different one from QEMU's
+    machine.command("cat readme.txt")
+    check("reads a file from the FAT12 disk",
+          machine.wait_for(r"Phoenix-8086 boot disk.*docs/programs\.md") is not None)
+    machine.command("run primes.bin")
+    text = machine.wait_for(r"last digit \w+\n") or ""
+    check("loads and runs a program from the disk",
+          "primes below 1000: 168" in text and "largest 997" in text and "last digit seven" in text, text)
+    machine.command("run clock.bin")
+    text = machine.wait_for(r"first line of README\.TXT: [^\n]*\n") or ""
+    check("a program sleeps and reads a file",
+          "first line of README.TXT: Phoenix-8086 boot disk" in text, text)
 
     time.sleep(0.5)
     machine.command("ps")

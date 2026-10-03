@@ -22,6 +22,8 @@
 #include "hal.h"
 #include "selftest.h"
 #include "telemetry.h"
+#include "fat12.h"
+#include "exec.h"
 
 /* ── Constants ──────────────────────────────── */
 #define CMD_BUF_SIZE    64
@@ -220,6 +222,9 @@ static void cmd_help(void)
     con_println("  divzero    - Trigger a divide error");
     con_println("  panic      - Trigger kernel panic");
     con_println("  reboot     - Reboot the system");
+    con_println("  ls         - List files on the boot disk");
+    con_println("  cat <file> - Print a text file");
+    con_println("  run <file> - Load and run a program");
     con_println("  cpu        - Identify the processor");
     con_println("  about      - About Phoenix-8086");
 }
@@ -398,6 +403,82 @@ static void cmd_bench(void)
     bench_report(TEL_BENCH_HEAP, count, "kmalloc+kfree pairs");
 }
 
+static void cmd_ls(void)
+{
+    fat_dirent_t entry;
+    uint16_t index = 0;
+    uint16_t count = 0;
+
+    if (!fat_mounted()) {
+        con_println("No file system mounted");
+        return;
+    }
+
+    while (fat_next(&index, &entry)) {
+        int len = 0;
+
+        con_print("  ");
+        con_print(entry.name);
+        while (entry.name[len]) len++;
+        while (len++ < 14) con_putchar(' ');
+        print_u32(entry.size);
+        con_println(" bytes");
+        count++;
+    }
+    con_print_dec(count);
+    con_println(" file(s)");
+}
+
+static void cmd_cat(const char *name)
+{
+    static uint8_t buffer[64];
+    fat_file_t file;
+    uint16_t got, i;
+
+    if (name[0] == '\0') {
+        con_println("Usage: cat <file>");
+        return;
+    }
+    if (!fat_open(name, &file)) {
+        con_print("File not found: ");
+        con_println(name);
+        return;
+    }
+
+    while ((got = fat_read(&file, buffer, sizeof(buffer))) > 0) {
+        for (i = 0; i < got; i++) {
+            if (buffer[i] != '\r') {
+                con_putchar((char)buffer[i]);
+            }
+        }
+    }
+}
+
+static void cmd_run(const char *name)
+{
+    uint8_t error;
+    int tid;
+
+    if (name[0] == '\0') {
+        con_println("Usage: run <file>");
+        return;
+    }
+
+    tid = exec_program(name, &error);
+    if (tid < 0) {
+        con_print("Cannot run ");
+        con_print(name);
+        con_print(": ");
+        con_println(exec_error_text(error));
+        return;
+    }
+    con_print("Started ");
+    con_print(name);
+    con_print(" as TID=");
+    con_print_dec(tid);
+    con_putchar('\n');
+}
+
 static void cmd_cpu(void)
 {
     static const char *const names[] = {
@@ -516,6 +597,12 @@ static void process_command(char *cmd)
         selftest_run();
     } else if (str_eq(cmd, "overflow")) {
         report_created(thread_create(demo_overflow, 6, "overflow"));
+    } else if (str_eq(cmd, "ls")) {
+        cmd_ls();
+    } else if (str_eq(cmd, "cat")) {
+        cmd_cat(arg);
+    } else if (str_eq(cmd, "run")) {
+        cmd_run(arg);
     } else if (str_eq(cmd, "cpu")) {
         cmd_cpu();
     } else if (str_eq(cmd, "divzero")) {

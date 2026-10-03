@@ -14,6 +14,8 @@
 #include "interrupts.h"
 #include "kernel.h"
 #include "hal.h"
+#include "memory.h"
+#include "syscall.h"
 
 /* ── TCB table ──────────────────────────────── */
 tcb_t tcb_table[MAX_THREADS];
@@ -37,7 +39,12 @@ static void str_copy(char *dst, const char *src, int max)
 
 /* ── Public API ─────────────────────────────── */
 
-int thread_create(void (*entry)(void), uint8_t priority, const char *name)
+/*
+ * Common thread setup. `segment`:`entry` is where the thread starts
+ * executing; kernel threads pass the kernel's own code segment.
+ */
+static int create(uint16_t segment, uint16_t entry, uint8_t priority, const char *name,
+                  uint16_t prog_segment, void *prog_data)
 {
     int tid;
     uint16_t flags;
@@ -74,6 +81,8 @@ int thread_create(void (*entry)(void), uint8_t priority, const char *name)
     tcb->last_scheduled = 0;
     tcb->stack_base     = stack_base;
     tcb->stack_size     = THREAD_STACK_SIZE;
+    tcb->prog_segment   = prog_segment;
+    tcb->prog_data      = prog_data;
 
     if (name) {
         str_copy(tcb->name, name, 12);
@@ -89,8 +98,9 @@ int thread_create(void (*entry)(void), uint8_t priority, const char *name)
     /*
      * Set up the initial stack. From the top down:
      *
-     *   return address  → thread_exit, so an entry function that
-     *                     simply returns ends its thread cleanly
+     *   return address  → thread_exit, so a kernel thread whose entry
+     *                     function simply returns ends cleanly (a
+     *                     program ends itself with the exit system call)
      *   frame_t         → the register frame the ISR stub restores
      *                     the first time this thread is scheduled;
      *                     its IRET jumps to entry with interrupts on
@@ -108,8 +118,8 @@ int thread_create(void (*entry)(void), uint8_t priority, const char *name)
     frame->dx    = 0;
     frame->cx    = 0;
     frame->ax    = 0;
-    frame->ip    = (uint16_t)entry;
-    frame->cs    = hal_get_cs();
+    frame->ip    = entry;
+    frame->cs    = segment;
     frame->flags = FLAGS_INITIAL;
 
     tcb->sp     = (uint16_t)frame;
@@ -121,6 +131,17 @@ int thread_create(void (*entry)(void), uint8_t priority, const char *name)
 
     hal_irq_restore(flags);
     return tid;
+}
+
+int thread_create(void (*entry)(void), uint8_t priority, const char *name)
+{
+    return create(hal_get_cs(), (uint16_t)entry, priority, name, 0, NULL);
+}
+
+int thread_create_program(uint16_t segment, uint16_t entry, void *data,
+                          uint8_t priority, const char *name)
+{
+    return create(segment, entry, priority, name, segment, data);
 }
 
 /*
@@ -136,6 +157,21 @@ void thread_terminate(int tid)
         sem_remove_waiter((semaphore_t *)tcb->wait_sem, tid);
         tcb->wait_sem = NULL;
     }
+
+    /*
+     * Release a loaded program's memory. Safe even if this is the
+     * running thread: it is executing kernel code on its own stack by
+     * now and never returns to the program.
+     */
+    if (tcb->prog_segment) {
+        far_free(tcb->prog_segment);
+        tcb->prog_segment = 0;
+    }
+    if (tcb->prog_data) {
+        kfree(tcb->prog_data);
+        tcb->prog_data = NULL;
+    }
+    file_close_owned(tid);
 
     tcb->state  = THREAD_TERMINATED;
     tcb->active = false;
