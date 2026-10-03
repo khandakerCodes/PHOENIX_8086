@@ -1,0 +1,9 @@
+# Build output
+build/
+
+# Local cross toolchain (fetched by tools/get-toolchain.sh)
+.toolchain/
+
+# Python
+__pycache__/
+*.pyc

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phoenix-8086 — Live Kernel Dashboard</title>
+    <meta name="description" content="Real-time visual dashboard for the Phoenix-8086 bare-metal preemptive microkernel. Monitors boot flow, thread scheduling, interrupts, registers, and memory.">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- ═══ Top Status Bar ═══ -->
+    <header class="top-bar" id="top-bar">
+        <div class="top-bar__logo">
+            <span class="logo-icon">⚙</span>
+            <span class="logo-text">Phoenix-8086</span>
+            <span class="logo-badge" id="status-badge">CONNECTING</span>
+        </div>
+        <div class="top-bar__metrics">
+            <div class="metric">
+                <span class="metric__label">UPTIME</span>
+                <span class="metric__value" id="metric-uptime">0s</span>
+            </div>
+            <div class="metric">
+                <span class="metric__label">TICKS</span>
+                <span class="metric__value" id="metric-ticks">0</span>
+            </div>
+            <div class="metric">
+                <span class="metric__label">IRQ RATE</span>
+                <span class="metric__value" id="metric-irq-rate">0/s</span>
+            </div>
+            <div class="metric">
+                <span class="metric__label">CTX SWITCHES</span>
+                <span class="metric__value" id="metric-ctx-switches">0</span>
+            </div>
+            <div class="metric">
+                <span class="metric__label">THREADS</span>
+                <span class="metric__value" id="metric-threads">0</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ═══ Main Dashboard Grid ═══ -->
+    <main class="dashboard">
+        <!-- ─── Left Panel: Thread List & Scheduler ─── -->
+        <aside class="panel panel--left" id="panel-left">
+            <div class="panel__section" id="thread-list-section">
+                <h2 class="panel__title">
+                    <span class="panel__icon">◉</span> Threads
+                </h2>
+                <div class="thread-list" id="thread-list">
+                    <div class="thread-card thread-card--empty">
+                        <span class="thread-card__msg">Waiting for kernel...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel__section" id="scheduler-section">
+                <h2 class="panel__title">
+                    <span class="panel__icon">↻</span> Scheduler Queue
+                </h2>
+                <div class="sched-queue" id="sched-queue">
+                    <div class="sched-queue__empty">No threads scheduled</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ─── Center Panel: Main Visualization ─── -->
+        <section class="panel panel--center" id="panel-center">
+            <!-- View Tabs -->
+            <div class="view-tabs" id="view-tabs">
+                <button class="view-tab view-tab--active" data-view="boot">Boot Timeline</button>
+                <button class="view-tab" data-view="scheduler">Scheduler View</button>
+                <button class="view-tab" data-view="context-switch">Context Switch</button>
+                <button class="view-tab" data-view="console">Console</button>
+            </div>
+
+            <!-- Boot Timeline View -->
+            <div class="view-content view-content--active" id="view-boot">
+                <h2 class="view-content__title">Boot Timeline</h2>
+                <div class="boot-timeline" id="boot-timeline">
+                    <div class="boot-step boot-step--completed" data-step="0">
+                        <div class="boot-step__dot"></div>
+                        <div class="boot-step__line"></div>
+                        <div class="boot-step__content">
+                            <span class="boot-step__label">BIOS POST</span>
+                            <span class="boot-step__time">T+0ms</span>
+                        </div>
+                    </div>
+                    <div class="boot-step" data-step="1">
+                        <div class="boot-step__dot"></div>
+                        <div class="boot-step__line"></div>
+                        <div class="boot-step__content">
+                            <span class="boot-step__label">Stage 1 Bootloader</span>
+                            <span class="boot-step__desc">Stack init, drive detect</span>
+                        </div>
+                    </div>
+                    <div class="boot-step" data-step="2">
+                        <div class="boot-step__dot"></div>
+                        <div class="boot-step__line"></div>
+                        <div class="boot-step__content">
+                            <span class="boot-step__label">Stage 2 Loader</span>
+                            <span class="boot-step__desc">Memory detect, kernel load</span>
+                        </div>
+                    </div>
+                    <div class="boot-step" data-step="3">
+                        <div class="boot-step__dot"></div>
+                        <div class="boot-step__line"></div>
+                        <div class="boot-step__content">
+                            <span class="boot-step__label">Kernel Entry</span>
+                            <span class="boot-step__desc">BSS zero, segment setup</span>
+                        </div>
+                    </div>
+                    <div class="boot-step" data-step="4">
+                        <div class="boot-step__dot"></div>
+                        <div class="boot-step__line"></div>
+                        <div class="boot-step__content">
+                            <span class="boot-step__label">Console Init</span>
+                            <span class="boot-step__desc">VGA text mode at B800:0000</span>
+                        </div>
+                    </div>
+                    <div class="boot-step" data-step="5">
+                        <div class="boot-step__dot"></div>
+                        <div class="boot-step__line"></div>
+                        <div class="boot-step__content">
+                            <span class="boot-step__label">Memory Manager</span>
+                            <span class="boot-step__desc">Heap init, free list</span>
+                        </div>
+                    </div>
+                    <div class="boot-step" data-step="6">
+                        <div class="boot-step__dot"></div>
+                        <div class="boot-step__line"></div>
+                        <div class="boot-step__content">
+                            <span class="boot-step__label">Interrupt System</span>
+                            <span class="boot-step__desc">IVT install, PIC config</span>
+                        </div>
+                    </div>
+                    <div class="boot-step" data-step="7">
+                        <div class="boot-step__dot"></div>
+                        <div class="boot-step__line"></div>
+                        <div class="boot-step__content">
+                            <span class="boot-step__label">Scheduler Init</span>
+                            <span class="boot-step__desc">Idle thread, ready queue</span>
+                        </div>
+                    </div>
+                    <div class="boot-step" data-step="8">
+                        <div class="boot-step__dot"></div>
+                        <div class="boot-step__line"></div>
+                        <div class="boot-step__content">
+                            <span class="boot-step__label">Kernel Ready</span>
+                            <span class="boot-step__desc">Shell active, system live</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scheduler View -->
+            <div class="view-content" id="view-scheduler">
+                <h2 class="view-content__title">Scheduler Timeline</h2>
+                <div class="sched-timeline" id="sched-timeline">
+                    <div class="sched-timeline__gantt" id="sched-gantt"></div>
+                    <div class="sched-timeline__legend" id="sched-legend"></div>
+                </div>
+                <div class="sched-cpu-chart" id="sched-cpu-chart">
+                    <h3>CPU Time per Thread</h3>
+                    <div class="cpu-bars" id="cpu-bars"></div>
+                </div>
+            </div>
+
+            <!-- Context Switch View -->
+            <div class="view-content" id="view-context-switch">
+                <h2 class="view-content__title">Context Switch Animation</h2>
+                <div class="ctx-switch-anim" id="ctx-switch-anim">
+                    <div class="ctx-phase" id="ctx-phase-save">
+                        <div class="ctx-phase__icon">💾</div>
+                        <div class="ctx-phase__label">Save Registers</div>
+                        <div class="ctx-phase__desc">Push AX–DI, FLAGS → TCB</div>
+                    </div>
+                    <div class="ctx-arrow">→</div>
+                    <div class="ctx-phase" id="ctx-phase-select">
+                        <div class="ctx-phase__icon">🔍</div>
+                        <div class="ctx-phase__label">Select Next</div>
+                        <div class="ctx-phase__desc">Priority-RR scan</div>
+                    </div>
+                    <div class="ctx-arrow">→</div>
+                    <div class="ctx-phase" id="ctx-phase-restore">
+                        <div class="ctx-phase__icon">📤</div>
+                        <div class="ctx-phase__label">Restore Context</div>
+                        <div class="ctx-phase__desc">TCB → AX–DI, FLAGS</div>
+                    </div>
+                    <div class="ctx-arrow">→</div>
+                    <div class="ctx-phase" id="ctx-phase-iret">
+                        <div class="ctx-phase__icon">⚡</div>
+                        <div class="ctx-phase__label">IRET</div>
+                        <div class="ctx-phase__desc">Resume execution</div>
+                    </div>
+                </div>
+                <div class="ctx-switch-detail" id="ctx-switch-detail">
+                    <div class="ctx-thread-box" id="ctx-from-thread">
+                        <h3>From Thread</h3>
+                        <span class="ctx-thread-name" id="ctx-from-name">—</span>
+                    </div>
+                    <div class="ctx-switch-arrow">⟹</div>
+                    <div class="ctx-thread-box" id="ctx-to-thread">
+                        <h3>To Thread</h3>
+                        <span class="ctx-thread-name" id="ctx-to-name">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Console View -->
+            <div class="view-content" id="view-console">
+                <h2 class="view-content__title">Kernel Console Mirror</h2>
+                <div class="console-output" id="console-output">
+                    <pre id="console-text">Phoenix-8086 Kernel Console
+Waiting for telemetry connection...</pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─── Right Panel: Registers, Memory, Inspector ─── -->
+        <aside class="panel panel--right" id="panel-right">
+            <div class="panel__section" id="register-section">
+                <h2 class="panel__title">
+                    <span class="panel__icon">⬡</span> Registers
+                </h2>
+                <div class="register-grid" id="register-grid">
+                    <div class="register" id="reg-ax"><span class="register__name">AX</span><span class="register__val">0000</span></div>
+                    <div class="register" id="reg-bx"><span class="register__name">BX</span><span class="register__val">0000</span></div>
+                    <div class="register" id="reg-cx"><span class="register__name">CX</span><span class="register__val">0000</span></div>
+                    <div class="register" id="reg-dx"><span class="register__name">DX</span><span class="register__val">0000</span></div>
+                    <div class="register" id="reg-sp"><span class="register__name">SP</span><span class="register__val">7C00</span></div>
+                    <div class="register" id="reg-bp"><span class="register__name">BP</span><span class="register__val">0000</span></div>
+                    <div class="register" id="reg-si"><span class="register__name">SI</span><span class="register__val">0000</span></div>
+                    <div class="register" id="reg-di"><span class="register__name">DI</span><span class="register__val">0000</span></div>
+                    <div class="register register--wide" id="reg-cs"><span class="register__name">CS</span><span class="register__val">0000</span></div>
+                    <div class="register register--wide" id="reg-ip"><span class="register__name">IP</span><span class="register__val">8000</span></div>
+                    <div class="register register--wide" id="reg-flags"><span class="register__name">FLAGS</span><span class="register__val">0202</span></div>
+                    <div class="register register--wide" id="reg-ss"><span class="register__name">SS</span><span class="register__val">0000</span></div>
+                </div>
+            </div>
+
+            <div class="panel__section" id="memory-section">
+                <h2 class="panel__title">
+                    <span class="panel__icon">▦</span> Memory Map
+                </h2>
+                <div class="memory-map" id="memory-map">
+                    <div class="mem-region mem-region--ivt" title="Interrupt Vector Table">
+                        <span class="mem-region__label">IVT</span>
+                        <span class="mem-region__range">0x0000–0x03FF</span>
+                    </div>
+                    <div class="mem-region mem-region--bios" title="BIOS Data Area">
+                        <span class="mem-region__label">BIOS</span>
+                        <span class="mem-region__range">0x0400–0x04FF</span>
+                    </div>
+                    <div class="mem-region mem-region--stack" title="Kernel Stack">
+                        <span class="mem-region__label">K.Stack</span>
+                        <span class="mem-region__range">0x0500–0x7BFF</span>
+                    </div>
+                    <div class="mem-region mem-region--boot" title="Bootloader">
+                        <span class="mem-region__label">Boot</span>
+                        <span class="mem-region__range">0x7C00–0x85FF</span>
+                    </div>
+                    <div class="mem-region mem-region--kernel" title="Kernel Image">
+                        <span class="mem-region__label">Kernel</span>
+                        <span class="mem-region__range">0x8000–0xFFFF</span>
+                    </div>
+                    <div class="mem-region mem-region--threads" title="Thread Stacks">
+                        <span class="mem-region__label">Threads</span>
+                        <span class="mem-region__range">0x10000–0x2FFFF</span>
+                    </div>
+                    <div class="mem-region mem-region--heap" title="Heap">
+                        <span class="mem-region__label">Heap</span>
+                        <span class="mem-region__range">0x30000–0x4FFFF</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel__section" id="thread-inspector-section">
+                <h2 class="panel__title">
+                    <span class="panel__icon">🔍</span> Thread Inspector
+                </h2>
+                <div class="thread-inspector" id="thread-inspector">
+                    <p class="inspector-placeholder">Select a thread to inspect</p>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- ═══ Bottom Panel: Interrupt Log ═══ -->
+    <footer class="bottom-bar" id="bottom-bar">
+        <div class="bottom-bar__section">
+            <h2 class="bottom-bar__title">
+                <span class="panel__icon">⚡</span> Interrupt Log
+            </h2>
+            <div class="irq-counters" id="irq-counters">
+                <div class="irq-counter">
+                    <span class="irq-counter__label">Timer</span>
+                    <span class="irq-counter__value" id="irq-timer">0</span>
+                </div>
+                <div class="irq-counter">
+                    <span class="irq-counter__label">Keyboard</span>
+                    <span class="irq-counter__value" id="irq-keyboard">0</span>
+                </div>
+                <div class="irq-counter">
+                    <span class="irq-counter__label">Syscall</span>
+                    <span class="irq-counter__value" id="irq-syscall">0</span>
+                </div>
+                <div class="irq-counter">
+                    <span class="irq-counter__label">Ctx Switch</span>
+                    <span class="irq-counter__value" id="irq-ctx">0</span>
+                </div>
+            </div>
+        </div>
+        <div class="bottom-bar__section bottom-bar__section--log">
+            <div class="event-stream" id="event-stream">
+                <div class="event-item event-item--info">System starting...</div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ═══ Fault Overlay (hidden by default) ═══ -->
+    <div class="fault-overlay" id="fault-overlay" style="display: none;">
+        <div class="fault-content">
+            <h1 class="fault-title">⚠ KERNEL PANIC</h1>
+            <p class="fault-reason" id="fault-reason">Unknown fault</p>
+            <div class="fault-registers" id="fault-registers"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
