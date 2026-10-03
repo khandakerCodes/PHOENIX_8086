@@ -43,3 +43,25 @@ jobs:
 
       - name: Short soak test
         run: make soak SOAK_SECONDS=90
+
+      - name: Build the demo site
+        run: ./tools/build_site.sh
+
+      - name: Install the emulator and browser test dependencies
+        run: |
+          npm install --no-save --no-audit --no-fund v86@0.5.469 playwright-core
+          npx playwright-core install --with-deps chromium-headless-shell
+
+      - name: Test the demo engine in v86
+        run: node tools/test_browser_demo.mjs site
+
+      - name: Test the dashboard in a real browser
+        run: node tools/test_dashboard_browser.mjs build/screenshots
+
+      - name: Keep the screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-screenshots
+          path: build/screenshots
+          if-no-files-found: ignore

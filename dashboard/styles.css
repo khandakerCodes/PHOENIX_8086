@@ -95,7 +95,7 @@ body {
     font-family: var(--font-sans);
     background: var(--bg-primary);
     color: var(--text-primary);
-    min-height: 100vh;
+    height: 100vh;      /* fixed, so the panels scroll instead of pushing the bottom bar off screen */
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -553,7 +553,7 @@ body {
 
 .boot-step__desc {
     font-size: 0.7rem;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     margin-top: 2px;
 }
 
@@ -612,8 +612,11 @@ body {
     font-family: var(--font-mono);
     font-size: 0.7rem;
     color: var(--text-secondary);
-    width: 60px;
+    width: 110px;
     flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .cpu-bar__track {
@@ -643,9 +646,9 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--gap-md);
-    padding: var(--gap-xl);
-    flex-wrap: wrap;
+    gap: var(--gap-sm);
+    padding: var(--gap-lg) 0;
+    flex-wrap: nowrap;      /* the four steps read as one line */
 }
 
 .ctx-phase {
@@ -657,7 +660,9 @@ body {
     background: var(--bg-card);
     border-radius: var(--radius-md);
     border: 1px solid var(--border-subtle);
-    min-width: 120px;
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: center;
     transition: all var(--transition-base);
 }
 
@@ -881,7 +886,7 @@ body {
     gap: 1px;
     background: var(--border-subtle);
     border-top: 1px solid var(--glass-border);
-    height: 90px;
+    height: 130px;
     flex-shrink: 0;
 }
 
@@ -1244,6 +1249,83 @@ body {
 [dir="rtl"] .mem-region {
     border-left: none;
     border-right: 3px solid;
+}
+
+/* ── Layout corrections found by looking at the page ── */
+
+/* Context-switch step numbers */
+.ctx-phase__icon {
+    width: 2rem;
+    height: 2rem;
+    line-height: 2rem;
+    border-radius: 50%;
+    border: 1px solid var(--border-accent);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--text-accent);
+}
+
+/* The console fills its view and keeps the input visible below it */
+#view-console.view-content--active {
+    display: flex;
+    flex-direction: column;
+}
+
+#view-console .console-output {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+}
+
+/* These lists are redrawn several times a second while data flows.
+   An entry animation would restart on every redraw and leave the
+   items permanently half-faded, so they have none. */
+.event-item,
+.sched-queue__item {
+    animation: none;
+}
+
+/* A steady title is easier to read than a blinking one */
+.fault-title {
+    animation: none;
+}
+
+/* The event list scrolls inside the bottom bar */
+.bottom-bar__section--log {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.bottom-bar__section--log .event-stream {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+}
+
+/* Letter-spacing breaks the joins between Arabic letters, and
+   monospace fonts space them apart; translated text uses the
+   proportional font in right-to-left languages. */
+[dir="rtl"] * {
+    letter-spacing: normal !important;
+}
+
+[dir="rtl"] .mem-region__label,
+[dir="rtl"] .thread-card__state,
+[dir="rtl"] .thread-card__meta,
+[dir="rtl"] .mode-banner,
+[dir="rtl"] .logo-badge,
+[dir="rtl"] .event-item,
+[dir="rtl"] .sched-queue__item,
+[dir="rtl"] .ctx-phase__label,
+[dir="rtl"] .boot-step__label,
+[dir="rtl"] .inspector-field__value,
+[dir="rtl"] .view-note,
+[dir="rtl"] .fault-title,
+[dir="rtl"] .fault-thread,
+[dir="rtl"] .demo-toggle,
+[dir="rtl"] .fault-dismiss {
+    font-family: var(--font-sans);
 }
 
 /* ── Reduced motion ─────────────────────────── */

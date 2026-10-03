@@ -26,7 +26,7 @@ Guidance:
 | German | `de.js` | Initial translation, not yet reviewed by a native speaker |
 | French | `fr.js` | Initial translation, not yet reviewed by a native speaker |
 | Spanish | `es.js` | Initial translation, not yet reviewed by a native speaker |
-| Arabic | `ar.js` | Initial translation, not yet reviewed by a native speaker; right-to-left layout not yet checked in a browser |
+| Arabic | `ar.js` | Initial translation, not yet reviewed by a native speaker; the right-to-left layout is checked in a browser by `tools/test_dashboard_browser.mjs` |
 
 Reviews by native speakers are very welcome: open a pull request that corrects the file and updates this table.
 

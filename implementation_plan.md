@@ -159,11 +159,11 @@ Goal: the dashboard shows only the truth, and sessions can be replayed.
 - [x] Dashboard: real memory map, register diff on switch, fault view, console input
 - [x] No external requests: system font stacks instead of a font CDN
 - [x] Dashboard model tests driven by a recorded capture (`node --test dashboard/test/*.test.js`)
-- [ ] Look at the dashboard in a real browser and fix what is wrong; add a browser-based rendering test
+- [x] Dashboard checked in a real browser (headless Chromium) and the layout problems it showed fixed; `tools/test_dashboard_browser.mjs` repeats the check in CI and keeps screenshots. One window size and one browser only
 - [ ] Replay controls in the dashboard (pause, seek); replay is currently controlled from the bridge command line
 - [x] A flood of events such as `bench` overflows the 4 KB ring; high-volume records are limited to three quarters of it so console text and faults still get through, and the drops are counted
 
-**Exit test:** a recorded capture replays to an identical dashboard state; with the bridge disconnected, Live mode shows "no data" rather than simulated values. *(2026-10-03: both hold for the data model — replaying the capture twice gives identical state, and an empty model yields empty panels — and are tested. The rendered page has not been viewed in a browser.)*
+**Exit test:** a recorded capture replays to an identical dashboard state; with the bridge disconnected, Live mode shows "no data" rather than simulated values. *(Met: replaying the capture twice gives identical state, an empty model yields empty panels, and the browser test confirms both on the rendered page.)*
 
 ### Phase 4 — Programs (release v0.6)
 
@@ -189,7 +189,7 @@ Goal: run separately built programs from disk.
 - [/] Every subsystem has a design page — one architecture guide covers them all (`docs/architecture.md`); no per-subsystem pages
 - [ ] Coverage report for host unit tests
 - [x] Pluggable keymaps: US, UK, DE, FR; AltGr and Caps Lock; `keymap` command
-- [/] Dashboard locale files (en, de, fr, es, ar), language switcher, right-to-left support — done and tested for consistency; translations not reviewed by native speakers; right-to-left layout not checked in a browser; no accessibility pass
+- [/] Dashboard locale files (en, de, fr, es, ar), language switcher, right-to-left support — done, tested for consistency, and the right-to-left layout checked in a browser; translations not reviewed by native speakers; no accessibility pass
 - [x] `docs/<lang>/` structure and translation guide (`docs/translating.md`); no translated documents yet
 - [/] Build guides — Ubuntu 24.04 and WSL2 verified; macOS and other distributions written but not verified (`docs/building.md`)
 - [ ] Documentation site generated from `docs/` (the documents are readable on GitHub; no generated site)
@@ -200,9 +200,9 @@ Goal: run separately built programs from disk.
 
 ### Phase 6 — Public Launch (release v1.0)
 
-- [/] Browser demo: the dashboard boots the image in v86 inside the page (`dashboard/browser.js`, `tools/build_site.sh`). The engine is tested under Node with the real emulator (boot, typed command, program load); the page has not been opened in a browser, and nothing is hosted until GitHub Pages is enabled and the `Demo site` workflow is run
+- [/] Browser demo: the dashboard boots the image in v86 inside the page (`dashboard/browser.js`, `tools/build_site.sh`). The engine is tested under Node with the real emulator, and the page itself in headless Chromium (boot, typed command, program load). Nothing is hosted until GitHub Pages is enabled and the `Demo site` workflow is run
 - [/] Release pipeline: `.github/workflows/release.yml` builds, tests and publishes on a version tag. Never run: no tag has been pushed
-- [/] README with quick start — written; no screenshots or recording; the 15-minute quick start has not been tried by a newcomer
+- [/] README with quick start and a screenshot — written; no recording; the 15-minute quick start has not been tried by a newcomer
 - [/] Starter tasks listed in `CONTRIBUTING.md`; no GitHub issues created
 - [ ] Publish the 1.x roadmap
 - [ ] Announce to OS-development, retro-computing, and education communities
