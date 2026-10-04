@@ -37,6 +37,19 @@
 uint8_t _kernel_end;
 uint16_t hal_get_cs(void) { return KERNEL_CODE_SEG; }
 
+/* mem_print_map (not called here) draws with the UI toolkit; these stand in for it */
+void ui_panel_open(const char *title, uint8_t accent, const char *note) { (void)title; (void)accent; (void)note; }
+void ui_panel_close(void) {}
+void ui_row(void) {}
+void ui_row_end(void) {}
+void ui_row_rule(void) {}
+void ui_text(uint8_t fg, const char *text) { (void)fg; (void)text; }
+void ui_pad_to(uint8_t col) { (void)col; }
+void ui_num(uint32_t value, uint8_t width, uint8_t fg) { (void)value; (void)width; (void)fg; }
+void ui_hex(uint16_t value, uint8_t fg) { (void)value; (void)fg; }
+void ui_meter(uint32_t used, uint32_t total, uint8_t width, uint8_t fg) { (void)used; (void)total; (void)width; (void)fg; }
+char *ui_format(uint32_t value, const char *suffix, char *buf, uint8_t size) { (void)value; (void)suffix; (void)size; buf[0] = 0; return buf; }
+
 #define HEAP_BYTES  8192
 static unsigned char heap_area[HEAP_BYTES] __attribute__((aligned(16)));
 

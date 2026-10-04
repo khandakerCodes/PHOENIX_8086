@@ -49,6 +49,8 @@ QEMU    = qemu-system-i386
 # ── Options ─────────────────────────────────────
 # TELEMETRY=0 compiles the telemetry system out (run 'make clean' when switching)
 TELEMETRY ?= 1
+# CONSOLE=plain shows the console as on a CGA even on a VGA: no theme, no custom glyphs
+CONSOLE ?= themed
 
 # ── Flags ───────────────────────────────────────
 ARCHFLAGS  = -march=i8086 -mtune=i8086 -mcmodel=small
@@ -56,6 +58,7 @@ NASMFLAGS  = -f bin
 CFLAGS     = $(ARCHFLAGS) -ffreestanding -fno-builtin \
              -fno-delete-null-pointer-checks \
              -DCONFIG_TELEMETRY=$(TELEMETRY) \
+             $(if $(filter plain,$(CONSOLE)),-DCONFIG_CONSOLE_PLAIN=1) \
              -Wall -Wextra -Os -MMD -MP -c
 ASFLAGS    = $(ARCHFLAGS) -MMD -MP -c
 LDFLAGS    = -T linker/kernel.ld --no-check-sections
@@ -77,6 +80,7 @@ KERNEL_S_SRCS = $(KERNEL_DIR)/entry.S \
 
 KERNEL_C_SRCS = $(KERNEL_DIR)/kernel_main.c \
                 $(KERNEL_DIR)/console.c \
+                $(KERNEL_DIR)/ui.c \
                 $(KERNEL_DIR)/interrupts.c \
                 $(KERNEL_DIR)/keyboard.c \
                 $(KERNEL_DIR)/thread.c \

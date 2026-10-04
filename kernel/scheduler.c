@@ -28,6 +28,7 @@
 #include "floppy.h"
 #include "hal.h"
 #include "telemetry.h"
+#include "ui.h"
 
 /* ── External TCB table (defined in thread.c) ─ */
 extern tcb_t tcb_table[MAX_THREADS];
@@ -94,14 +95,18 @@ static void age_ready_threads(void)
 /* Report a stack overflow and stop the thread; the caller switches away */
 static void stack_overflow(int tid, uint8_t kind, uint16_t sp)
 {
-    con_set_color(VGA_WHITE, VGA_RED);
-    con_print(kind == TEL_TFAULT_PROGRAM_STACK ? "\n!!! PROGRAM STACK OVERFLOW: Thread "
-                                               : "\n!!! STACK OVERFLOW: Thread ");
+    con_putchar('\n');
+    con_print("  ");
+    ui_mark(false);
+    ui_text(TH_RED, kind == TEL_TFAULT_PROGRAM_STACK ? "PROGRAM STACK OVERFLOW: Thread "
+                                                     : "STACK OVERFLOW: Thread ");
+    con_set_color(TH_RED, TH_BASE);
     con_print_dec(tid);
     con_print(" (");
     con_print(tcb_table[tid].name);
-    con_println(") !!!");
-    con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
+    con_print(")");
+    ui_text(TH_SUBTEXT, " stopped");
+    con_putchar('\n');
 
     telemetry_thread_fault((uint8_t)tid, kind, sp);
     thread_terminate(tid);

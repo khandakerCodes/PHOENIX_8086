@@ -13,18 +13,23 @@
 #include "interrupts.h"
 #include "scheduler.h"
 #include "hal.h"
+#include "ui.h"
 
-/* Thread state names */
-static const char *state_names[] = {
-    "READY", "RUNNING", "BLOCKED", "SLEEPING", "TERMINATED"
-};
-
-static const char *get_state_name(uint8_t state)
+/* The FLAGS bits that are set, by name */
+static void flag_list(uint16_t flags)
 {
-    if (state <= THREAD_TERMINATED) {
-        return state_names[state];
+    static const struct { uint16_t bit; const char *name; } names[] = {
+        { 0x0001, "CF" }, { 0x0004, "PF" }, { 0x0010, "AF" }, { 0x0040, "ZF" },
+        { 0x0080, "SF" }, { 0x0100, "TF" }, { 0x0200, "IF" }, { 0x0400, "DF" }, { 0x0800, "OF" },
+    };
+    uint8_t i;
+
+    for (i = 0; i < sizeof(names) / sizeof(names[0]); i++) {
+        if (flags & names[i].bit) {
+            ui_pill(names[i].name, names[i].bit == 0x0200 ? TH_GREEN : TH_SURFACE2);
+            con_putchar(' ');
+        }
     }
-    return "UNKNOWN";
 }
 
 void debug_dump_regs(void)
@@ -64,88 +69,112 @@ void debug_dump_regs(void)
         : "=r"(flags_val)
     );
 
-    con_println("=== Register Dump ===");
-
-    con_print("  AX=");
-    con_print_hex(ax_val);
-    con_print("  BX=");
-    con_print_hex(bx_val);
-    con_print("  CX=");
-    con_print_hex(cx_val);
-    con_print("  DX=");
-    con_print_hex(dx_val);
-    con_putchar('\n');
-
-    con_print("  SP=");
-    con_print_hex(sp_val);
-    con_print("  BP=");
-    con_print_hex(bp_val);
-    con_print("  SI=");
-    con_print_hex(si_val);
-    con_print("  DI=");
-    con_print_hex(di_val);
-    con_putchar('\n');
-
-    con_print("  CS=");
-    con_print_hex(cs_val);
-    con_print("  DS=");
-    con_print_hex(ds_val);
-    con_print("  ES=");
-    con_print_hex(es_val);
-    con_print("  SS=");
-    con_print_hex(ss_val);
-    con_putchar('\n');
-
-    con_print("  FLAGS=");
-    con_print_hex(flags_val);
-    con_putchar('\n');
+    ui_panel_open("Register Dump", TH_BLUE, "the shell, right now");
+    ui_row();
+    ui_reg("AX", ax_val); ui_reg("BX", bx_val); ui_reg("CX", cx_val); ui_reg("DX", dx_val);
+    ui_row_end();
+    ui_row();
+    ui_reg("SP", sp_val); ui_reg("BP", bp_val); ui_reg("SI", si_val); ui_reg("DI", di_val);
+    ui_row_end();
+    ui_row();
+    ui_reg("CS", cs_val); ui_reg("DS", ds_val); ui_reg("ES", es_val); ui_reg("SS", ss_val);
+    ui_row_end();
+    ui_row_rule();
+    ui_row();
+    ui_reg("FLAGS", flags_val);
+    flag_list(flags_val);
+    ui_row_end();
+    ui_panel_close();
 }
+
+/* A state as a coloured dot and a lower-case word */
+static uint8_t state_colour(uint8_t state)
+{
+    switch (state) {
+    case THREAD_RUNNING:  return TH_GREEN;
+    case THREAD_READY:    return TH_BLUE;
+    case THREAD_BLOCKED:  return TH_PEACH;
+    case THREAD_SLEEPING: return TH_OVERLAY;
+    default:              return TH_RED;
+    }
+}
+
+static void state_word(uint8_t state)
+{
+    static const char *const words[] = { "ready", "running", "blocked", "sleeping", "ended" };
+
+    ui_dot(state_colour(state), state <= THREAD_TERMINATED ? words[state] : "unknown");
+}
+
+/* Thread table columns */
+#define COL_NAME    8
+#define COL_STATE   22
+#define COL_PRI     34
+#define COL_TICKS   39
+#define COL_SHARE   51
 
 void debug_thread_list(void)
 {
+    char note[24];
+    uint32_t total = 0;
     int i;
     tcb_t *tcb;
-
-    con_println("=== Thread List ===");
-    con_println("  TID  Name          State      Pri  CPU Ticks");
-    con_println("  ---  ----          -----      ---  ---------");
 
     for (i = 0; i < MAX_THREADS; i++) {
         tcb = thread_get_tcb(i);
         if (tcb && tcb->active) {
-            con_print("  ");
-            con_print_dec(tcb->tid);
-            con_print("    ");
-            con_print(tcb->name);
-
-            /* Pad name to 14 chars */
-            int namelen = 0;
-            const char *p = tcb->name;
-            while (*p) { namelen++; p++; }
-            while (namelen < 14) { con_putchar(' '); namelen++; }
-
-            con_print(get_state_name(tcb->state));
-
-            /* Pad state */
-            int statelen = 0;
-            const char *s = get_state_name(tcb->state);
-            while (*s) { statelen++; s++; }
-            while (statelen < 11) { con_putchar(' '); statelen++; }
-
-            con_print_dec(tcb->priority);
-            con_print("    ");
-            con_print_dec((uint16_t)tcb->cpu_ticks);
-            con_putchar('\n');
+            total += tcb->cpu_ticks;
         }
     }
+
+    ui_panel_open("Thread List", TH_MAUVE, ui_format((uint32_t)thread_count(), " threads", note, sizeof(note)));
+    ui_row();
+    ui_text(TH_SUBTEXT, "TID");
+    ui_pad_to(COL_NAME);      ui_text(TH_SUBTEXT, "NAME");
+    ui_pad_to(COL_STATE);     ui_text(TH_SUBTEXT, "STATE");
+    ui_pad_to(COL_PRI);       ui_text(TH_SUBTEXT, "PRI");
+    ui_pad_to(COL_TICKS);     ui_text(TH_SUBTEXT, "CPU TICKS");
+    ui_pad_to(COL_SHARE);     ui_text(TH_SUBTEXT, "SHARE OF CPU");
+    ui_row_end();
+    ui_row_rule();
+
+    for (i = 0; i < MAX_THREADS; i++) {
+        tcb = thread_get_tcb(i);
+        if (!tcb || !tcb->active) continue;
+
+        ui_row();
+        ui_num(tcb->tid, 3, TH_SUBTEXT);
+        ui_pad_to(COL_NAME);
+        ui_text(tcb->state == THREAD_RUNNING ? TH_TEXT : TH_SUBTEXT, tcb->name);
+        ui_pad_to(COL_STATE);
+        state_word(tcb->state);
+        ui_pad_to(COL_PRI);
+        ui_num(tcb->priority, 3, TH_TEXT);
+        ui_pad_to(COL_TICKS);
+        ui_num(tcb->cpu_ticks, 9, TH_TEXT);
+        ui_pad_to(COL_SHARE);
+        ui_meter(tcb->cpu_ticks, total, 16, state_colour(tcb->state) == TH_OVERLAY ? TH_BLUE
+                                                                            : state_colour(tcb->state));
+        ui_num(total ? tcb->cpu_ticks * 100 / total : 0, 4, TH_TEXT);
+        ui_text(TH_SUBTEXT, "%");
+        ui_row_end();
+    }
+    ui_panel_close();
 }
 
-/* Print "<used> of <size>" padded to a column */
-static void print_usage(uint16_t used, uint16_t size)
+/* Stack table columns */
+#define COL_KERNEL  22
+#define COL_PROGRAM 50
+
+static void stack_use(uint16_t used, uint16_t size)
 {
-    con_print_dec(used);
-    con_print(" of ");
-    con_print_dec(size);
+    uint8_t fg = used * 4 > size * 3 ? TH_RED : used * 2 > size ? TH_YELLOW : TH_GREEN;
+
+    ui_num(used, 4, TH_TEXT);
+    ui_text(TH_SUBTEXT, " of ");
+    ui_num(size, 4, TH_SUBTEXT);
+    con_putchar(' ');
+    ui_meter(used, size, 12, fg);
 }
 
 void debug_stack_list(void)
@@ -154,75 +183,85 @@ void debug_stack_list(void)
     tcb_t *tcb;
     uint16_t kernel, program;
 
-    con_println("=== Stack Use (deepest so far, bytes) ===");
-    con_println("  TID  Name          Kernel stack    Program stack");
-    con_println("  ---  ----          ------------    -------------");
+    ui_panel_open("Stack Use", TH_TEAL, "deepest so far, bytes");
+    ui_row();
+    ui_text(TH_SUBTEXT, "TID");
+    ui_pad_to(COL_NAME);      ui_text(TH_SUBTEXT, "NAME");
+    ui_pad_to(COL_KERNEL);    ui_text(TH_SUBTEXT, "KERNEL STACK");
+    ui_pad_to(COL_PROGRAM);   ui_text(TH_SUBTEXT, "PROGRAM STACK");
+    ui_row_end();
+    ui_row_rule();
 
     for (i = 0; i < MAX_THREADS; i++) {
         tcb = thread_get_tcb(i);
         if (!tcb || !thread_stack_peak(i, &kernel, &program)) {
             continue;
         }
-
-        con_print("  ");
-        con_print_dec(tcb->tid);
-        con_print(tcb->tid < 10 ? "    " : "   ");
-        con_print(tcb->name);
-        {
-            int len = 0;
-            const char *p = tcb->name;
-            while (*p) { len++; p++; }
-            while (len < 14) { con_putchar(' '); len++; }
-        }
-        print_usage(kernel, tcb->stack_size);
+        ui_row();
+        ui_num(tcb->tid, 3, TH_SUBTEXT);
+        ui_pad_to(COL_NAME);
+        ui_text(TH_TEXT, tcb->name);
+        ui_pad_to(COL_KERNEL);
+        stack_use(kernel, tcb->stack_size);
         if (tcb->program) {
-            con_print("    ");
-            print_usage(program, PROG_STACK_SIZE);
+            ui_pad_to(COL_PROGRAM);
+            stack_use(program, PROG_STACK_SIZE);
         }
-        con_putchar('\n');
+        ui_row_end();
     }
+    ui_panel_close();
 }
 
 void debug_irq_counts(void)
 {
-    con_println("=== Interrupt Counters ===");
-    con_print("  Timer (IRQ0):     ");
-    con_print_dec((uint16_t)irq_timer_count);
-    con_putchar('\n');
-    con_print("  Keyboard (IRQ1):  ");
-    con_print_dec((uint16_t)irq_keyboard_count);
-    con_putchar('\n');
-    con_print("  Syscall (INT80):  ");
-    con_print_dec((uint16_t)irq_syscall_count);
-    con_putchar('\n');
-    con_print("  Context Switches: ");
-    con_print_dec((uint16_t)context_switch_count);
-    con_putchar('\n');
+    ui_panel_open("Interrupt Counters", TH_PEACH, "since boot");
+    ui_row();
+    ui_counter("Timer (IRQ0):", irq_timer_count, NULL);
+    ui_counter("Keyboard (IRQ1):", irq_keyboard_count, NULL);
+    ui_row_end();
+    ui_row();
+    ui_counter("Syscall (INT80):", irq_syscall_count, NULL);
+    ui_counter("Context Switches:", context_switch_count, NULL);
+    ui_row_end();
+    ui_panel_close();
 }
 
 void debug_sched_queue(void)
 {
     int i;
     tcb_t *tcb;
+    tcb_t *current = thread_get_tcb(sched_current());
 
-    con_println("=== Scheduler Queue ===");
-    con_print("  Current: TID ");
-    con_print_dec(sched_current());
-    con_putchar('\n');
+    ui_panel_open("Scheduler Queue", TH_BLUE, "highest priority runs next");
+    ui_row();
+    ui_text(TH_SUBTEXT, "Current: TID ");
+    ui_num((uint32_t)sched_current(), 1, TH_TEXT);
+    ui_text(TH_SUBTEXT, "  ");
+    ui_dot(TH_GREEN, current->name);
+    ui_row_end();
+    ui_row();
+    ui_text(TH_SUBTEXT, "Ready threads:");
+    ui_row_end();
 
-    con_println("  Ready threads:");
     for (i = 0; i < MAX_THREADS; i++) {
         tcb = thread_get_tcb(i);
         if (tcb && tcb->active && tcb->state == THREAD_READY) {
-            con_print("    [");
-            con_print_dec(i);
-            con_print("] ");
-            con_print(tcb->name);
-            con_print(" (pri=");
-            con_print_dec(tcb->priority);
-            con_println(")");
+            ui_row();
+            ui_pad_to(5);
+            ui_num((uint32_t)i, 2, TH_SUBTEXT);
+            ui_pad_to(10);
+            ui_dot(TH_BLUE, tcb->name);
+            ui_pad_to(28);
+            ui_text(TH_SUBTEXT, "priority ");
+            ui_num(tcb->priority, 1, TH_TEXT);
+            if (tcb->eff_priority != tcb->priority) {
+                ui_text(TH_SUBTEXT, ", effective ");
+                ui_num(tcb->eff_priority, 1, TH_YELLOW);
+            }
+            ui_row_end();
         }
     }
+    ui_panel_close();
 }
 
 void debug_dump_stack(int tid)
@@ -256,9 +295,9 @@ void debug_dump_stack(int tid)
     if (*guard == STACK_GUARD_VALUE) {
         con_println(" (OK)");
     } else {
-        con_set_color(VGA_WHITE, VGA_RED);
+        con_set_color(TH_TEXT, TH_RED);
         con_println(" (CORRUPTED!)");
-        con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
+        con_set_color(TH_TEXT, TH_BASE);
     }
 }
 

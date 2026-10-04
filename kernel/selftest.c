@@ -20,6 +20,7 @@
 #include "fat12.h"
 #include "exec.h"
 #include "keyboard.h"
+#include "ui.h"
 #include "scheduler.h"
 
 static uint16_t passed;
@@ -31,7 +32,9 @@ static void expect(bool ok, const char *name)
         passed++;
     } else {
         failed++;
-        con_print("  FAILED: ");
+        con_print("  ");
+        ui_mark(false);
+        con_print("FAILED: ");
         con_println(name);
     }
 }
@@ -420,6 +423,8 @@ uint16_t selftest_run(void)
     expect(mem_free() == heap_before, "selftest: no heap leak");
     expect(far_free_paras() == far_before, "selftest: no far memory leak");
 
+    con_print("  ");
+    ui_mark(failed == 0);
     con_print("selftest: ");
     con_print_dec(passed);
     con_print(" passed, ");

@@ -55,39 +55,45 @@ make                # builds build/phoenix8086.img, the floppy image
 | Restart the kernel without closing the window | Type `reboot` at the prompt |
 | Release the mouse if QEMU grabbed it | Ctrl+Alt+G |
 
-When it starts you see the boot log. Each `[INIT]` line is one part of the kernel coming up:
+When it starts you see the PHOENIX logo and the boot log. Each line with a dot is one part of the kernel coming up, and a check mark means it is ready:
 
 ```
-[BOOT] Drive: 0x0000  Memory: 639 KB
-[INIT] Memory manager... OK
-       Heap free: 33688 bytes
-[INIT] Keyboard driver... OK
-[INIT] Scheduler... OK
-[INIT] Interrupt system... OK
-[INIT] IRQ0 (Timer)    -> Installed
-[INIT] IRQ1 (Keyboard) -> Installed
-[INIT] INT 80h (Syscall) -> Installed
-[INIT] Disk... native floppy driver
-[INIT] File system... FAT12 mounted
-[INIT] Creating shell thread... OK (TID=1)
+  ● Boot drive ················   0x0000, 639 KB of memory
+  ● Memory manager ············ ✓ 33704 bytes of near heap
+  ● Keyboard ·················· ✓ us layout
+  ● Scheduler ················· ✓ priorities, time slices, aging
+  ● Interrupts ················ ✓ timer 100 Hz, keyboard, INT 80h
+  ● Disk ······················ ✓ native floppy driver
+  ● File system ··············· ✓ FAT12 mounted
+  ● Shell ····················· ✓ thread 1
 
-============================================
-  Phoenix-8086 boot complete.
-  All subsystems initialized.
-============================================
+  ✓ Phoenix-8086 boot complete. All subsystems initialized.
 
-Phoenix-8086 Kernel Shell
-Type 'help' for available commands.
+  Type help for the commands, or try ps, stacks and run hello.bin.
 
 phoenix> _
 ```
 
 | Line | Meaning |
 | --- | --- |
-| `Drive: 0x0000` | The kernel booted from the first floppy drive |
-| `Memory: 639 KB` | How much memory the BIOS reported |
-| `Disk... native floppy driver` | The kernel talks to the floppy controller itself. On machines without one it says `BIOS INT 13h` |
-| `File system... FAT12 mounted` | The boot disk's files are available |
+| `Boot drive 0x0000` | The kernel booted from the first floppy drive |
+| `639 KB of memory` | How much memory the BIOS reported |
+| `Disk ... native floppy driver` | The kernel talks to the floppy controller itself. On machines without one it says `BIOS INT 13h` |
+| `File system ... FAT12 mounted` | The boot disk's files are available |
+
+### The screen
+
+<p align="center"><img src="images/console-threads.png" alt="Demo threads running, ps listing them, and the status bar at the bottom" width="720"></p>
+
+| Part | What it shows |
+| --- | --- |
+| **Prompt** | The lilac `phoenix` pill. It means the shell is waiting for a command. (In text copies of a session, and to the dashboard, it is written `phoenix>`.) |
+| **Panels** | Commands such as `ps`, `memory` and `ls` draw a panel with a title on the top border and, on the right, a note such as the number of threads |
+| **Marks** | A green check (✓) is a success, a red cross (✗) a failure, a blue dot (●) information |
+| **Meters** | A thick line shows how full or busy something is; the thin line behind it is the rest |
+| **Status bar** | The bottom line, updated every second: time since boot, threads, free memory, the processor load over the last eight seconds as a sparkline, and the processor the kernel detected |
+
+The colours are the Catppuccin Mocha palette. On a VGA the kernel loads them into the video hardware, and adds the rounded corners, pill ends, arrows and sparkline bars to the character set. On a CGA, as on the original IBM PC, it uses the sixteen standard colours and the nearest ordinary characters instead. Build with `make CONSOLE=plain` to see that look on a VGA.
 
 ## 3. The shell
 
@@ -134,32 +140,35 @@ Words used below:
 
 ```
 phoenix> ps
-=== Thread List ===
-  TID  Name          State      Pri  CPU Ticks
-  ---  ----          -----      ---  ---------
-  0    idle          READY      0    5656
-  1    shell         RUNNING    10    4
-  2    telemetry     SLEEPING   12    7
+ ╭─ Thread List ────────────────────────────────────────────────── 3 threads ─╮
+ │ TID  NAME          STATE       PRI  CPU TICKS   SHARE OF CPU               │
+ │ ────────────────────────────────────────────────────────────────────────── │
+ │   0  idle          ● ready       0        164   ━━━━━━━━━━━━━━━━ 100%      │
+ │   1  shell         ● running    10          0   ────────────────   0%      │
+ │   2  telemetry     ● sleeping   12          0   ────────────────   0%      │
+ ╰────────────────────────────────────────────────────────────────────────────╯
 ```
 
 | Column | Meaning |
 | --- | --- |
-| State `RUNNING` | Has the processor right now. In `ps` output that is always the shell |
-| State `READY` | Wants the processor and is waiting its turn |
-| State `BLOCKED` | Waiting for something: a key, a message, a semaphore |
-| State `SLEEPING` | Waiting for a time to pass |
-| CPU Ticks | How many timer ticks the thread has been running for |
+| State `running` (green) | Has the processor right now. In `ps` output that is always the shell |
+| State `ready` (blue) | Wants the processor and is waiting its turn |
+| State `blocked` (orange) | Waiting for something: a key, a message, a semaphore |
+| State `sleeping` (grey) | Waiting for a time to pass |
+| CPU TICKS | How many timer ticks the thread has been running for |
+| SHARE OF CPU | Its share of all the ticks the threads in the list have used |
 
 `stacks` in detail:
 
 ```
 phoenix> stacks
-=== Stack Use (deepest so far, bytes) ===
-  TID  Name          Kernel stack    Program stack
-  ---  ----          ------------    -------------
-  0    idle          182 of 2048
-  1    shell         238 of 2048
-  2    telemetry     202 of 2048
+ ╭─ Stack Use ──────────────────────────────────────── deepest so far, bytes ─╮
+ │ TID  NAME          KERNEL STACK                PROGRAM STACK               │
+ │ ────────────────────────────────────────────────────────────────────────── │
+ │   0  idle           180 of 2048 ━───────────                               │
+ │   1  shell          372 of 2048 ━━──────────                               │
+ │   2  telemetry      246 of 2048 ━───────────                               │
+ ╰────────────────────────────────────────────────────────────────────────────╯
 ```
 
 Every stack is filled with a known pattern when its thread starts, so the kernel can tell how far down a thread has ever reached. A thread running a program has a second stack in the program's memory, shown in the last column. A stack that comes within 192 bytes of its end (64 for a program stack) is treated as overflowing and its thread is stopped. The figures only grow: run `selftest` and then `stacks` again, and the shell's number goes up.
@@ -183,20 +192,21 @@ Three threads are always there: `idle` (runs when nothing else does), `shell`, a
 
 ```
 phoenix> memory
-=== Memory Map ===
-  IVT:           0x0000:0x0000 - 0x03FF
-  BIOS Data:     0x0000:0x0400 - 0x04FF
-  Bootloader:    0x0000:0x7C00  (512 bytes)
-  Stage 2:       0x0000:0x7E00  (2048 bytes)
-  Kernel Code:   0x1000:0x0000
-  Kernel Data:   0x2000:0x0000  (data+BSS end 0x7468)
-  Near Heap:     0x2000:0x7468 - 0xF7FF
-  Kernel Stack:  0x2000:0xF800 - 0xFFFF
-  Far Arena:     0x3000:0x0000 - 0x9FC0:0x0000
-
-  Heap free:  29076 bytes
-  Heap used:  4612 bytes
-  Far free:   446 KB
+ ╭─ Memory Map ──────────────────────────────────────────── 639 KB of memory ─╮
+ │ IVT             0x0000:0x0000 - 0x03FF           interrupt vectors         │
+ │ BIOS Data       0x0000:0x0400 - 0x04FF                                     │
+ │ Bootloader      0x0000:0x7C00                    stage 1, 512 bytes        │
+ │ Stage 2         0x0000:0x7E00                    2048 bytes                │
+ │ Kernel Code     0x1000:0x0000                    64 KB segment             │
+ │ Kernel Data     0x2000:0x0000 - 0x7457           data and BSS              │
+ │ Near Heap       0x2000:0x7458 - 0xF7FF           kmalloc                   │
+ │ Kernel Stack    0x2000:0xF800 - 0xFFFF                                     │
+ │ Far Arena       0x3000:0x0000 - 0x9FC0:0x0000    programs, far_alloc       │
+ │ ────────────────────────────────────────────────────────────────────────── │
+ │ Heap free:   29092 bytes  ━━━━──────────────────────────  13% used         │
+ │ Heap used:    4612 bytes                                                   │
+ │ Far free:      446 KB     ━─────────────────────────────   0% used         │
+ ╰────────────────────────────────────────────────────────────────────────────╯
 ```
 
 Addresses are written `segment:offset`. The **near heap** is the kernel's own small pool of memory. The **far arena** is the rest of the machine's memory, which programs are loaded into. If "Far free" is lower after a program has finished than before it started, something leaked.
@@ -214,7 +224,7 @@ Addresses are written `segment:offset`. The **near heap** is the kernel's own sm
 | `selftest` | The kernel testing itself |
 | `overflow` | A stack overflow being caught |
 | `divzero` | A divide-by-zero, which ends in a panic |
-| `panic` | The panic screen |
+| `panic` | The panic report |
 
 `divzero` and `panic` halt the kernel on purpose. Restart it afterwards.
 
@@ -230,7 +240,7 @@ Addresses are written `segment:offset`. The **near heap** is the kernel's own sm
 
 | Command | What it does |
 | --- | --- |
-| `keymap` | Lists the layouts; `*` marks the current one |
+| `keymap` | Lists the layouts; the green dot marks the one in use |
 | `keymap <name>` | Switches layout: `us`, `uk`, `de`, `fr` |
 
 ## 5. Guided demos
@@ -269,7 +279,7 @@ This thread does everything through `INT 80h`: it asks for the interface version
 
 ```
 phoenix> selftest
-selftest: 79 passed, 0 failed
+  ✓ selftest: 79 passed, 0 failed
 ```
 
 The kernel checks its own memory allocators, semaphores, mutexes (including priority inheritance), mailboxes, timer, system calls, keyboard layouts and file system. If anything fails it names the check. Run this first if the kernel behaves strangely.
@@ -278,8 +288,9 @@ The kernel checks its own memory allocators, semaphores, mutexes (including prio
 
 ```
 phoenix> overflow
+  ✓ Created thread TID=3
 
-!!! STACK OVERFLOW: Thread 3 (overflow) !!!
+  ✗ STACK OVERFLOW: Thread 3 (overflow) stopped
 ```
 
 The thread calls itself forever. Every thread's stack is checked each time the kernel switches threads, and this one is stopped before its stack runs into its neighbour's. The shell is unaffected.
@@ -303,7 +314,7 @@ Run one with `run`:
 
 ```
 phoenix> run primes.bin
-Started primes.bin as TID=3
+  ✓ Started primes.bin as TID=3
 primes below 1000: 168
 largest 997
 last digit seven
@@ -317,11 +328,11 @@ A program runs as a thread, so you can start several at once, see them in `ps`, 
 
 ```
 phoenix> run rogue.bin
-Started rogue.bin as TID=3
+  ✓ Started rogue.bin as TID=3
 rogue: 9 of 9 bad calls refused
 rogue: now overflowing my own stack
 
-!!! PROGRAM STACK OVERFLOW: Thread 3 (rogue) !!!
+  ✗ PROGRAM STACK OVERFLOW: Thread 3 (rogue) stopped
 ```
 
 It passes the kernel pointers outside its own memory, a made-up semaphore handle, the kernel's own memory to free, and a thread start address outside its code; every one of those calls fails. Then it recurses until its stack runs out and is stopped. The 8086 cannot stop a program from writing anywhere it likes, so this is detection, not protection: the kernel refuses to do damage on a program's behalf and notices a runaway stack at the next thread switch.
@@ -442,12 +453,12 @@ This runs the same floppy image as QEMU does. The browser emulator imitates a 38
 
 ```
 phoenix> keymap
-* us  United States (QWERTY)
-  uk  United Kingdom (QWERTY)
-  de  German (QWERTZ)
-  fr  French (AZERTY)
+  ● us    United States (QWERTY)  (in use)
+  ● uk    United Kingdom (QWERTY)
+  ● de    German (QWERTZ)
+  ● fr    French (AZERTY)
 phoenix> keymap de
-Keymap: de
+  ✓ Keymap: de
 ```
 
 A layout tells the kernel which character each *key position* produces. Choose the one that matches the keyboard you are typing on.
@@ -460,33 +471,32 @@ If you switch to a layout that does not match your keyboard, the letters on your
 
 ## 11. When things go wrong
 
-### The panic screen
+### The panic report
 
-A panic means the kernel hit something it cannot recover from and has stopped.
+A panic means the kernel hit something it cannot recover from and has stopped. The screen shows a report, and the status bar turns red and says **HALTED**.
+
+<p align="center"><img src="images/console-panic.png" alt="The kernel panic report" width="720"></p>
 
 ```
-=========================
-    KERNEL PANIC
-=========================
+  KERNEL PANIC   User-triggered panic via shell
 
-Reason: User-triggered panic via shell
+ ╭─ Where ────────────────────────────────────────────────────────────────────╮
+ │ Current Thread: TID=1  Name=shell  State=1                                 │
+ │ Timer ticks:               188       Context switches:           44        │
+ ╰────────────────────────────────────────────────────────────────────────────╯
+ ╭─ Register Dump ─────────────────────────────── at the moment of the panic ─╮
+ │ AX=0x0CAA       BX=0x1063       CX=0x0608       DX=0xFFFF                  │
+ │ SP=0x2E79       BP=0x2E79       SI=0x2EAE       DI=0x2EA9                  │
+ │ CS=0x1000       IP=0x4E6A       FLAGS=0x0002                               │
+ │ DS=0x2000       ES=0x0B33       SS=0x2000                                  │
+ ╰────────────────────────────────────────────────────────────────────────────╯
 
-Current Thread: TID=1  Name=shell  State=1
-
-Register Dump:
-  AX=0x0F27  BX=0x0B6F  CX=0x0708  DX=0xFFFF
-  SP=0x2F3F  BP=0x2F3F  SI=0x2F68  DI=0x2F63
-  CS=0x1000  IP=0x32D8  FLAGS=0x0002
-  DS=0x2000  ES=0x0DD0  SS=0x2000
-
-Timer ticks: 7599  Context switches: 17242
-
-System halted. Please reboot.
+  ● System halted. Press RESET to restart. Look the IP up with: make disasm
 ```
 
 | Field | Use |
 | --- | --- |
-| **Reason** | What happened |
+| **The red pill** | What happened |
 | **Current Thread** | Which thread was running |
 | **CS:IP** | Where in the code it happened. `CS=0x1000` is the kernel; another value is a program |
 | **Other registers** | The processor's state at that instant |

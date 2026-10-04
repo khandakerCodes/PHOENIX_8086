@@ -7,6 +7,7 @@
  */
 
 #include "interrupts.h"
+#include "ui.h"
 #include "console.h"
 #include "keyboard.h"
 #include "scheduler.h"
@@ -193,6 +194,7 @@ uint16_t timer_handler(uint16_t sp)
 
     tick_count++;
     irq_timer_count++;
+    ui_timer_tick();        /* The status bar redraws once a second */
 
     sched_tick();
 

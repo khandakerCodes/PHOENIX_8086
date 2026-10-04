@@ -32,16 +32,16 @@ It is built for people learning how operating systems work, for teachers who wan
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/images/console-boot.png" alt="The kernel's boot log ending at the phoenix prompt"></td>
-    <td width="50%"><img src="docs/images/console-threads.png" alt="Three threads printing A, B and C, interleaved"></td>
+    <td width="50%"><img src="docs/images/console-programs.png" alt="The ls panel listing the boot disk, and a program running"></td>
+    <td width="50%"><img src="docs/images/console-threads.png" alt="Demo threads printing A, B and C while ps shows their share of the processor"></td>
   </tr>
   <tr>
-    <td align="center"><sub>Booting to the shell</sub></td>
-    <td align="center"><sub>Three threads sharing one processor</sub></td>
+    <td align="center"><sub>The boot disk, and a program running from it</sub></td>
+    <td align="center"><sub>Threads sharing one processor, with <code>ps</code> and the load sparkline</sub></td>
   </tr>
   <tr>
     <td><img src="docs/images/in-browser.png" alt="The dashboard running the kernel inside a web browser"></td>
-    <td><img src="docs/images/console-panic.png" alt="The red kernel panic screen with a register dump"></td>
+    <td><img src="docs/images/console-panic.png" alt="The kernel panic report with the registers at the fault"></td>
   </tr>
   <tr>
     <td align="center"><sub>The dashboard, with the kernel running inside the browser</sub></td>
@@ -78,6 +78,7 @@ It is built for people learning how operating systems work, for teachers who wan
 | ▸ | **A real file system** | The boot floppy is a standard FAT12 disk. The kernel reads it with its own floppy-controller driver. |
 | ▸ | **Loadable programs** | Write a C program with the SDK, put it on the disk, and `run` it. Each program gets memory of its own. |
 | ▸ | **Safety nets** | A runaway thread is stopped before it damages another, whether it is a kernel thread or a program. Bad system-call arguments are refused. A crash shows a panic screen with the processor's registers. |
+| ▸ | **A modern console** | Rounded panels, colour-coded states, meters, a powerline prompt and a live status bar with a load sparkline, in the Catppuccin Mocha palette. On a VGA the kernel loads its own colours and glyphs into the video hardware; on a CGA it falls back to plain characters. |
 | ▸ | **A live dashboard** | A web page shows threads, context switches, registers, stack use and memory as they happen, in five languages. A recorded session can also be opened in [Perfetto](https://ui.perfetto.dev) as a full timeline. |
 | ▸ | **Runs in a browser** | The whole thing, kernel included, can run inside a web page with nothing installed. |
 | ▸ | **Honest 8086 code** | Every build is checked for instructions newer than the 8086, and the kernel is tested on an emulated 8086. |
@@ -100,11 +101,9 @@ make toolchain
 make run
 ```
 
-A window opens, the kernel boots, and you get a prompt:
+A window opens, the kernel boots, and you get a prompt: a lilac `phoenix` pill with a status bar along the bottom of the screen.
 
-```
-phoenix> _
-```
+<p align="center"><img src="docs/images/console-boot.png" alt="The boot screen: the PHOENIX logo, a checklist of subsystems, the prompt and the status bar" width="720"></p>
 
 Type `help` and press Enter. To make sure everything is healthy, run `make test`.
 
@@ -116,17 +115,17 @@ Type `help` and press Enter. To make sure everything is healthy, run `make test`
 
 ## Your first five minutes
 
-Everything below is real output from the kernel, trimmed a little. Type the part after `phoenix>`.
+Everything below is real output from the kernel, trimmed a little. Type the part after `phoenix>`; on screen the prompt is the coloured pill, and panels, meters and marks are drawn in colour.
 
 ### 1. Watch three threads share the processor
 
 ```
 phoenix> create
-Created thread TID=3
+  ✓ Created thread TID=3
 phoenix> create
-Created thread TID=4
+  ✓ Created thread TID=4
 phoenix> create
-Created thread TID=5
+  ✓ Created thread TID=5
 phoenix> [B][C][C][B][C][B][C][C][B][C][B][C][C][B][C][B][C][C]...
 ```
 
@@ -136,37 +135,41 @@ Each thread prints its own letter (A, B and C). They have different priorities, 
 
 ```
 phoenix> ps
-=== Thread List ===
-  TID  Name          State      Pri  CPU Ticks
-  ---  ----          -----      ---  ---------
-  0    idle          READY      0    5656
-  1    shell         RUNNING    10    4
-  2    telemetry     SLEEPING   12    7
+ ╭─ Thread List ────────────────────────────────────────────────── 3 threads ─╮
+ │ TID  NAME          STATE       PRI  CPU TICKS   SHARE OF CPU               │
+ │ ────────────────────────────────────────────────────────────────────────── │
+ │   0  idle          ● ready       0        164   ━━━━━━━━━━━━━━━━ 100%      │
+ │   1  shell         ● running    10          0   ────────────────   0%      │
+ │   2  telemetry     ● sleeping   12          0   ────────────────   0%      │
+ ╰────────────────────────────────────────────────────────────────────────────╯
 ```
 
-`idle` runs when nobody else wants the processor, `shell` is what you are typing into, and `telemetry` reports to the dashboard.
+`idle` runs when nobody else wants the processor, `shell` is what you are typing into, and `telemetry` reports to the dashboard. The meter is each thread's share of the processor since it started; the status bar at the bottom of the screen shows the load over the last eight seconds as a sparkline.
 
 ### 3. Run programs from the disk
 
 ```
 phoenix> ls
-  README.TXT    271 bytes
-  HELLO.BIN     188 bytes
-  PRIMES.BIN    456 bytes
-  CLOCK.BIN     446 bytes
-  THREADS.BIN   636 bytes
-  WHERE.BIN     373 bytes
-  GREET.BIN     242 bytes
-  ROGUE.BIN     898 bytes
-8 file(s)
+ ╭─ Boot Disk ──────────────────────────────────────── FAT12, root directory ─╮
+ │ ● README.TXT         271 bytes   text, try: cat README.TXT                 │
+ │ ● HELLO.BIN          188 bytes   program, try: run HELLO.BIN               │
+ │ ● PRIMES.BIN         456 bytes   program, try: run PRIMES.BIN              │
+ │ ● CLOCK.BIN          446 bytes   program, try: run CLOCK.BIN               │
+ │ ● THREADS.BIN        636 bytes   program, try: run THREADS.BIN             │
+ │ ● WHERE.BIN          373 bytes   program, try: run WHERE.BIN               │
+ │ ● GREET.BIN          242 bytes   program, try: run GREET.BIN               │
+ │ ● ROGUE.BIN          898 bytes   program, try: run ROGUE.BIN               │
+ │ ────────────────────────────────────────────────────────────────────────── │
+ │ 8 file(s), 3510 bytes                                                      │
+ ╰────────────────────────────────────────────────────────────────────────────╯
 
 phoenix> run hello.bin
-Started hello.bin as TID=3
+  ✓ Started hello.bin as TID=3
 Hello from a program loaded off the disk!
 System call ABI version 1
 
 phoenix> run where.bin
-Started where.bin as TID=3
+  ✓ Started where.bin as TID=3
 where: cs=3001 ds=3011 ss=3011
 where: 50000 bytes of my own, zeroed and writable
 ```
@@ -177,8 +180,8 @@ where: 50000 bytes of my own, zeroed and writable
 
 ```
 phoenix> ipc
-Created thread TID=3
-Created thread TID=4
+  ✓ Created thread TID=3
+  ✓ Created thread TID=4
 [recv 1][recv 2][recv 3][recv 4][recv 5][ipc done]
 ```
 
@@ -188,22 +191,22 @@ One thread sends numbers into a mailbox and another receives them. The receiver 
 
 ```
 phoenix> overflow
-Created thread TID=3
+  ✓ Created thread TID=3
 
-!!! STACK OVERFLOW: Thread 3 (overflow) !!!
+  ✗ STACK OVERFLOW: Thread 3 (overflow) stopped
 ```
 
-A thread that recurses forever is caught and stopped, and the shell carries on. For the full red screen, type `panic`.
+A thread that recurses forever is caught and stopped, and the shell carries on. For the full crash report, type `panic`.
 
 A program can misbehave too:
 
 ```
 phoenix> run rogue.bin
-Started rogue.bin as TID=3
+  ✓ Started rogue.bin as TID=3
 rogue: 9 of 9 bad calls refused
 rogue: now overflowing my own stack
 
-!!! PROGRAM STACK OVERFLOW: Thread 3 (rogue) !!!
+  ✗ PROGRAM STACK OVERFLOW: Thread 3 (rogue) stopped
 ```
 
 The kernel refuses every system call that hands it memory the program does not own, then catches the program's own stack overflowing. The 8086 has no memory protection, so this is detection, not protection.
@@ -399,7 +402,7 @@ Every push runs all of this on GitHub's servers.
 
 | Suite | What it does | Size |
 | --- | --- | --- |
-| Instruction check | Rejects any non-8086 instruction | 11,778 kernel instructions, plus every example program |
+| Instruction check | Rejects any non-8086 instruction | 14,339 kernel instructions, plus every example program |
 | Host-compiled kernel tests | Kernel synchronisation, mailboxes, allocators and FAT12 built for the PC with sanitizers; a fuzzer feeds the FAT12 driver thousands of corrupted floppies | 2,309 checks, 81% line coverage of those files |
 | In-kernel self-test | The kernel tests its own allocators, semaphores, mutexes and priority inheritance, mailboxes, timers, system calls, file system and keyboard layouts | 79 assertions |
 | Size budget | Fails if either 64 KB segment passes 90% full; the report goes in the CI summary | Every push |
@@ -409,7 +412,7 @@ Every push runs all of this on GitHub's servers.
 | Host unit tests | Protocol decoders, bridge, trace export, dashboard logic and page code | 94 tests |
 | Browser test | Opens the dashboard and the in-browser kernel in headless Chromium, with an accessibility audit | Over 30 checks |
 
-Some honest numbers: the kernel and boot loaders are about **8,800 lines** of C and assembly, and the kernel builds to **35 KB**: 40% of its 64 KB code segment. A 15-minute soak run made 27,611 context switches without a leak or a lost telemetry record. The FAT12 fuzzer found three real bugs in the driver on its first run; all are fixed and each has its own test.
+Some honest numbers: the kernel and boot loaders are about **9,800 lines** of C and assembly, and the kernel builds to **40 KB**: 49% of its 64 KB code segment. A 15-minute soak run made 27,611 context switches without a leak or a lost telemetry record. The FAT12 fuzzer found three real bugs in the driver on its first run; all are fixed and each has its own test.
 
 > [!IMPORTANT]
 > The `bench` command reports how fast context switches are and how long the timer interrupt takes to arrive, but it measures the *emulator*, not an 8086. Do not quote its numbers as hardware performance. Under QEMU the interrupt latency is especially unrealistic (hundreds of microseconds), because QEMU raises the timer interrupt later than its emulated timer chip wraps.

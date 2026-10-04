@@ -14,6 +14,7 @@
 
 #include "panic.h"
 #include "console.h"
+#include "ui.h"
 #include "thread.h"
 #include "interrupts.h"
 #include "kernel.h"
@@ -35,95 +36,66 @@ static void panic_show(const char *reason, uint16_t context)
     tid = thread_current_tid();
     telemetry_fault((uint8_t)(tid < 0 ? 0xFF : tid), frame, CONTEXT_RESUME_SP(context), reason);
 
-    /* Red background for panic screen */
-    con_set_color(VGA_WHITE, VGA_RED);
+    /* A dark crash report: the reason in a red pill, then where and the registers */
+    ui_status_halted();
+    con_reset_color();
     con_clear();
+    con_putchar('\n');
+    con_print("  ");
+    ui_pill(" KERNEL PANIC ", TH_RED);
+    con_print("  ");
+    ui_text(TH_RED, reason);
+    con_putchar('\n');
+    con_putchar('\n');
 
-    /* Banner */
-    con_set_cursor(2, 20);
-    con_print("=========================");
-    con_set_cursor(3, 20);
-    con_print("    KERNEL PANIC         ");
-    con_set_cursor(4, 20);
-    con_print("=========================");
-
-    /* Reason */
-    con_set_cursor(6, 5);
-    con_print("Reason: ");
-    con_print(reason);
-
-    /* Current thread info */
-    con_set_cursor(8, 5);
-    con_print("Current Thread: ");
+    ui_panel_open("Where", TH_PEACH, NULL);
+    ui_row();
+    ui_text(TH_SUBTEXT, "Current Thread: ");
     if (tid >= 0) {
         tcb = thread_get_tcb(tid);
-        con_print("TID=");
-        con_print_dec(tid);
+        ui_text(TH_SUBTEXT, "TID=");
+        ui_num((uint32_t)tid, 1, TH_TEXT);
         if (tcb) {
-            con_print("  Name=");
-            con_print(tcb->name);
-            con_print("  State=");
-            con_print_dec(tcb->state);
+            ui_text(TH_SUBTEXT, "  Name=");
+            ui_text(TH_TEXT, tcb->name);
+            ui_text(TH_SUBTEXT, "  State=");
+            ui_num(tcb->state, 1, TH_TEXT);
         }
     } else {
-        con_print("None");
+        ui_text(TH_TEXT, "None");
     }
+    ui_row_end();
+    ui_row();
+    ui_counter("Timer ticks:", tick_count, NULL);
+    ui_counter("Context switches:", context_switch_count, NULL);
+    ui_row_end();
+    ui_panel_close();
 
-    /* Register dump: the frame captured when the panic was raised */
-    con_set_cursor(10, 5);
-    con_print("Register Dump:");
+    /* The frame captured when the panic was raised */
+    ui_panel_open("Register Dump", TH_PEACH, "at the moment of the panic");
+    ui_row();
+    ui_reg("AX", frame->ax); ui_reg("BX", frame->bx); ui_reg("CX", frame->cx); ui_reg("DX", frame->dx);
+    ui_row_end();
+    ui_row();
+    ui_reg("SP", CONTEXT_RESUME_SP(context));   /* SP before the interrupt */
+    ui_reg("BP", frame->bp); ui_reg("SI", frame->si); ui_reg("DI", frame->di);
+    ui_row_end();
+    ui_row();
+    ui_reg("CS", frame->cs); ui_reg("IP", frame->ip); ui_reg("FLAGS", frame->flags);
+    ui_row_end();
+    ui_row();
+    ui_reg("DS", frame->ds); ui_reg("ES", frame->es);
+    ui_reg("SS", CONTEXT(context)->from_program
+                     ? ((user_context_t *)context)->user_ss : KERNEL_DATA_SEG);
+    ui_row_end();
+    ui_panel_close();
 
-    con_set_cursor(11, 7);
-    con_print("AX=");
-    con_print_hex(frame->ax);
-    con_print("  BX=");
-    con_print_hex(frame->bx);
-    con_print("  CX=");
-    con_print_hex(frame->cx);
-    con_print("  DX=");
-    con_print_hex(frame->dx);
-
-    con_set_cursor(12, 7);
-    con_print("SP=");
-    con_print_hex(CONTEXT_RESUME_SP(context));          /* SP before the interrupt */
-    con_print("  BP=");
-    con_print_hex(frame->bp);
-    con_print("  SI=");
-    con_print_hex(frame->si);
-    con_print("  DI=");
-    con_print_hex(frame->di);
-
-    con_set_cursor(13, 7);
-    con_print("CS=");
-    con_print_hex(frame->cs);
-    con_print("  IP=");
-    con_print_hex(frame->ip);
-    con_print("  FLAGS=");
-    con_print_hex(frame->flags);
-
-    con_set_cursor(14, 7);
-    con_print("DS=");
-    con_print_hex(frame->ds);
-    con_print("  ES=");
-    con_print_hex(frame->es);
-    con_print("  SS=");
-    con_print_hex(CONTEXT(context)->from_program
-                      ? ((user_context_t *)context)->user_ss : KERNEL_DATA_SEG);
-
-    /* Interrupt stats */
-    con_set_cursor(16, 5);
-    con_print("Timer ticks: ");
-    con_print_dec((uint16_t)tick_count);
-    con_print("  Context switches: ");
-    con_print_dec((uint16_t)context_switch_count);
-
-    /* Halt message */
-    con_set_cursor(18, 5);
-    con_print("System halted. Please reboot.");
-
-    con_set_cursor(20, 5);
-    con_set_color(VGA_YELLOW, VGA_RED);
-    con_print("Press RESET to restart.\n");
+    con_putchar('\n');
+    con_print("  ");
+    ui_dot(TH_RED, "System halted. ");
+    ui_text(TH_SUBTEXT, "Press RESET to restart. ");
+    ui_text(TH_OVERLAY, "Look the IP up with: make disasm");
+    con_putchar('\n');
 
     /* The telemetry thread will never run again; send what is buffered */
     telemetry_flush();

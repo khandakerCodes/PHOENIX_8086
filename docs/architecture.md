@@ -112,7 +112,8 @@ A system call handler runs on the calling thread's own stack, so a call that mus
 
 ## Console, keyboard, serial
 
-* **Console** (`kernel/console.c`): writes character and attribute pairs directly to text video memory at `B800:0000`.
+* **Console** (`kernel/console.c`): writes character and attribute pairs directly to text video memory at `B800:0000`. Rows 0-23 scroll; row 24 is the status bar. At start-up it asks the BIOS (`INT 10h`, `AX=1A00h`) whether the display is a VGA. If so it loads the Catppuccin Mocha theme into the DAC palette, turns blinking off so all 16 colours work as backgrounds, and writes 20 UI glyphs (rounded corners, pill ends, powerline arrows, a thick meter bar, sparkline levels, check and cross marks) into the font in plane 2 of video memory. Glyphs that must join the next cell use codes `C0h`-`DFh`, which a VGA extends into the ninth pixel column. Code asks for colour *roles* (`TH_*`) and glyphs (`GLYPH(G_*)`), never raw colours or character codes, so on a CGA the same calls give the standard colours and code-page-437 characters. Text sent to telemetry is always standard CP437, and the prompt and status bar are not sent at all, so the dashboard and the tests see plain text. `make CONSOLE=plain` forces the CGA look on a VGA.
+* **UI toolkit** (`kernel/ui.c`): the pieces every screen is drawn with: panels with a title and a note, table rules, meters, pills, coloured state dots, check and cross marks, the powerline prompt, the boot checklist and the logo. The status bar is redrawn once a second from the timer interrupt, straight into row 24, and shows uptime, threads, free memory, an eight-second load sparkline (from the idle thread's CPU ticks) and the detected processor.
 * **Keyboard** (`kernel/keyboard.c`): scan code set 1. A layout is the US table plus a list of the keys that differ; four layouts are built in.
 * **Serial** (`kernel/serial.c`): polled COM1, used by telemetry in both directions.
 

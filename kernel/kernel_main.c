@@ -22,6 +22,8 @@
 #include "hal.h"
 #include "fat12.h"
 #include "disk.h"
+#include "keyboard.h"
+#include "ui.h"
 
 /* Boot drive and memory info from entry.asm */
 extern uint8_t  boot_drive;
@@ -58,82 +60,67 @@ void kernel_main(void)
     panic_init();
 
     /* Boot banner */
-    con_set_color(VGA_LIGHT_RED, VGA_BLACK);
-    con_println("  ____  _                      _");
-    con_println(" |  _ \\| |__   ___   ___ _ __ (_)_  __");
-    con_println(" | |_) | '_ \\ / _ \\ / _ \\ '_ \\| \\ \\/ /");
-    con_println(" |  __/| | | | (_) |  __/ | | | |>  <");
-    con_println(" |_|   |_| |_|\\___/ \\___|_| |_|_/_/\\_\\");
-    con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
-    con_println("");
+    con_putchar('\n');
+    ui_logo(3);
+    con_putchar('\n');
+    con_print("   ");
+    ui_text(TH_MAUVE, "Phoenix-8086 ");
+    ui_text(TH_TEXT, PHOENIX_VERSION);
+    ui_text(TH_OVERLAY, "  \xFA  ");
+    ui_text(TH_SUBTEXT, "a preemptive kernel for the Intel 8086");
+    con_putchar('\n');
+    con_putchar('\n');
 
-    con_set_color(VGA_WHITE, VGA_BLACK);
-    con_println("Phoenix-8086 Microkernel v" PHOENIX_VERSION);
-    con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
-    con_println("A Bare-Metal Preemptive OS for the Intel 8086");
-    con_println("============================================");
-    con_println("");
-
-    /* Boot info */
-    con_print("[BOOT] Drive: ");
+    ui_step("Boot drive");
+    con_print("  ");
     con_print_hex(boot_drive);
-    con_print("  Memory: ");
+    ui_text(TH_OVERLAY, ", ");
     con_print_dec(mem_kb);
-    con_println(" KB");
+    con_println(" KB of memory");
 
     /* ── Step 2: Memory Manager ─────────────── */
-    con_print("[INIT] Memory manager... ");
+    ui_step("Memory manager");
     mem_init();
     telemetry_boot_stage(3);
-    con_set_color(VGA_LIGHT_GREEN, VGA_BLACK);
-    con_println("OK");
-    con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
-
-    con_print("       Heap free: ");
+    ui_mark(true);
     con_print_dec(mem_free());
-    con_println(" bytes");
+    con_println(" bytes of near heap");
 
     /* ── Step 3: Keyboard Driver ────────────── */
-    con_print("[INIT] Keyboard driver... ");
+    ui_step("Keyboard");
     kb_init();
-    con_set_color(VGA_LIGHT_GREEN, VGA_BLACK);
-    con_println("OK");
-    con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
+    ui_mark(true);
+    con_print(kb_keymap_name());
+    con_println(" layout");
 
     /* ── Step 4: Scheduler ──────────────────── */
-    con_print("[INIT] Scheduler... ");
+    ui_step("Scheduler");
     sched_init();
     telemetry_boot_stage(4);
-    con_set_color(VGA_LIGHT_GREEN, VGA_BLACK);
-    con_println("OK");
-    con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
+    ui_mark(true);
+    con_println("priorities, time slices, aging");
 
     /* ── Step 5: Interrupt System ───────────── */
-    con_print("[INIT] Interrupt system... ");
+    ui_step("Interrupts");
     irq_init();
     telemetry_boot_stage(5);
-    con_set_color(VGA_LIGHT_GREEN, VGA_BLACK);
-    con_println("OK");
-    con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
-
-    con_println("[INIT] IRQ0 (Timer)    -> Installed");
-    con_println("[INIT] IRQ1 (Keyboard) -> Installed");
-    con_println("[INIT] INT 80h (Syscall) -> Installed");
+    ui_mark(true);
+    con_println("timer 100 Hz, keyboard, INT 80h");
 
     /* ── Disk and file system (need interrupts to be running) ── */
-    con_print("[INIT] Disk... ");
+    ui_step("Disk");
     disk_init();
+    ui_mark(true);
     con_println(disk_driver_name());
 
-    con_print("[INIT] File system... ");
+    ui_step("File system");
     if (fat_mount()) {
-        con_set_color(VGA_LIGHT_GREEN, VGA_BLACK);
+        ui_mark(true);
         con_println("FAT12 mounted");
     } else {
-        con_set_color(VGA_YELLOW, VGA_BLACK);
+        ui_mark(false);
         con_println("no FAT12 volume");
     }
-    con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
 
     /*
      * Hold interrupts off until the boot log is finished, so the new
@@ -142,34 +129,28 @@ void kernel_main(void)
     boot_flags = hal_irq_save();
 
     /* ── Step 6: Create shell thread ────────── */
-    con_print("[INIT] Creating shell thread... ");
+    ui_step("Shell");
     int shell_tid = thread_create(shell_run, 10, "shell");
     telemetry_boot_stage(6);
+    ui_mark(shell_tid >= 0);
     if (shell_tid >= 0) {
-        con_set_color(VGA_LIGHT_GREEN, VGA_BLACK);
-        con_print("OK (TID=");
+        con_print("thread ");
         con_print_dec(shell_tid);
-        con_println(")");
+        con_putchar('\n');
     } else {
-        con_set_color(VGA_LIGHT_RED, VGA_BLACK);
-        con_println("FAILED");
+        con_println("no free thread slot");
     }
-    con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
 
     /* ── Step 7: Telemetry thread ───────────── */
     telemetry_start();
 
     /* ── Boot complete ──────────────────────── */
     telemetry_boot_stage(7);
-    con_println("");
-    con_set_color(VGA_LIGHT_GREEN, VGA_BLACK);
-    con_println("============================================");
-    con_println("  Phoenix-8086 boot complete.");
-    con_println("  All subsystems initialized.");
-    con_println("============================================");
-    con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
-    con_println("");
+    con_putchar('\n');
+    ui_ok("Phoenix-8086 boot complete. All subsystems initialized.");
+    con_putchar('\n');
 
+    ui_status_start();
     hal_irq_restore(boot_flags);
 
     /*

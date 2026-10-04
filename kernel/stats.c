@@ -7,6 +7,7 @@
  */
 
 #include "stats.h"
+#include "ui.h"
 #include "console.h"
 #include "interrupts.h"
 #include "thread.h"
@@ -19,47 +20,30 @@ uint16_t stats_uptime_seconds(void)
 
 void stats_print(void)
 {
-    uint16_t uptime = stats_uptime_seconds();
-    uint16_t mins = uptime / 60;
-    uint16_t secs = uptime % 60;
+    uint16_t up = stats_uptime_seconds();
 
-    con_println("=== Phoenix-8086 Runtime Statistics ===");
-
-    con_print("  Uptime:           ");
-    con_print_dec(mins);
-    con_print("m ");
-    con_print_dec(secs);
-    con_println("s");
-
-    con_print("  Timer ticks:      ");
-    con_print_dec((uint16_t)tick_count);
-    con_putchar('\n');
-
-    con_print("  Context switches: ");
-    con_print_dec((uint16_t)context_switch_count);
-    con_putchar('\n');
-
-    con_print("  Timer IRQs:       ");
-    con_print_dec((uint16_t)irq_timer_count);
-    con_putchar('\n');
-
-    con_print("  Keyboard IRQs:    ");
-    con_print_dec((uint16_t)irq_keyboard_count);
-    con_putchar('\n');
-
-    con_print("  System calls:     ");
-    con_print_dec((uint16_t)irq_syscall_count);
-    con_putchar('\n');
-
-    con_print("  Active threads:   ");
-    con_print_dec(thread_count());
-    con_putchar('\n');
-
-    con_print("  Heap free:        ");
-    con_print_dec(mem_free());
-    con_println(" bytes");
-
-    con_print("  Heap used:        ");
-    con_print_dec(mem_used());
-    con_println(" bytes");
+    ui_panel_open("Runtime Statistics", TH_PEACH, "since boot");
+    ui_row();
+    ui_text(TH_SUBTEXT, "Uptime:");
+    ui_pad_to(UI_TEXT_LEFT + 20);
+    ui_num(up / 60, 7, TH_TEXT);
+    ui_text(TH_OVERLAY, "m ");
+    ui_num(up % 60, 1, TH_TEXT);
+    ui_text(TH_OVERLAY, "s");
+    ui_pad_to(UI_TEXT_LEFT + 37);
+    ui_counter("Active threads:", (uint32_t)thread_count(), NULL);
+    ui_row_end();
+    ui_row();
+    ui_counter("Timer ticks:", tick_count, NULL);
+    ui_counter("Context switches:", context_switch_count, NULL);
+    ui_row_end();
+    ui_row();
+    ui_counter("Timer IRQs:", irq_timer_count, NULL);
+    ui_counter("Keyboard IRQs:", irq_keyboard_count, NULL);
+    ui_row_end();
+    ui_row();
+    ui_counter("System calls:", irq_syscall_count, NULL);
+    ui_counter("Heap free:", mem_free(), "bytes");
+    ui_row_end();
+    ui_panel_close();
 }

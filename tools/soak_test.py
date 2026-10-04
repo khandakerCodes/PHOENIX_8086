@@ -60,7 +60,8 @@ def wait_until_quiet(machine, timeout=90):
     names = set()
     while time.time() < deadline:
         text = command(machine, "ps", r"Thread List.*phoenix> ")
-        names = set(re.findall(r"^\s+\d+\s+(\S+)\s+(?:READY|RUNNING|BLOCKED|SLEEPING)", text, re.M))
+        # Table rows: "│   1    shell   ■ running ..." (the state follows a coloured dot)
+        names = set(re.findall(r"\s\d+\s+(\S+)\s+\S (?:ready|running|blocked|sleeping)\b", text))
         if names == PERMANENT_THREADS:
             return
         time.sleep(1)
