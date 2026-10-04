@@ -208,8 +208,13 @@ try {
           phases.length === 4 && Math.max(...phases) - Math.min(...phases) < 20, String(phases));
 
     await page.click('#thread-list .thread-card:nth-child(2)');
-    check('replay: clicking a thread fills the inspector',
-          await page.locator('#thread-inspector .inspector-field').count() === 7);
+    {
+        // The recorded capture predates stack peaks: the row is there and says it has no data
+        const fields = await page.locator('#thread-inspector .inspector-field').allTextContents();
+        check('replay: clicking a thread fills the inspector',
+              fields.length === 8 && fields.some((f) => f.startsWith('Deepest stack use') && f.endsWith('—')),
+              JSON.stringify(fields));
+    }
     check('replay: console input is disabled', await page.isDisabled('#console-input'));
 
     // ── Arabic, right to left ───────────────────
