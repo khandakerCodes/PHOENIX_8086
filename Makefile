@@ -12,6 +12,7 @@
 #   make kernel    — Compile kernel
 #   make image     — Create bootable floppy image
 #   make check     — Verify the kernel uses 8086 instructions only
+#   make size      — Report segment use and fail if a segment is over budget
 #   make test      — check + headless boot and shell integration tests in QEMU
 #   make test-8086 — Boot and drive the kernel on an emulated 8086 (needs DOSBox-X)
 #   make soak      — Churn threads, IPC and programs for SOAK_SECONDS (default 120)
@@ -39,6 +40,7 @@ CC      = $(CROSS)gcc
 LD      = $(CROSS)ld
 OBJCOPY = $(CROSS)objcopy
 OBJDUMP = $(CROSS)objdump
+NM      = $(CROSS)nm
 PYTHON  = python3
 QEMU    = qemu-system-i386
 
@@ -119,7 +121,7 @@ PROGRAMS      = $(foreach name,$(PROGRAM_NAMES),$(PROGRAM_DIR)/$(shell echo $(na
 DISK_FILES = disk/README.TXT $(PROGRAMS)
 
 # ── Phony targets ──────────────────────────────
-.PHONY: all toolchain boot kernel image check test test-8086 soak disasm run debug dashboard clean
+.PHONY: all toolchain boot kernel image check size test test-8086 soak disasm run debug dashboard clean
 
 # ── Default target ──────────────────────────────
 all: image
@@ -206,12 +208,18 @@ check: $(KERNEL_ELF) $(PROGRAMS)
 	    $(PYTHON) tools/check8086.py $(OBJDUMP) $(PROGRAM_DIR)/$$name.elf --start 0 || exit 1; \
 	done
 
+# ── Size report and budget (tools/size_report.py) ──
+# SIZE_MARKDOWN=file also writes the report as Markdown (CI: the job summary)
+size: $(KERNEL_BIN) $(PROGRAMS)
+	$(PYTHON) tools/size_report.py $(NM) $(KERNEL_BIN) $(KERNEL_ELF) $(PROGRAMS) \
+	    $(if $(SIZE_MARKDOWN),--markdown $(SIZE_MARKDOWN))
+
 # ── Disassembly, for looking up an address from a panic ──
 disasm: $(KERNEL_ELF)
 	@$(OBJDUMP) -d -mi8086 $(KERNEL_ELF)
 
 # ── Automated tests ─────────────────────────────
-test: check $(FLOPPY_IMG)
+test: check size $(FLOPPY_IMG)
 	$(PYTHON) -m unittest discover -q -b -s bridge -t .
 	@if command -v node >/dev/null; then node --test dashboard/test/*.test.js; \
 	 else echo "  node not found: skipping dashboard model tests"; fi

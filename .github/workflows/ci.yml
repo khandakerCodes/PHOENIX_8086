@@ -41,6 +41,9 @@ jobs:
       - name: Build
         run: make all
 
+      - name: Size report and budget
+        run: make size SIZE_MARKDOWN="$GITHUB_STEP_SUMMARY"
+
       - name: Test
         run: make test
 
