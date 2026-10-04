@@ -176,7 +176,7 @@ Goal: run separately built programs from disk.
 - [x] `sdk/`: header, startup code, linker script, `mkprog.py`, three example programs; `docs/programs.md`
 - [x] Tests: independent image and program-file check (`tools/test_image.py`), file and loader assertions in `selftest`, programs run in the QEMU integration test and on the emulated 8086
 - [x] Programs get their own code and data segments (data, bss and thread stacks; up to about 56 KB). The interrupt stubs switch to a per-thread kernel stack when a program is interrupted; system calls read pointer arguments through the caller's DS; load-time relocation is gone (file format `PXE2`). Verified on QEMU and the emulated 8086, and under the soak test
-- [ ] Detect overflow of a program's own stack (kernel stacks are checked)
+- [x] Detect overflow of a program's own stack: guard word and red zone checked at every switch, like kernel stacks (`UPSCALING.md` B1)
 - [x] Native floppy driver (`kernel/floppy.c`: controller, DMA channel 2, IRQ6), so disk reads do not pause the scheduler; chosen at boot when a controller answers, with the BIOS as fallback. Native on QEMU and v86; DOSBox-X falls back to the BIOS, so the 8086 test covers the BIOS path. Not tried on real hardware
 - [ ] Subdirectories, long file names, and writing
 - [x] `thread_create` for programs: a program's threads share its memory, which is freed when the last one ends (`sdk/examples/threads.c`)
