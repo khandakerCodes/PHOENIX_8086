@@ -131,6 +131,8 @@
             "event.badArgument": "{thread} INT 80h {name} refusé : argument invalide",
             "event.syscall": "{thread} INT 80h {name}",
             "event.bench": "Mesure {kind} : {count}/s",
+            "event.latencyAvg": "Latence de l'interruption du temporisateur : {us} µs en moyenne (mesurée dans l'émulateur)",
+            "event.latencyMax": "Latence de l'interruption du temporisateur : {us} µs au plus",
             "state.READY": "PRÊT",
             "state.RUNNING": "EN COURS",
             "state.BLOCKED": "BLOQUÉ",

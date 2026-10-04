@@ -137,7 +137,7 @@ Goal: preemptive multitasking that actually runs threads. This is the largest ph
 - [x] Exception vectors 0/1/3/4 → panic with the live frame; `kernel_panic()` captures registers through INT 82h; fault record sent to telemetry (fixes B12)
 - [x] Stack red zone: a thread is killed when its stack pointer gets within 192 bytes of the stack bottom, before it can reach the neighbouring stack
 - [x] Shell runs as a thread; commands added: `ipc`, `syscall`, `nice`, `sleep`, `bench`, `selftest`, `overflow`, `divzero`
-- [/] `bench`: context-switch cost and allocator cost done; IRQ latency not measured (needs sub-tick timing from the PIT counter)
+- [x] `bench`: context-switch cost, allocator cost, and timer interrupt latency from the PIT counter (`UPSCALING.md` A6)
 
 **Tests added in this phase**
 - [/] Unit tests: done as an in-kernel `selftest` command (heap, far arena, semaphore, mutex, mailbox, sleep, system calls) so they run against the real 16-bit code; host-compiled tests of synchronisation, allocators and FAT12 added later (`tests/host/`, `UPSCALING.md` G1); scheduler-selection tests not yet

@@ -409,7 +409,7 @@ Every push runs all of this on GitHub's servers.
 Some honest numbers: the kernel and boot loaders are about **8,600 lines** of C and assembly, and the kernel builds to **34 KB**. A 15-minute soak run made 27,611 context switches without a leak or a lost telemetry record.
 
 > [!IMPORTANT]
-> The `bench` command reports how fast context switches are, but it measures the *emulator*, not an 8086. Do not quote its numbers as hardware performance.
+> The `bench` command reports how fast context switches are and how long the timer interrupt takes to arrive, but it measures the *emulator*, not an 8086. Do not quote its numbers as hardware performance. Under QEMU the interrupt latency is especially unrealistic (hundreds of microseconds), because QEMU raises the timer interrupt later than its emulated timer chip wraps.
 
 ## 📚 Glossary
 

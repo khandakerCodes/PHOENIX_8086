@@ -355,6 +355,12 @@ static void print_u32(uint32_t value)
     }
 }
 
+/* PIT counts to nanoseconds: one count is 838.1 ns */
+static uint32_t counts_to_ns(uint16_t counts)
+{
+    return (uint32_t)counts * 8381UL / 10UL;
+}
+
 /* Print "<count> <what>/sec, <n> us each" */
 static void bench_report(uint8_t kind, uint32_t count, const char *what)
 {
@@ -407,6 +413,27 @@ static void cmd_bench(void)
     }
     count *= 2;
     bench_report(TEL_BENCH_HEAP, count, "kmalloc+kfree pairs");
+
+    /* Timer interrupt latency over half a second (the shell sleeps; idle halts) */
+    {
+        uint16_t min, average, max, samples;
+
+        timer_latency_start();
+        thread_sleep(HZ / 2);
+        samples = timer_latency_stop(&min, &average, &max);
+
+        telemetry_bench(TEL_BENCH_IRQ_AVG_NS, counts_to_ns(average));
+        telemetry_bench(TEL_BENCH_IRQ_MAX_NS, counts_to_ns(max));
+        con_print("bench: timer interrupt latency ");
+        print_u32(counts_to_ns(min) / 1000);
+        con_print("-");
+        print_u32(counts_to_ns(max) / 1000);
+        con_print(" us, average ");
+        print_u32(counts_to_ns(average) / 1000);
+        con_print(" us (");
+        con_print_dec(samples);
+        con_println(" ticks)");
+    }
 }
 
 static void cmd_ls(void)

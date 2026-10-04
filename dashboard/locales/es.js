@@ -131,6 +131,8 @@
             "event.badArgument": "{thread} INT 80h {name} rechazada: argumento no válido",
             "event.syscall": "{thread} INT 80h {name}",
             "event.bench": "Medición {kind}: {count}/s",
+            "event.latencyAvg": "Latencia de la interrupción del temporizador: {us} µs de media (medida en el emulador)",
+            "event.latencyMax": "Latencia de la interrupción del temporizador: {us} µs como máximo",
             "state.READY": "LISTO",
             "state.RUNNING": "EN EJECUCIÓN",
             "state.BLOCKED": "BLOQUEADO",

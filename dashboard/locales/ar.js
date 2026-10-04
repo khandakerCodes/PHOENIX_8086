@@ -131,6 +131,8 @@
             "event.badArgument": "رُفض INT 80h {name} من {thread}: وسيط غير صالح",
             "event.syscall": "{thread} INT 80h {name}",
             "event.bench": "قياس الأداء {kind}: {count}/ث",
+            "event.latencyAvg": "زمن استجابة مقاطعة المؤقت: {us} ميكروثانية في المتوسط (مقيس في المحاكي)",
+            "event.latencyMax": "زمن استجابة مقاطعة المؤقت: {us} ميكروثانية كحد أقصى",
             "state.READY": "جاهز",
             "state.RUNNING": "يعمل",
             "state.BLOCKED": "محجوب",

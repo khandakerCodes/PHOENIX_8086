@@ -69,7 +69,7 @@ Thread 0 is the boot context itself. It is never created; `sched_init` adopts it
 
 ### Scheduling
 
-`kernel/scheduler.c`. The timer runs at 100 Hz.
+`kernel/scheduler.c`. The timer runs at 100 Hz. The timer chip is in mode 2 (rate generator), so its counter runs down once per tick and reading it (`timer_counts` in `kernel/interrupts.c`) tells how far into the tick the kernel is, to about 0.84 µs; context-switch telemetry and the `bench` interrupt-latency figure use this. During a BIOS disk read the BIOS gets its own mode 3 back.
 
 * The highest effective priority among runnable threads runs.
 * Threads of equal priority take turns, five ticks each.

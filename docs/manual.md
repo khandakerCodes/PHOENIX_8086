@@ -210,7 +210,7 @@ Addresses are written `segment:offset`. The **near heap** is the kernel's own sm
 | `create` | Preemptive multitasking |
 | `ipc` | Two threads passing messages through a mailbox |
 | `syscall` | A thread using only system calls |
-| `bench` | How many context switches and memory allocations fit in a second |
+| `bench` | How many context switches and memory allocations fit in a second, and how long the timer interrupt takes to reach its handler |
 | `selftest` | The kernel testing itself |
 | `overflow` | A stack overflow being caught |
 | `divzero` | A divide-by-zero, which ends in a panic |

@@ -43,16 +43,18 @@ A receiver discards any frame with a bad CRC, an unknown version, or a payload t
 | 02h | `THREAD_CREATE` | tid u8, priority u8, name[12] | On creation |
 | 03h | `THREAD_EXIT` | tid u8 | On exit or kill |
 | 04h | `THREAD_STATE` | tid u8, state u8, priority u8 | When a thread blocks, sleeps, wakes, or changes priority |
-| 05h | `CONTEXT_SWITCH` | from_tid u8, to_tid u8, then IP, CS, FLAGS, SP, AX, BX, CX, DX, SI, DI, BP (u16 each) | On every switch; the registers are the ones the incoming thread resumes with |
+| 05h | `CONTEXT_SWITCH` | from_tid u8, to_tid u8, then IP, CS, FLAGS, SP, AX, BX, CX, DX, SI, DI, BP (u16 each), sub_tick u16 | On every switch; the registers are the ones the incoming thread resumes with |
 | 06h | `COUNTERS` | timer u32, keyboard u32, syscall u32, context_switches u32, drops u16 | Five times a second |
 | 07h | `MEMORY` | heap_free u16, heap_used u16, far_free_paras u16, far_total_paras u16 | Every second |
 | 08h | `FAULT` | tid u8, registers as in `CONTEXT_SWITCH`, reason text | On panic or CPU exception |
 | 09h | `CONSOLE` | text, up to 48 bytes | On newline, when 48 characters are waiting, or at the next wake-up |
 | 0Ah | `SYSCALL` | tid u8, function u8 | On every `INT 80h` |
-| 0Bh | `BENCH` | kind u8 (0 = context switches, 1 = heap pairs), count per second u32 | By the `bench` command |
+| 0Bh | `BENCH` | kind u8 (0 = context switches per second, 1 = heap pairs per second, 2 = average timer interrupt latency in ns, 3 = longest latency in ns), value u32 | By the `bench` command |
 | 0Ch | `THREAD_STATS` | tid u8, state u8, priority u8, cpu_ticks u32, saved_sp u16, stack_base u16, stack_size u16, name[12], stack_peak u16, program_stack_peak u16 | Every second, one per thread |
 | 0Dh | `THREAD_FAULT` | tid u8, kind u8, detail u16 | When a thread overflows a stack (and is stopped) or a system call argument is refused |
 | 0Eh | `PRIORITY` | tid u8, effective u8, reason u8, cause u8 | When a thread inherits a priority through a mutex, and when it gives it back |
+
+`CONTEXT_SWITCH`: `sub_tick` is newer than the other fields, and a receiver must accept the 24-byte form without it. It is how far into the tick the switch happened, in timer-chip counts (1,193,182 per second, about 0.84 µs each), so `tick × 11932 + sub_tick` orders switches within a tick and measures how long each thread ran. It can exceed 11931 when the next tick's interrupt was already due; it never runs backwards.
 
 `THREAD_STATS`: the last two fields are newer than the rest, and a receiver must accept the 25-byte form without them. `stack_peak` is the deepest the thread's kernel stack has ever been used, in bytes, measured from the fill pattern written when the thread was created; `program_stack_peak` is the same for a program thread's own stack and 0 for a kernel thread.
 
@@ -89,4 +91,4 @@ A capture is a JSON Lines file: a header line, then one `{"t": seconds, "msg": {
 python3 -m bridge.trace session.jsonl -o session.json
 ```
 
-The trace has a CPU track with one slice for each stretch a thread held the processor, a track per thread (with its system calls, state changes, priority loans and faults as markers), a flow arrow at every context switch, counters for switch rate, dropped records and memory, and boot stages, panics and console lines. Times come from the tick counter and are only as fine as one tick; switches within one tick appear as zero-length slices rather than with invented timings.
+The trace has a CPU track with one slice for each stretch a thread held the processor, a track per thread (with its system calls, state changes, priority loans and faults as markers), a flow arrow at every context switch, counters for switch rate, dropped records and memory, and boot stages, panics and console lines. Context switches are placed to within a microsecond using their `sub_tick`; other events, and switches from captures made before `sub_tick` existed, at the start of their tick. Nothing is given a finer time than the kernel reported.

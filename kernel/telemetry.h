@@ -57,6 +57,8 @@
 /* Benchmark kinds */
 #define TEL_BENCH_SWITCHES      0
 #define TEL_BENCH_HEAP          1
+#define TEL_BENCH_IRQ_AVG_NS    2   /* Timer interrupt latency, average, in nanoseconds */
+#define TEL_BENCH_IRQ_MAX_NS    3   /* ... and the longest */
 
 #if CONFIG_TELEMETRY
 

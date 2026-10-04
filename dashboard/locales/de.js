@@ -131,6 +131,8 @@
             "event.badArgument": "{thread} INT 80h {name} abgelehnt: ungültiges Argument",
             "event.syscall": "{thread} INT 80h {name}",
             "event.bench": "Benchmark {kind}: {count}/s",
+            "event.latencyAvg": "Latenz des Zeitgeber-Interrupts: durchschnittlich {us} µs (im Emulator gemessen)",
+            "event.latencyMax": "Latenz des Zeitgeber-Interrupts: höchstens {us} µs",
             "state.READY": "BEREIT",
             "state.RUNNING": "LÄUFT",
             "state.BLOCKED": "BLOCKIERT",

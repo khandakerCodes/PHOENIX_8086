@@ -45,7 +45,8 @@ TYPE_NAMES = {
 TYPE_IDS = {name: number for number, name in TYPE_NAMES.items()}
 
 THREAD_STATES = ["READY", "RUNNING", "BLOCKED", "SLEEPING", "TERMINATED"]
-BENCH_KINDS = ["context_switches", "heap_pairs"]
+BENCH_KINDS = ["context_switches", "heap_pairs", "irq_latency_avg_ns", "irq_latency_max_ns"]
+PIT_HZ = 1193182        # PIT counts per second, the unit of CONTEXT_SWITCH sub_tick
 THREAD_FAULT_KINDS = ["kernel_stack", "program_stack", "bad_argument"]
 PRIORITY_REASONS = {1: "inherit", 2: "restore"}
 
@@ -88,7 +89,11 @@ def decode_payload(type_name, p):
     if type_name == "THREAD_STATE":
         return {"tid": p[0], "state": _state(p[1]), "priority": p[2]}
     if type_name == "CONTEXT_SWITCH":
-        return {"from_tid": p[0], "to_tid": p[1], "regs": _registers(p, 2)}
+        switch = {"from_tid": p[0], "to_tid": p[1], "regs": _registers(p, 2)}
+        if len(p) >= 26:
+            # Newer kernels: PIT counts since the tick began (about 0.84 us each)
+            (switch["sub_tick"],) = struct.unpack_from("<H", p, 24)
+        return switch
     if type_name == "COUNTERS":
         timer, keyboard, syscall, switches, drops = struct.unpack_from("<4IH", p)
         return {"timer": timer, "keyboard": keyboard, "syscall": syscall,

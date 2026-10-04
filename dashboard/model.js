@@ -246,7 +246,12 @@
 
         BENCH: function (model, m) {
             model.bench[m.kind] = m.count;
-            addEvent(model, 'info', m.tick, 'event.bench', { kind: m.kind, count: m.count });
+            if (m.kind === 'irq_latency_avg_ns' || m.kind === 'irq_latency_max_ns') {
+                const key = m.kind === 'irq_latency_avg_ns' ? 'event.latencyAvg' : 'event.latencyMax';
+                addEvent(model, 'info', m.tick, key, { us: (m.count / 1000).toFixed(1) });
+            } else {
+                addEvent(model, 'info', m.tick, 'event.bench', { kind: m.kind, count: m.count });
+            }
         },
 
         THREAD_STATS: function (model, m) {
