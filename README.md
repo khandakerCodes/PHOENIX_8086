@@ -73,11 +73,11 @@ It is built for people learning how operating systems work, for teachers who wan
 | 🥾 | **Two-stage bootloader** | The machine starts from a 512-byte boot sector that loads the rest, checks it, and jumps in. No DOS involved. |
 | 🧵 | **Real multitasking** | Several threads share one processor. A timer interrupts 100 times a second and the kernel decides who runs next. |
 | ⚖️ | **A fair scheduler** | Higher priorities go first, equal priorities take turns, and anything kept waiting slowly gains priority so it cannot starve. |
-| 🚦 | **Blocking and messaging** | Semaphores, mutexes and mailboxes let threads wait for each other without wasting processor time. |
+| 🚦 | **Blocking and messaging** | Semaphores, mutexes and mailboxes let threads wait for each other without wasting processor time. Mutexes use priority inheritance, so a low-priority thread holding a lock cannot hold up a high-priority one for long. |
 | 📞 | **System calls** | Programs ask the kernel for services through `INT 80h`, the same idea Linux used on the PC. |
 | 💾 | **A real file system** | The boot floppy is a standard FAT12 disk. The kernel reads it with its own floppy-controller driver. |
 | 🚀 | **Loadable programs** | Write a C program with the SDK, put it on the disk, and `run` it. Each program gets memory of its own. |
-| 🧯 | **Safety nets** | A runaway thread is stopped before it damages another. A crash shows a panic screen with the processor's registers. |
+| 🧯 | **Safety nets** | A runaway thread is stopped before it damages another, whether it is a kernel thread or a program. Bad system-call arguments are refused. A crash shows a panic screen with the processor's registers. |
 | 📊 | **A live dashboard** | A web page shows threads, context switches, registers and memory as they happen, in five languages. |
 | 🌐 | **Runs in a browser** | The whole thing, kernel included, can run inside a web page with nothing installed. |
 | 🔬 | **Honest 8086 code** | Every build is checked for instructions newer than the 8086, and the kernel is tested on an emulated 8086. |
@@ -156,7 +156,8 @@ phoenix> ls
   THREADS.BIN   636 bytes
   WHERE.BIN     373 bytes
   GREET.BIN     242 bytes
-7 file(s)
+  ROGUE.BIN     898 bytes
+8 file(s)
 
 phoenix> run hello.bin
 Started hello.bin as TID=3
@@ -193,7 +194,20 @@ Created thread TID=3
 
 A thread that recurses forever is caught and stopped, and the shell carries on. For the full red screen, type `panic`.
 
-More to try: `memory`, `stats`, `bench`, `selftest`, `cpu`, `keymap de`. Every command is explained in the **[user manual](docs/manual.md)**.
+A program can misbehave too:
+
+```
+phoenix> run rogue.bin
+Started rogue.bin as TID=3
+rogue: 9 of 9 bad calls refused
+rogue: now overflowing my own stack
+
+!!! PROGRAM STACK OVERFLOW: Thread 3 (rogue) !!!
+```
+
+The kernel refuses every system call that hands it memory the program does not own, then catches the program's own stack overflowing. The 8086 has no memory protection, so this is detection, not protection.
+
+More to try: `stacks`, `memory`, `stats`, `bench`, `selftest`, `cpu`, `keymap de`. Every command is explained in the **[user manual](docs/manual.md)**.
 
 ## 🖥️ Ways to run it
 
@@ -206,6 +220,8 @@ More to try: `memory`, `stats`, `bench`, `selftest`, `cpu`, `keymap de`. Every c
 | Run it in a browser | `./tools/build_site.sh` | Then `python3 -m http.server 8080 --directory site`. The kernel runs inside the page. |
 | Stress it | `make soak SOAK_SECONDS=600` | Ten minutes of constant thread and program churn, checking for leaks. |
 | Debug it | `make debug` | QEMU waits for GDB on port 1234. |
+| Study a session in Perfetto | `python3 -m bridge.trace session.jsonl -o session.json` | Converts a capture (from `--capture` or `tools/record_session.py`); open the file at <https://ui.perfetto.dev>. |
+| Check the size budget | `make size` | How full each 64 KB segment is; fails past 90%. |
 
 The dashboard always tells you where its data comes from:
 
@@ -261,7 +277,7 @@ cp sdk/examples/greet.c sdk/examples/mine.c
 **2. Add it to the build.** In the `Makefile`, add `mine` to this line:
 
 ```make
-PROGRAM_NAMES = hello primes clock threads where greet mine
+PROGRAM_NAMES = hello primes clock threads where greet rogue mine
 ```
 
 **3. Build, boot, run.**
@@ -381,14 +397,15 @@ Every push runs all of this on GitHub's servers.
 | Suite | What it does | Size |
 | --- | --- | --- |
 | Instruction check | Rejects any non-8086 instruction | 10,417 kernel instructions, plus every example program |
-| In-kernel self-test | The kernel tests its own allocators, semaphores, mailboxes, timers, system calls, file system and keyboard layouts | 75 assertions |
+| In-kernel self-test | The kernel tests its own allocators, semaphores, mutexes and priority inheritance, mailboxes, timers, system calls, file system and keyboard layouts | 79 assertions |
+| Size budget | Fails if either 64 KB segment passes 90% full; the report goes in the CI summary | Every push |
 | Integration test | Boots the kernel in QEMU and types commands into it, checking the screen and the telemetry | Over 70 checks across 5 boots |
 | 8086 fidelity test | The same on an emulated 8086 | 16 checks |
 | Soak test | Constant churn of threads and programs; fails on any leak, crash or lost record | 90 s per push, 1 hour nightly |
-| Host unit tests | Protocol decoders, bridge, dashboard logic and page code | 74 tests |
+| Host unit tests | Protocol decoders, bridge, trace export, dashboard logic and page code | 91 tests |
 | Browser test | Opens the dashboard and the in-browser kernel in headless Chromium, with an accessibility audit | Over 30 checks |
 
-Some honest numbers: the kernel and boot loaders are about **8,000 lines** of C and assembly, and the kernel builds to **31 KB**. A 15-minute soak run made 27,611 context switches without a leak or a lost telemetry record.
+Some honest numbers: the kernel and boot loaders are about **8,600 lines** of C and assembly, and the kernel builds to **34 KB**. A 15-minute soak run made 27,611 context switches without a leak or a lost telemetry record.
 
 > [!IMPORTANT]
 > The `bench` command reports how fast context switches are, but it measures the *emulator*, not an 8086. Do not quote its numbers as hardware performance.
@@ -482,7 +499,7 @@ A program that imitates a computer. QEMU, DOSBox-X and v86 are the three used he
 - **No real hardware yet.** Everything runs in emulators. `make test-8086` uses DOSBox-X's 8086 mode, which that project calls experimental; it is not cycle-accurate.
 - **No memory protection.** That is the nature of the 8086. A program has its own memory but nothing stops it writing elsewhere.
 - **Read-only file system**, root directory only.
-- **A program's own stack overflow is not detected** (kernel stacks are checked). A program can have at most four threads.
+- **Stack overflows are caught, not prevented.** Kernel and program stacks are checked at every thread switch; a fast enough runaway can damage memory next to its stack before it is stopped. A program can have at most four threads.
 - **The dashboard is tested in Chromium only**, at desktop and phone sizes with an automated accessibility audit. Other browsers and real screen readers have not been tried.
 - **Translations need review.** The dashboard's German, French, Spanish and Arabic texts were not written or checked by native speakers.
 - **Interfaces can still change.** The system-call numbers and the telemetry protocol are not frozen before version 1.0.
@@ -499,7 +516,7 @@ A program that imitates a computer. QEMU, DOSBox-X and v86 are the three used he
 | [Telemetry protocol](docs/telemetry.md) | What the kernel sends to the dashboard |
 | [Labs](docs/labs/README.md) | Three guided exercises, with solutions |
 | [Translating](docs/translating.md) | Adding a language or a keyboard layout |
-| [Specification](projectdetails.md) · [Plan](implementation_plan.md) · [Changelog](CHANGELOG.md) | Where the project is going and what changed |
+| [Specification](projectdetails.md) · [Plan](implementation_plan.md) · [Upscaling plan](UPSCALING.md) · [Changelog](CHANGELOG.md) | Where the project is going and what changed |
 
 <details>
 <summary><b>Repository layout</b></summary>

@@ -51,6 +51,16 @@ All notable changes to this project are recorded here. The project follows [Sema
 * Worked solutions for the three labs, as patches that CI checks still apply.
 * Dashboard accessibility: WCAG AA contrast, tab and dialog roles, arrow-key tab navigation, focus handling for the panic dialog, keyboard-reachable scrolling regions; a phone layout.
 * `tools/test_dashboard_browser.mjs`: the dashboard and the in-browser demo tested in headless Chromium, with screenshots kept by CI.
+* Upscaling plan (`UPSCALING.md`): the roadmap beyond 1.0, from a survey of comparable projects.
+* Priority inheritance for mutexes: a thread waiting on a mutex lends its priority to the owner, along chains up to four deep, until the owner releases its last mutex. A self-test recreates the textbook inversion and checks that the high-priority thread waits only for the critical section (about 8 ticks instead of about 40). New telemetry record `PRIORITY`.
+* Program stack overflow detection: each program thread's stack has a guard word and a 64-byte red zone, checked at every switch; the thread is stopped and the shell carries on.
+* System call argument checks for programs: pointers must lie in the program's own data, thread entry points in its code, handles must be ones the kernel handed out, and only the program's own far memory can be freed. Refused calls fail with the usual error.
+* Semaphores and mailboxes a program creates are destroyed when its last thread ends.
+* Stack high-water marks: stacks are filled with a pattern at creation; `stacks` shell command and two new `THREAD_STATS` fields report the deepest use.
+* New telemetry record `THREAD_FAULT` for problems the kernel survives (stack overflows, refused arguments); the dashboard lists them as events, not as a panic.
+* Example program `rogue`, which breaks the rules on purpose.
+* `bridge/trace.py`: converts a capture to the Chrome/Perfetto trace format, with a CPU track, per-thread tracks, flow arrows at context switches and counters.
+* `make size` (`tools/size_report.py`): segment use, largest functions and variables, program sizes; fails when a segment passes 90% of its limit; CI puts the report in the job summary.
 
 ### Changed
 * Memory layout: kernel code at `1000:0000`, kernel data and stacks at `2000:0000`.
@@ -58,6 +68,9 @@ All notable changes to this project are recorded here. The project follows [Sema
 * `phoenix.sh` no longer kills other processes; it reports busy ports and stops.
 
 ### Fixed
+* A program could free any far-memory segment, including another program's code, through the `free` system call.
+* A program could pass any number as a semaphore or mailbox handle, and the kernel would use it as a pointer into its own memory.
+* The dashboard's system-call names stopped at `free`; calls 11h–1Bh now have names too.
 * A key press now goes to the thread that asked for one most recently, so a program calling `getc` is not starved by the shell.
 * SDK: `px_getc` returned garbage because of a compiler bug in narrowing a 32-bit result; the SDK now has separate 16-bit and 32-bit system-call entries.
 * `reboot` lost its last console line, and the telemetry decoders counted a reboot as lost frames.

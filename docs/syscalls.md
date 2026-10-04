@@ -12,7 +12,7 @@ int 80h
 ; carry flag clear = success, set = error (AX = FFFFh)
 ```
 
-All other registers are preserved. A pointer argument is an offset in the *caller's* data segment; the kernel reaches it through the caller's saved DS. Real mode has no memory protection, so pointers are not validated.
+All other registers are preserved. A pointer argument is an offset in the *caller's* data segment; the kernel reaches it through the caller's saved DS. Arguments from a loaded program are checked before use (see [Argument checks](#argument-checks)).
 
 A call marked **blocks** may suspend the calling thread until it can complete. The thread is switched out in the middle of the call and resumes there when woken.
 
@@ -44,12 +44,24 @@ A call marked **blocks** may suspend the calling thread until it can complete. T
 | 1Ah | `close` | BX = handle | — | Files are also closed when their thread ends |
 | 1Bh | `exec` | BX = program file name pointer | AX = thread ID | Loads and starts a program; see docs/programs.md |
 
+## Argument checks
+
+When the caller is a loaded program, the kernel checks its arguments before using them. A call that fails a check returns the usual error (carry set, AX = FFFFh) and is reported in telemetry as a `THREAD_FAULT` record of kind `bad_argument`, naming the call.
+
+| Argument | Accepted only if |
+| --- | --- |
+| A pointer (`puts`, `open`, `read`, `exec`) | DS is the program's own data segment, and the whole buffer, or the string up to its terminator, lies between offset 0010h and the end of the program's stacks. A string is not read past that end |
+| A thread entry point (`thread_create`) | The call comes from the program's own code segment and the entry lies inside its code |
+| A semaphore or mailbox handle | The kernel handed it out from `sem_create` or `mbox_create`, for that kind of object, and it has not been destroyed. This applies to kernel threads too |
+| A segment to `free` | It starts a far block that the calling thread, or another thread of the same program, allocated. The kernel's own blocks, such as a program's code and data, are refused |
+
+Kernel threads are trusted with pointers and entry points. None of this is memory protection: the 8086 lets a program write anywhere without asking the kernel. The checks only make sure the kernel does not do damage on a program's behalf. `sdk/examples/rogue.c` tries each kind of bad argument.
+
 ## Known gaps
 
-* Semaphores and mailboxes are not destroyed automatically when their creator ends; call `sem_destroy` / `mbox_destroy`.
 * Far memory belongs to the thread that allocated it and is freed when that thread ends, even if another thread of the same program is still using it.
 * `mbox_recv` cannot report an error in AX, because every 16-bit value is a valid message; check the carry flag.
-* Semaphore and mailbox handles are opaque numbers (addresses in the kernel's heap) and are not validated.
+* At most 16 semaphores and mailboxes made through system calls can exist at once. A program's are destroyed when its last thread ends; a kernel thread's last until it destroys them.
 
 ## Example
 

@@ -50,7 +50,15 @@ A receiver discards any frame with a bad CRC, an unknown version, or a payload t
 | 09h | `CONSOLE` | text, up to 48 bytes | On newline, when 48 characters are waiting, or at the next wake-up |
 | 0Ah | `SYSCALL` | tid u8, function u8 | On every `INT 80h` |
 | 0Bh | `BENCH` | kind u8 (0 = context switches, 1 = heap pairs), count per second u32 | By the `bench` command |
-| 0Ch | `THREAD_STATS` | tid u8, state u8, priority u8, cpu_ticks u32, saved_sp u16, stack_base u16, stack_size u16, name[12] | Every second, one per thread |
+| 0Ch | `THREAD_STATS` | tid u8, state u8, priority u8, cpu_ticks u32, saved_sp u16, stack_base u16, stack_size u16, name[12], stack_peak u16, program_stack_peak u16 | Every second, one per thread |
+| 0Dh | `THREAD_FAULT` | tid u8, kind u8, detail u16 | When a thread overflows a stack (and is stopped) or a system call argument is refused |
+| 0Eh | `PRIORITY` | tid u8, effective u8, reason u8, cause u8 | When a thread inherits a priority through a mutex, and when it gives it back |
+
+`THREAD_STATS`: the last two fields are newer than the rest, and a receiver must accept the 25-byte form without them. `stack_peak` is the deepest the thread's kernel stack has ever been used, in bytes, measured from the fill pattern written when the thread was created; `program_stack_peak` is the same for a program thread's own stack and 0 for a kernel thread.
+
+`THREAD_FAULT` kinds: 0 kernel stack overflow, 1 program stack overflow (for both, `detail` is the stack pointer at the check), 2 refused system call argument (`detail` is the function number; see [Argument checks](syscalls.md#argument-checks)). Unlike `FAULT`, the kernel carries on: the dashboard lists these as events, not as a panic.
+
+`PRIORITY` reasons: 1 inherit (`cause` is the thread waiting on a mutex this one holds, `effective` the priority it now runs at), 2 restore (back to its own priority after releasing its last mutex; `cause` is FFh). Aging changes effective priority too often to report.
 
 Thread states: 0 READY, 1 RUNNING, 2 BLOCKED, 3 SLEEPING, 4 TERMINATED. Running and ready transitions are implied by `CONTEXT_SWITCH` and are not sent as `THREAD_STATE`.
 
@@ -72,3 +80,13 @@ python3 bridge/serial_ws_bridge.py --replay session.jsonl --speed 2
 ```
 
 A capture is a JSON Lines file: a header line, then one `{"t": seconds, "msg": {...}}` line per record.
+
+## Opening a capture in Perfetto
+
+`bridge/trace.py` converts a capture to the Chrome JSON trace format, which [Perfetto](https://ui.perfetto.dev) and `chrome://tracing` open directly:
+
+```sh
+python3 -m bridge.trace session.jsonl -o session.json
+```
+
+The trace has a CPU track with one slice for each stretch a thread held the processor, a track per thread (with its system calls, state changes, priority loans and faults as markers), a flow arrow at every context switch, counters for switch rate, dropped records and memory, and boot stages, panics and console lines. Times come from the tick counter and are only as fine as one tick; switches within one tick appear as zero-length slices rather than with invented timings.

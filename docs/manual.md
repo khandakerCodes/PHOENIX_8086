@@ -128,6 +128,7 @@ Words used below:
 | `nice <tid> <priority>` | Changes a thread's priority |
 | `sleep <ticks>` | Puts the shell to sleep; `sleep 100` is one second |
 | `scheduler` | Shows the running thread and those ready to run |
+| `stacks` | Shows the deepest each thread's stacks have ever been used |
 
 `ps` in detail:
 
@@ -148,6 +149,20 @@ phoenix> ps
 | State `BLOCKED` | Waiting for something: a key, a message, a semaphore |
 | State `SLEEPING` | Waiting for a time to pass |
 | CPU Ticks | How many timer ticks the thread has been running for |
+
+`stacks` in detail:
+
+```
+phoenix> stacks
+=== Stack Use (deepest so far, bytes) ===
+  TID  Name          Kernel stack    Program stack
+  ---  ----          ------------    -------------
+  0    idle          182 of 2048
+  1    shell         238 of 2048
+  2    telemetry     202 of 2048
+```
+
+Every stack is filled with a known pattern when its thread starts, so the kernel can tell how far down a thread has ever reached. A thread running a program has a second stack in the program's memory, shown in the last column. A stack that comes within 192 bytes of its end (64 for a program stack) is treated as overflowing and its thread is stopped. The figures only grow: run `selftest` and then `stacks` again, and the shell's number goes up.
 
 Three threads are always there: `idle` (runs when nothing else does), `shell`, and `telemetry` (reports to the dashboard).
 
@@ -254,10 +269,10 @@ This thread does everything through `INT 80h`: it asks for the interface version
 
 ```
 phoenix> selftest
-selftest: 74 passed, 0 failed
+selftest: 79 passed, 0 failed
 ```
 
-The kernel checks its own memory allocators, semaphores, mailboxes, timer, system calls, keyboard layouts and file system. If anything fails it names the check. Run this first if the kernel behaves strangely.
+The kernel checks its own memory allocators, semaphores, mutexes (including priority inheritance), mailboxes, timer, system calls, keyboard layouts and file system. If anything fails it names the check. Run this first if the kernel behaves strangely.
 
 ### Catching a runaway thread
 
@@ -282,6 +297,7 @@ The boot floppy is a standard FAT12 disk with these files on it:
 | `THREADS.BIN` | Starts two worker threads that send numbers to the main thread |
 | `WHERE.BIN` | Shows which memory segments it was loaded into and uses 50 KB |
 | `GREET.BIN` | Asks you for a key, then counts to three |
+| `ROGUE.BIN` | Breaks the rules on purpose: bad system-call arguments, then a stack overflow |
 
 Run one with `run`:
 
@@ -296,6 +312,19 @@ last digit seven
 A program runs as a thread, so you can start several at once, see them in `ps`, and stop one with `kill`. When a program ends, its memory is returned; check with `memory` before and after.
 
 `greet.bin` asks for a key. While a program is waiting for a key, your next key press goes to it and not to the shell.
+
+`rogue.bin` shows what the kernel notices when a program misbehaves:
+
+```
+phoenix> run rogue.bin
+Started rogue.bin as TID=3
+rogue: 9 of 9 bad calls refused
+rogue: now overflowing my own stack
+
+!!! PROGRAM STACK OVERFLOW: Thread 3 (rogue) !!!
+```
+
+It passes the kernel pointers outside its own memory, a made-up semaphore handle, the kernel's own memory to free, and a thread start address outside its code; every one of those calls fails. Then it recurses until its stack runs out and is stopped. The 8086 cannot stop a program from writing anywhere it likes, so this is detection, not protection: the kernel refuses to do damage on a program's behalf and notices a runaway stack at the next thread switch.
 
 **Putting your own files on the disk.** The disk image is an ordinary FAT12 volume, so standard tools can write to it. With mtools installed:
 
@@ -507,7 +536,7 @@ FILES               ls                  list files
                     run <file>          run a program
 
 LOOK INSIDE         memory  stats  interrupts  registers  scheduler
-                    ticks   uptime cpu         disk       about
+                    ticks   uptime cpu         disk       stacks   about
 
 DEMOS               ipc  syscall  bench  selftest  overflow
 
