@@ -59,7 +59,7 @@ D1, D2 and D4 were decided on 2026-10-03. D3 is open.
 | D1 | **Decided: true 8086.** Be a true 8086 kernel, or rename to "16-bit real-mode x86 (386+)"? | **True 8086**, using the `ia16-elf-gcc` toolchain (the one ELKS uses). | The 8086 claim is the project's identity. It also gives 16-bit pointers, removing the pointer-size hacks. Cost: a toolchain that must be containerised, and all assembly rewritten once. |
 | D2 | **Decided: MIT** (the repository's `LICENSE`). Licence | **MIT** | Lowest friction for classrooms and forks. |
 | D3 | Public name | Keep **Phoenix-8086** only after a trademark search. | "Phoenix" is also the name of a long-established PC BIOS vendor, which is the same product space. |
-| D4 | **Decided: directory renamed to `phoenix-8086`; hosted at `github.com/khandakerCodes/PHOENIX_8086`.** Repository name and host | Rename directory/repo from `visage` to `phoenix-8086`; host on GitHub. | Discoverability. |
+| D4 | **Decided: directory renamed to `phoenix-8086`; hosted at `github.com/memset2020/PHOENIX_8086`.** Repository name and host | Rename directory/repo from `visage` to `phoenix-8086`; host on GitHub. | Discoverability. |
 
 ---
 

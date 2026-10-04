@@ -40,7 +40,7 @@ For how the kernel works inside, read the [architecture guide](architecture.md).
 
 ```sh
 sudo apt install make nasm python3 curl qemu-system-x86
-git clone https://github.com/khandakerCodes/PHOENIX_8086.git
+git clone https://github.com/memset2020/PHOENIX_8086.git
 cd PHOENIX_8086
 make toolchain      # the 16-bit C compiler, into .toolchain/ (about 200 MB, no root needed)
 make                # builds build/phoenix8086.img, the floppy image

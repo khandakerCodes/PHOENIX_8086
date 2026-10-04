@@ -4,4 +4,4 @@ This project follows the [Contributor Covenant, version 2.1](https://www.contrib
 
 In short: be respectful, assume good faith, and keep discussion about the work. Harassment, personal attacks, and discriminatory language are not acceptable in issues, pull requests, or any other project space.
 
-To report a problem, contact the repository owner through their [GitHub profile](https://github.com/khandakerCodes). Reports are handled privately.
+To report a problem, contact the repository owner through their [GitHub profile](https://github.com/memset2020). Reports are handled privately.

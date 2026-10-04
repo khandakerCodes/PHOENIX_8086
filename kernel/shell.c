@@ -297,7 +297,7 @@ static void cmd_about(void)
     ui_text(TH_TEXT, "s");
     ui_row_end();
     ui_row();
-    ui_kv("Source:", 12, TH_BLUE, "github.com/khandakerCodes/PHOENIX_8086");
+    ui_kv("Source:", 12, TH_BLUE, "github.com/memset2020/PHOENIX_8086");
     ui_row_end();
     ui_panel_close();
 }

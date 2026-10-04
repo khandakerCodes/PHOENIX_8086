@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/khandakerCodes/PHOENIX_8086/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/khandakerCodes/PHOENIX_8086/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/memset2020/PHOENIX_8086/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/memset2020/PHOENIX_8086/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green.svg"></a>
   <img alt="Version 0.6-dev" src="https://img.shields.io/badge/version-0.6--dev-blue.svg">
   <img alt="Status: pre-alpha" src="https://img.shields.io/badge/status-pre--alpha-orange.svg">
@@ -125,7 +125,7 @@ You need Linux on a 64-bit PC. Ubuntu 24.04 is what the project is developed and
 sudo apt install make nasm python3 curl qemu-system-x86
 
 # 2. Get the code and its compiler (the compiler is about 200 MB, no root needed)
-git clone https://github.com/khandakerCodes/PHOENIX_8086.git
+git clone https://github.com/memset2020/PHOENIX_8086.git
 cd PHOENIX_8086
 make toolchain
 
