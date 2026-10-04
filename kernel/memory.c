@@ -164,6 +164,24 @@ void far_free(uint16_t segment)
     hal_irq_restore(flags);
 }
 
+bool far_owner(uint16_t segment, uint8_t *owner)
+{
+    uint16_t flags;
+    far_hdr_t __far *hdr;
+    bool found = false;
+
+    if (segment <= far_start || segment >= far_end) return false;
+
+    flags = hal_irq_save();
+    hdr = FAR_HDR(segment - 1);
+    if (hdr->magic == FAR_MAGIC && hdr->used) {
+        *owner = hdr->owner;
+        found = true;
+    }
+    hal_irq_restore(flags);
+    return found;
+}
+
 void far_free_owned(int tid)
 {
     uint16_t flags;

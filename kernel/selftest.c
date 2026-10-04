@@ -20,6 +20,7 @@
 #include "fat12.h"
 #include "exec.h"
 #include "keyboard.h"
+#include "scheduler.h"
 
 static uint16_t passed;
 static uint16_t failed;
@@ -143,6 +144,100 @@ static void test_sync(void)
     mutex_lock(&mutex);     /* Must not block: the mutex is free again */
     mutex_unlock(&mutex);
     expect(mutex.sem.count == 1, "mutex: relock and release");
+}
+
+/* ── Priority inheritance ───────────────────── */
+
+/*
+ * The textbook inversion: a low-priority thread holds a mutex, a
+ * high-priority thread waits for it, and a medium-priority thread is
+ * busy on the CPU, keeping the low one from finishing.
+ *
+ * Aging (scheduler.c) already bounds this: the low thread gains a level
+ * every AGING_TICKS and gets back in after roughly 40-50 ticks. With
+ * inheritance it runs at the waiting thread's priority at once, so the
+ * high thread waits only for the low one's critical section, plus at
+ * most a time slice. That wait is what the test measures.
+ *
+ * The low thread starts timing its critical section only once the high
+ * thread is waiting, so the scenario does not depend on who the
+ * scheduler happens to run first.
+ */
+#define PI_HOLD_TICKS   8       /* The low thread's critical section */
+#define PI_BUSY_TICKS   60      /* The medium thread's CPU-bound work */
+#define PI_WAIT_LIMIT   (PI_HOLD_TICKS + TIME_SLICE_TICKS + 2)
+
+static mutex_t pi_mutex;
+static volatile uint8_t pi_done;
+static volatile uint8_t pi_low_peak;    /* Highest effective priority the owner ran at */
+static volatile uint16_t pi_high_wait;  /* Ticks the high thread waited for the mutex */
+
+static void pi_low(void)
+{
+    tcb_t *me = thread_get_tcb(thread_current_tid());
+    uint32_t start;
+
+    mutex_lock(&pi_mutex);
+    start = irq_ticks();
+    while (pi_mutex.sem.wait_count == 0 && irq_ticks() - start < 100) {
+        /* Hold the mutex until the high thread asks for it */
+    }
+    start = irq_ticks();
+    while (irq_ticks() - start < PI_HOLD_TICKS) {
+        if (me->eff_priority > pi_low_peak) {
+            pi_low_peak = me->eff_priority;
+        }
+    }
+    mutex_unlock(&pi_mutex);
+    pi_done++;
+}
+
+static void pi_medium(void)
+{
+    uint32_t start = irq_ticks();
+
+    while (irq_ticks() - start < PI_BUSY_TICKS) {
+        /* CPU-bound: never blocks */
+    }
+    pi_done++;
+}
+
+static void pi_high(void)
+{
+    uint32_t asked = irq_ticks();
+
+    mutex_lock(&pi_mutex);
+    pi_high_wait = (uint16_t)(irq_ticks() - asked);
+    mutex_unlock(&pi_mutex);
+    pi_done++;
+}
+
+static void test_inheritance(void)
+{
+    uint8_t waited;
+
+    mutex_init(&pi_mutex);
+    pi_done = 0;
+    pi_low_peak = 0;
+    pi_high_wait = 0xFFFF;
+
+    if (thread_create(pi_low, 2, "pi-low") < 0) {
+        expect(false, "inherit: no free thread slots");
+        return;
+    }
+    thread_sleep(2);                        /* The low thread takes the mutex */
+    thread_create(pi_medium, 6, "pi-medium");
+    thread_create(pi_high, 8, "pi-high");
+
+    for (waited = 0; pi_done < 3 && waited < 20; waited++) {
+        thread_sleep(10);
+    }
+
+    expect(pi_done == 3, "inherit: all three threads finish");
+    expect(pi_low_peak == 8, "inherit: the owner runs at the waiting thread's priority");
+    expect(pi_high_wait <= PI_WAIT_LIMIT,
+           "inherit: the high thread waits only for the critical section");
+    expect(pi_mutex.owner == -1 && pi_mutex.sem.count == 1, "inherit: the mutex is free afterwards");
 }
 
 /* ── Mailbox ────────────────────────────────── */
@@ -315,6 +410,7 @@ uint16_t selftest_run(void)
     test_heap();
     test_far();
     test_sync();
+    test_inheritance();
     test_mailbox();
     test_sleep();
     test_syscalls();

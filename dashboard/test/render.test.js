@@ -94,9 +94,13 @@ test('selecting a thread fills the inspector; dismissing hides the fault', () =>
     goLive(page);
     page.byId['thread-list'].children[1].onclick();
     page.flush();
-    assert.strictEqual(page.byId['thread-inspector'].children.length, 7);
+    assert.strictEqual(page.byId['thread-inspector'].children.length, 8);
     assert.match(page.byId['thread-inspector'].children[6].children[1].textContent,
                  /^\d+ \/ 2048 bytes/);
+    /* The fixture predates stack peaks: the row says so rather than guess */
+    assert.strictEqual(page.byId['thread-inspector'].children[7].children[0].textContent,
+                       'Deepest stack use');
+    assert.strictEqual(page.byId['thread-inspector'].children[7].children[1].textContent, '—');
 
     page.byId['fault-dismiss'].listeners.click();
     page.flush();

@@ -16,9 +16,13 @@
  * which for a loaded program is not the kernel's. The kernel reaches
  * it through a far pointer built from the caller's saved DS.
  *
- * Semaphore and mailbox handles are near pointers to kernel heap
- * objects, opaque to the caller. Real mode has no memory protection,
- * so they are not validated beyond a NULL check.
+ * Arguments from a loaded program are checked before they are used
+ * (docs/syscalls.md, "Argument checks"): pointers must lie inside the
+ * program's own data, thread entry points inside its own code, handles
+ * must be ones the kernel gave out, and memory it frees must be its
+ * own. A refused call fails like any other and is reported in
+ * telemetry. Kernel threads are trusted. None of this is protection:
+ * real mode lets a program write anywhere without asking the kernel.
  */
 
 #include "syscall.h"
@@ -33,6 +37,7 @@
 #include "fat12.h"
 #include "exec.h"
 #include "hal.h"
+#include "telemetry.h"
 
 extern void thread_terminate(int tid);
 
@@ -42,16 +47,143 @@ extern void thread_terminate(int tid);
 #define PUTS_MAX_LENGTH     1024    /* A string without a terminator must not print forever */
 #define READ_CHUNK          64
 
+/* The program the calling thread runs in, or NULL for a kernel thread */
+static program_t *caller_program(void)
+{
+    return thread_get_tcb(thread_current_tid())->program;
+}
+
+/*
+ * Bytes of the caller's own memory from `offset` on: 0 if `offset` is
+ * not in it. A program owns its data segment from PROG_DATA_START to
+ * the end of its stacks, and must pass pointers relative to it.
+ */
+static uint16_t caller_room(const frame_t *frame, uint16_t offset)
+{
+    const program_t *program = caller_program();
+
+    if (!program) {
+        return 0xFFFF - offset;     /* A kernel thread: the whole segment */
+    }
+    if (frame->ds != program->data_segment ||
+        offset < PROG_DATA_START || offset >= program->data_limit) {
+        return 0;
+    }
+    return program->data_limit - offset;
+}
+
+/* Is the buffer of `length` bytes at `offset` all in the caller's memory? */
+static bool caller_owns(const frame_t *frame, uint16_t offset, uint16_t length)
+{
+    uint16_t room = caller_room(frame, offset);
+
+    return room > 0 && length <= room;
+}
+
 /* Copy a short string argument out of the caller's data segment */
-static void copy_name(const frame_t *frame, uint16_t offset, char *out)
+static bool copy_name(const frame_t *frame, uint16_t offset, char *out)
 {
     const char __far *in = (const char __far *)MK_FP(frame->ds, offset);
+    uint16_t room = caller_room(frame, offset);
     uint8_t i;
 
-    for (i = 0; i < NAME_MAX_LENGTH - 1 && in[i]; i++) {
+    for (i = 0; i < NAME_MAX_LENGTH - 1 && i < room && in[i]; i++) {
         out[i] = in[i];
     }
     out[i] = '\0';
+    return room > 0;
+}
+
+/* ── Semaphore and mailbox handles ──────────── */
+
+/*
+ * A handle is the object's address in the kernel's data segment. Every
+ * object made through a system call is listed here, so a handle the
+ * kernel never gave out is refused rather than used as a pointer into
+ * kernel memory. What a program creates is freed when it ends.
+ */
+#define MAX_HANDLES         16
+
+enum { HANDLE_FREE, HANDLE_SEM, HANDLE_MBOX };
+
+static struct {
+    void      *object;
+    program_t *program;     /* Creator, or NULL for a kernel thread */
+    uint8_t    kind;
+} handles[MAX_HANDLES];
+
+/* Hand out a new object; frees it and returns false if the table is full */
+static bool handle_add(void *object, uint8_t kind)
+{
+    uint8_t i;
+
+    for (i = 0; i < MAX_HANDLES; i++) {
+        if (handles[i].kind == HANDLE_FREE) {
+            handles[i].object  = object;
+            handles[i].program = caller_program();
+            handles[i].kind    = kind;
+            return true;
+        }
+    }
+    kfree(object);
+    return false;
+}
+
+/* The table entry for a handle of the given kind, or -1 */
+static int handle_find(uint16_t value, uint8_t kind)
+{
+    uint8_t i;
+
+    for (i = 0; i < MAX_HANDLES; i++) {
+        if (handles[i].kind == kind && (uint16_t)handles[i].object == value) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+static bool idle_object(const void *object, uint8_t kind)
+{
+    if (kind == HANDLE_SEM) {
+        return ((const semaphore_t *)object)->wait_count == 0;
+    }
+    return ((const mailbox_t *)object)->items.wait_count == 0 &&
+           ((const mailbox_t *)object)->space.wait_count == 0;
+}
+
+void syscall_program_ended(program_t *program)
+{
+    uint8_t i;
+
+    for (i = 0; i < MAX_HANDLES; i++) {
+        if (handles[i].kind != HANDLE_FREE && handles[i].program == program) {
+            if (idle_object(handles[i].object, handles[i].kind)) {
+                kfree(handles[i].object);
+                handles[i].kind = HANDLE_FREE;
+            } else {
+                handles[i].program = NULL;  /* Still in use by a kernel thread */
+            }
+        }
+    }
+}
+
+/* ── Far memory ─────────────────────────────── */
+
+/* May the caller free this far block? Only blocks its own program allocated. */
+static bool caller_may_free(uint16_t segment)
+{
+    uint8_t owner;
+    tcb_t *tcb;
+
+    if (!far_owner(segment, &owner) || owner == FAR_NO_OWNER) {
+        return false;               /* Not a block, or the kernel's own */
+    }
+    if (owner == (uint8_t)thread_current_tid()) {
+        return true;
+    }
+    /* Another thread of the same program allocated it */
+    tcb = thread_get_tcb(owner);
+    return tcb && tcb->active && tcb->program && tcb->program == caller_program();
 }
 
 /* ── Open files ─────────────────────────────── */
@@ -109,8 +241,10 @@ bool syscall_dispatch(frame_t *frame)
     uint8_t func = (uint8_t)(frame->ax >> 8);  /* Function number in AH */
     bool resched = false;
     bool error = false;
+    bool refused = false;   /* An argument failed its check */
     char name[NAME_MAX_LENGTH];
     int tid;
+    int handle;
     void *obj;
 
     /* Success unless a case says otherwise */
@@ -130,9 +264,14 @@ bool syscall_dispatch(frame_t *frame)
         /* BX = offset of a null-terminated string in the caller's data segment */
         {
             const char __far *text = (const char __far *)MK_FP(frame->ds, frame->bx);
+            uint16_t room = caller_room(frame, frame->bx);
             uint16_t i;
 
-            for (i = 0; i < PUTS_MAX_LENGTH && text[i]; i++) {
+            if (room == 0) {
+                refused = true;
+                break;
+            }
+            for (i = 0; i < PUTS_MAX_LENGTH && i < room && text[i]; i++) {
                 con_putchar(text[i]);
             }
         }
@@ -145,8 +284,13 @@ bool syscall_dispatch(frame_t *frame)
          */
         tcb_t *caller = thread_get_tcb(thread_current_tid());
 
-        if (caller->program && frame->cs == caller->program->code_segment) {
-            /* A program starting another thread in itself */
+        if (caller->program) {
+            /* A program starts threads only in itself, at an address in its code */
+            if (frame->cs != caller->program->code_segment ||
+                frame->bx >= caller->program->text_size) {
+                refused = true;
+                break;
+            }
             tid = thread_create_program(caller->program, frame->bx, frame->dx,
                                         (uint8_t)(frame->cx & 0xFF), caller->name);
         } else {
@@ -191,7 +335,7 @@ bool syscall_dispatch(frame_t *frame)
     case SYS_SEM_CREATE:
         /* BX = initial count */
         obj = kmalloc(sizeof(semaphore_t));
-        if (obj) {
+        if (obj && handle_add(obj, HANDLE_SEM)) {
             sem_init((semaphore_t *)obj, (int16_t)frame->bx);
             frame->ax = (uint16_t)obj;
         } else {
@@ -200,24 +344,24 @@ bool syscall_dispatch(frame_t *frame)
         break;
 
     case SYS_SEM_WAIT:
-        if (frame->bx) {
+        if (handle_find(frame->bx, HANDLE_SEM) >= 0) {
             sem_wait((semaphore_t *)frame->bx);
         } else {
-            error = true;
+            refused = true;
         }
         break;
 
     case SYS_SEM_SIGNAL:
-        if (frame->bx) {
+        if (handle_find(frame->bx, HANDLE_SEM) >= 0) {
             sem_signal((semaphore_t *)frame->bx);
         } else {
-            error = true;
+            refused = true;
         }
         break;
 
     case SYS_MBOX_CREATE:
         obj = kmalloc(sizeof(mailbox_t));
-        if (obj) {
+        if (obj && handle_add(obj, HANDLE_MBOX)) {
             mbox_init((mailbox_t *)obj);
             frame->ax = (uint16_t)obj;
         } else {
@@ -227,19 +371,19 @@ bool syscall_dispatch(frame_t *frame)
 
     case SYS_MBOX_SEND:
         /* BX = handle, CX = message */
-        if (frame->bx) {
+        if (handle_find(frame->bx, HANDLE_MBOX) >= 0) {
             mbox_send((mailbox_t *)frame->bx, frame->cx);
         } else {
-            error = true;
+            refused = true;
         }
         break;
 
     case SYS_MBOX_RECV:
         /* BX = handle */
-        if (frame->bx) {
+        if (handle_find(frame->bx, HANDLE_MBOX) >= 0) {
             frame->ax = mbox_recv((mailbox_t *)frame->bx);
         } else {
-            error = true;
+            refused = true;
         }
         break;
 
@@ -254,22 +398,22 @@ bool syscall_dispatch(frame_t *frame)
 
     case SYS_FREE:
         /* BX = segment */
-        far_free(frame->bx);
-        break;
-
-    case SYS_SEM_DESTROY:
-        /* Refused while threads wait on it: they would never wake */
-        if (frame->bx && ((semaphore_t *)frame->bx)->wait_count == 0) {
-            kfree((void *)frame->bx);
+        if (caller_may_free(frame->bx)) {
+            far_free(frame->bx);
         } else {
-            error = true;
+            refused = true;
         }
         break;
 
+    case SYS_SEM_DESTROY:
     case SYS_MBOX_DESTROY:
-        if (frame->bx && ((mailbox_t *)frame->bx)->items.wait_count == 0 &&
-            ((mailbox_t *)frame->bx)->space.wait_count == 0) {
-            kfree((void *)frame->bx);
+        /* Fails while threads wait on it: they would never wake */
+        handle = handle_find(frame->bx, func == SYS_SEM_DESTROY ? HANDLE_SEM : HANDLE_MBOX);
+        if (handle < 0) {
+            refused = true;
+        } else if (idle_object(handles[handle].object, handles[handle].kind)) {
+            kfree(handles[handle].object);
+            handles[handle].kind = HANDLE_FREE;
         } else {
             error = true;
         }
@@ -277,7 +421,10 @@ bool syscall_dispatch(frame_t *frame)
 
     case SYS_OPEN:
         /* BX = offset of the file name */
-        copy_name(frame, frame->bx, name);
+        if (!copy_name(frame, frame->bx, name)) {
+            refused = true;
+            break;
+        }
         tid = file_open(name);
         if (tid < 0) {
             error = true;
@@ -287,7 +434,9 @@ bool syscall_dispatch(frame_t *frame)
 
     case SYS_READ:
         /* BX = handle, CX = length, DX = offset of the buffer */
-        if (file_valid(frame->bx)) {
+        if (!caller_owns(frame, frame->dx, frame->cx)) {
+            refused = true;
+        } else if (file_valid(frame->bx)) {
             /* The file system reads into kernel memory; pass it on in pieces */
             uint8_t __far *out = (uint8_t __far *)MK_FP(frame->ds, frame->dx);
             uint8_t chunk[READ_CHUNK];
@@ -321,7 +470,10 @@ bool syscall_dispatch(frame_t *frame)
 
     case SYS_EXEC:
         /* BX = offset of the program file name */
-        copy_name(frame, frame->bx, name);
+        if (!copy_name(frame, frame->bx, name)) {
+            refused = true;
+            break;
+        }
         tid = exec_program(name, NULL);
         if (tid < 0) {
             error = true;
@@ -333,6 +485,11 @@ bool syscall_dispatch(frame_t *frame)
         /* Unknown call */
         error = true;
         break;
+    }
+
+    if (refused) {
+        telemetry_thread_fault((uint8_t)thread_current_tid(), TEL_TFAULT_BAD_ARGUMENT, func);
+        error = true;
     }
 
     if (error) {

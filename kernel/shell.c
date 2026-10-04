@@ -204,6 +204,7 @@ static void cmd_help(void)
     con_println("  help       - Show this help");
     con_println("  threads    - List active threads");
     con_println("  ps         - Alias for 'threads'");
+    con_println("  stacks     - Deepest stack use of each thread");
     con_println("  memory     - Show memory map");
     con_println("  ticks      - Show tick counter");
     con_println("  uptime     - Show system uptime");
@@ -602,6 +603,8 @@ static void process_command(char *cmd)
         cmd_help();
     } else if (str_eq(cmd, "threads") || str_eq(cmd, "ps")) {
         debug_thread_list();
+    } else if (str_eq(cmd, "stacks")) {
+        debug_stack_list();
     } else if (str_eq(cmd, "memory")) {
         mem_print_map();
     } else if (str_eq(cmd, "ticks")) {

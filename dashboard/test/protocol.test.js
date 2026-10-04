@@ -69,3 +69,20 @@ test('a reboot restarts the numbering without counting a loss', () => {
     decoder.feed(frame(1, 5, [3]));
     assert.strictEqual(decoder.lostFrames, 3);
 });
+
+test('decodes THREAD_FAULT and the stack peaks added to THREAD_STATS', () => {
+    const body = (type, payload) => {
+        const content = [1, type, 0, 0, 0, 0, 0, ...payload];
+        const crc = Protocol.crc16(Uint8Array.from(content), content.length);
+        return Uint8Array.from([...content, crc & 0xFF, crc >> 8]);
+    };
+    const fault = Protocol.decodeFrame(body(0x0D, [4, 1, 0x12, 0x08]));
+    assert.deepStrictEqual([fault.type, fault.tid, fault.kind, fault.detail],
+                           ['THREAD_FAULT', 4, 'program_stack', 0x0812]);
+
+    const name = [...Buffer.from('rogue'), 0, 0, 0, 0, 0, 0, 0];
+    const base = [3, 0, 5, 7, 0, 0, 0, 0x00, 0x80, 0x00, 0x78, 0x00, 0x08, ...name];
+    const stats = Protocol.decodeFrame(body(0x0C, [...base, 0x38, 0x01, 0xBC, 0x07]));
+    assert.deepStrictEqual([stats.stack_peak, stats.program_stack_peak], [312, 1980]);
+    assert.strictEqual(Protocol.decodeFrame(body(0x0C, base)).stack_peak, undefined);
+});

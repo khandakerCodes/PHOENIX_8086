@@ -117,6 +117,30 @@ class PayloadTest(unittest.TestCase):
         self.assertEqual((message["state"], message["cpu_ticks"], message["name"]),
                          ("RUNNING", 123456, "shell"))
 
+    def test_thread_stats_with_stack_peaks(self):
+        payload = (struct.pack("<3BI3H", 3, 0, 5, 7, 0x8000, 0x7800, 2048) +
+                   b"rogue".ljust(12, b"\0") + struct.pack("<2H", 312, 1980))
+        message = self.decode("THREAD_STATS", payload)
+        self.assertEqual((message["stack_peak"], message["program_stack_peak"]), (312, 1980))
+
+    def test_thread_stats_from_an_older_kernel_has_no_peaks(self):
+        payload = struct.pack("<3BI3H", 1, 1, 10, 1, 0, 0, 2048) + b"shell".ljust(12, b"\0")
+        self.assertNotIn("stack_peak", self.decode("THREAD_STATS", payload))
+
+    def test_thread_fault(self):
+        message = self.decode("THREAD_FAULT", struct.pack("<BBH", 4, 1, 0x0812))
+        self.assertEqual((message["tid"], message["kind"], message["detail"]),
+                         (4, "program_stack", 0x0812))
+        message = self.decode("THREAD_FAULT", struct.pack("<BBH", 4, 2, 0x0B))
+        self.assertEqual((message["kind"], message["detail"]), ("bad_argument", 0x0B))
+
+    def test_priority(self):
+        message = self.decode("PRIORITY", bytes([3, 8, 1, 5]))
+        self.assertEqual((message["tid"], message["effective"], message["reason"], message["cause"]),
+                         (3, 8, "inherit", 5))
+        message = self.decode("PRIORITY", bytes([3, 2, 2, 0xFF]))
+        self.assertEqual((message["reason"], message["cause"]), ("restore", None))
+
     def test_short_payload_is_rejected(self):
         decoder = Decoder()
         self.assertEqual(decoder.feed(encode_frame(TYPE_IDS["COUNTERS"], 0, 0, b"\x01\x02")), [])

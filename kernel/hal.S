@@ -177,3 +177,57 @@ bios_disk_reset:
     popw    %si
     popw    %bp
     ret
+
+    .globl hal_fill_words
+
+/*
+ * void hal_fill_words(uint16_t segment, uint16_t offset, uint16_t count, uint16_t value)
+ * Store `value` in `count` consecutive words at segment:offset with
+ * REP STOSW, several times faster than a C loop on an 8088.
+ */
+hal_fill_words:
+    pushw   %bp
+    movw    %sp, %bp
+    pushw   %di
+    pushw   %es
+    movw    4(%bp), %es
+    movw    6(%bp), %di
+    movw    8(%bp), %cx
+    movw    10(%bp), %ax
+    cld
+    rep     stosw
+    popw    %es
+    popw    %di
+    popw    %bp
+    ret
+
+    .globl hal_count_words
+
+/*
+ * uint16_t hal_count_words(uint16_t segment, uint16_t offset, uint16_t count, uint16_t value)
+ * How many of the `count` words at segment:offset, from the first one
+ * on, are equal to `value` before the first that is not (REPE SCASW).
+ */
+hal_count_words:
+    pushw   %bp
+    movw    %sp, %bp
+    pushw   %di
+    pushw   %es
+    movw    4(%bp), %es
+    movw    6(%bp), %di
+    movw    8(%bp), %cx
+    movw    10(%bp), %ax
+    movw    %cx, %dx
+    jcxz    2f
+    cld
+    repe    scasw
+    je      1f                      /* every word matched */
+    incw    %cx                     /* the last word compared did not */
+1:
+    subw    %cx, %dx
+2:
+    movw    %dx, %ax
+    popw    %es
+    popw    %di
+    popw    %bp
+    ret

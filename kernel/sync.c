@@ -152,6 +152,41 @@ void sem_remove_waiter(semaphore_t *s, int tid)
 
 /* ── Mutex ──────────────────────────────────── */
 
+/*
+ * Priority inheritance. Without it, a low-priority thread holding a
+ * mutex that a high-priority thread wants can be kept off the CPU
+ * indefinitely by any medium-priority thread: priority inversion.
+ *
+ * So a thread that blocks on a mutex lends its priority to the owner,
+ * and, if the owner is itself waiting for another mutex, to that
+ * mutex's owner, and so on (INHERIT_DEPTH levels; a longer chain on
+ * eight threads would be a deadlock anyway). As in FreeRTOS, an owner
+ * keeps what it inherited until it has released every mutex it holds:
+ * simpler than undoing each loan separately, and never too low.
+ */
+#define INHERIT_DEPTH   4
+
+/* Interrupts must be off */
+static void inherit(mutex_t *m, uint8_t priority, int from)
+{
+    uint8_t depth;
+
+    for (depth = 0; depth < INHERIT_DEPTH && m != NULL && m->owner >= 0; depth++) {
+        tcb_t *owner = thread_get_tcb(m->owner);
+
+        if (owner->inherited >= priority) {
+            break;          /* Already lent this much, here and further down the chain */
+        }
+        owner->inherited = priority;
+        if (owner->eff_priority < priority) {
+            owner->eff_priority = priority;
+        }
+        telemetry_priority((uint8_t)m->owner, owner->eff_priority, TEL_PRIO_INHERIT, (uint8_t)from);
+
+        m = (mutex_t *)owner->wait_mutex;
+    }
+}
+
 void mutex_init(mutex_t *m)
 {
     sem_init(&m->sem, 1);
@@ -160,20 +195,47 @@ void mutex_init(mutex_t *m)
 
 void mutex_lock(mutex_t *m)
 {
-    sem_wait(&m->sem);
-    m->owner = thread_current_tid();
+    uint16_t flags = hal_irq_save();
+    int tid = thread_current_tid();
+    tcb_t *me = thread_get_tcb(tid);
+
+    if (m->owner >= 0) {
+        me->wait_mutex = m;
+        inherit(m, me->eff_priority, tid);
+    }
+    sem_wait(&m->sem);      /* Blocks until the owner lets go */
+
+    me->wait_mutex = NULL;
+    m->owner = tid;
+    me->mutexes_held++;
+
+    hal_irq_restore(flags);
 }
 
 void mutex_unlock(mutex_t *m)
 {
     uint16_t flags = hal_irq_save();
+    int tid = thread_current_tid();
+    tcb_t *me = thread_get_tcb(tid);
+    bool restored = false;
 
-    if (m->owner == thread_current_tid()) {
+    if (m->owner == tid) {
         m->owner = -1;
+        if (me->mutexes_held > 0 && --me->mutexes_held == 0 && me->inherited) {
+            me->inherited = 0;
+            me->eff_priority = me->priority;
+            telemetry_priority((uint8_t)tid, me->eff_priority, TEL_PRIO_RESTORE, 0xFF);
+            restored = true;
+        }
         sem_signal(&m->sem);
     }
 
     hal_irq_restore(flags);
+
+    /* The thread we were standing in for probably outranks us now */
+    if (restored) {
+        thread_yield();
+    }
 }
 
 /* ── Spinlock ───────────────────────────────── */

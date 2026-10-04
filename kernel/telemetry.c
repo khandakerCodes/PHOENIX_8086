@@ -332,6 +332,29 @@ void telemetry_fault(uint8_t tid, const frame_t *frame, uint16_t sp, const char 
     record(TEL_FAULT, data, (uint8_t)(p - data));
 }
 
+/* `detail`: the stack pointer for a stack overflow, the function number for a refused call */
+void telemetry_thread_fault(uint8_t tid, uint8_t kind, uint16_t detail)
+{
+    uint8_t data[4];
+
+    data[0] = tid;
+    data[1] = kind;
+    put16(&data[2], detail);
+    record(TEL_THREAD_FAULT, data, sizeof(data));
+}
+
+/* `cause`: the waiting thread that lent its priority, or 0xFF */
+void telemetry_priority(uint8_t tid, uint8_t effective, uint8_t reason, uint8_t cause)
+{
+    uint8_t data[4];
+
+    data[0] = tid;
+    data[1] = effective;
+    data[2] = reason;
+    data[3] = cause;
+    record(TEL_PRIORITY, data, sizeof(data));
+}
+
 void telemetry_bench(uint8_t kind, uint32_t count)
 {
     uint8_t data[5];
@@ -428,14 +451,21 @@ static void send_memory(void)
 
 static void send_thread_stats(void)
 {
-    uint8_t data[25];
+    uint8_t data[29];
     int tid;
 
     for (tid = 0; tid < MAX_THREADS; tid++) {
         tcb_t *tcb = thread_get_tcb(tid);
-        uint16_t flags = hal_irq_save();
+        uint16_t kernel_peak, program_peak;
+        uint16_t flags;
         uint8_t *p = data;
 
+        /* Measured before the snapshot below, with interrupts mostly on */
+        if (!thread_stack_peak(tid, &kernel_peak, &program_peak)) {
+            continue;
+        }
+
+        flags = hal_irq_save();
         if (!tcb->active) {
             hal_irq_restore(flags);
             continue;
@@ -449,6 +479,8 @@ static void send_thread_stats(void)
         p = put16(p, tcb->stack_base);
         p = put16(p, tcb->stack_size);
         p = put_name(p, tcb->name);
+        p = put16(p, kernel_peak);
+        p = put16(p, program_peak);
 
         hal_irq_restore(flags);
         send_now(TEL_THREAD_STATS, data, sizeof(data));

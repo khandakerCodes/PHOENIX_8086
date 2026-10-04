@@ -54,6 +54,13 @@ bool thread_set_priority(int tid, uint8_t priority);
 /* Get a pointer to the TCB for a given thread ID */
 tcb_t *thread_get_tcb(int tid);
 
+/*
+ * Deepest use so far of a thread's kernel stack and, for a program
+ * thread, of its program stack (0 otherwise), in bytes. Returns false
+ * if the thread does not exist.
+ */
+bool thread_stack_peak(int tid, uint16_t *kernel, uint16_t *program);
+
 /* Get the currently running thread's ID */
 int thread_current_tid(void);
 
