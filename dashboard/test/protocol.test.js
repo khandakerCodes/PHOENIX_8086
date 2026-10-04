@@ -86,3 +86,10 @@ test('decodes THREAD_FAULT and the stack peaks added to THREAD_STATS', () => {
     assert.deepStrictEqual([stats.stack_peak, stats.program_stack_peak], [312, 1980]);
     assert.strictEqual(Protocol.decodeFrame(body(0x0C, base)).stack_peak, undefined);
 });
+
+test('CONTEXT_SWITCH from a newer kernel carries the position within the tick', () => {
+    const content = [1, 5, 0, 0, 0, 0, 0, 0, 1, ...new Array(22).fill(0), 0x4E, 0x17];
+    const crc = Protocol.crc16(Uint8Array.from(content), content.length);
+    const message = Protocol.decodeFrame(Uint8Array.from([...content, crc & 0xFF, crc >> 8]));
+    assert.strictEqual(message.sub_tick, 5966);
+});

@@ -62,6 +62,7 @@ All notable changes to this project are recorded here. The project follows [Sema
 * `bridge/trace.py`: converts a capture to the Chrome/Perfetto trace format, with a CPU track, per-thread tracks, flow arrows at context switches and counters.
 * Host-compiled kernel tests (`tests/host/`, `make test-host`): `sync.c`, `ipc.c`, `memory.c` and `fat12.c` built unmodified for the PC under AddressSanitizer and UBSan, on a simulated machine whose threads really block (ucontext). Inheritance chains and the depth limit, allocator invariants under random load, every file on the real floppy read back and compared, and a FAT12 fuzzer. Part of `make test`.
 * `make coverage` (`tools/coverage_report.py`): line coverage of the host-tested files; CI puts it in the job summary.
+* Sub-tick time: the timer chip runs in mode 2, so its counter tells how far into a tick the kernel is (about 0.84 µs). Context-switch telemetry carries it, so the Perfetto export shows real slice durations, and `bench` measures timer interrupt latency.
 * `make size` (`tools/size_report.py`): segment use, largest functions and variables, program sizes; fails when a segment passes 90% of its limit; CI puts the report in the job summary.
 
 ### Changed

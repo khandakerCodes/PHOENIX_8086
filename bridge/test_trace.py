@@ -81,6 +81,17 @@ class TrackTest(unittest.TestCase):
                  if e["ph"] == "M" and e["name"] == "thread_name"}
         self.assertNotEqual(named["hello (TID 3)"], named["primes (TID 3)"])
 
+    def test_sub_tick_gives_switches_within_a_tick_real_durations(self):
+        a = dict(switch(10, 0, 1), sub_tick=1193)      # 1 ms into tick 10
+        b = dict(switch(10, 1, 2), sub_tick=3579)      # 3 ms into tick 10
+        c = dict(switch(11, 2, 0), sub_tick=0)
+        trace = capture_to_trace([(0.0, a), (0.0, b), (0.0, c)])
+        cpu = [e for e in trace["traceEvents"] if e["ph"] == "X" and e["tid"] == CPU_TID]
+        expected = [(101_000, 2_000), (103_000, 7_000)]     # 1,193.18 counts per ms: within 1 us
+        for event, (ts, dur) in zip(cpu[:2], expected):
+            self.assertLessEqual(abs(event["ts"] - ts), 1)
+            self.assertLessEqual(abs(event["dur"] - dur), 1)
+
     def test_times_come_from_ticks_only(self):
         trace = capture_to_trace([(0.0, switch(10, 0, 1)), (0.0, switch(12, 1, 0))])
         (slice_,) = [e for e in trace["traceEvents"] if e["ph"] == "X" and e["tid"] == CPU_TID][:1]

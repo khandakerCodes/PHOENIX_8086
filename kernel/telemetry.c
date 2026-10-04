@@ -281,7 +281,7 @@ void telemetry_context_switch(uint8_t from_tid, uint8_t to_tid, uint16_t to_sp)
 {
     /* The registers the incoming thread is about to resume with */
     const frame_t *frame = CONTEXT_FRAME(to_sp);
-    uint8_t data[24];
+    uint8_t data[26];
     uint8_t *p = data;
 
     *p++ = from_tid;
@@ -297,6 +297,7 @@ void telemetry_context_switch(uint8_t from_tid, uint8_t to_tid, uint16_t to_sp)
     p = put16(p, frame->si);
     p = put16(p, frame->di);
     p = put16(p, frame->bp);
+    p = put16(p, timer_counts());   /* How far into the tick: switches within one tick can be told apart */
     record(TEL_CONTEXT_SWITCH, data, sizeof(data));
 }
 

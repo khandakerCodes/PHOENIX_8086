@@ -22,10 +22,12 @@ What the trace shows:
   * Global markers for boot stages and panics; console lines on a
     track of their own.
 
-Times come from the kernel's tick counter, so they are only as fine as
-one tick (10 ms at 100 Hz). Switches that happen within one tick share
-a timestamp and show as zero-length slices; nothing here invents a
-finer time than the kernel reported.
+Times come from the kernel's tick counter (10 ms at 100 Hz). Context
+switches from newer kernels also carry the timer chip's count within
+the tick (about 0.84 us resolution), so the CPU and thread slices
+have real durations. Other events, and switches from older captures,
+are placed at the start of their tick; nothing here invents a finer
+time than the kernel reported.
 """
 
 import argparse
@@ -33,6 +35,7 @@ import json
 import sys
 
 from bridge.capture import read_capture
+from bridge.protocol import PIT_HZ
 
 DEFAULT_HZ = 100
 KERNEL_PID = 1              # one "process" for the kernel's threads
@@ -66,8 +69,9 @@ class TraceBuilder:
 
     # ── Helpers ──
 
-    def _us(self, tick):
-        return tick * 1_000_000 // self.hz
+    def _us(self, tick, sub_tick=0):
+        # sub_tick: PIT counts into the tick, from CONTEXT_SWITCH records of newer kernels
+        return tick * 1_000_000 // self.hz + sub_tick * 1_000_000 // PIT_HZ
 
     def _emit(self, **event):
         event.setdefault("pid", KERNEL_PID)
@@ -109,7 +113,7 @@ class TraceBuilder:
 
     def add(self, message):
         tick = message.get("tick", 0)
-        self._end = max(self._end, self._us(tick))
+        self._end = max(self._end, self._us(tick, message.get("sub_tick", 0)))
         handler = getattr(self, "_on_" + message.get("type", "").lower(), None)
         if handler:
             handler(message, tick)
@@ -136,7 +140,9 @@ class TraceBuilder:
         self._instant(tick, self._track(m["tid"]), m["state"], args={"priority": m["priority"]})
 
     def _on_context_switch(self, m, tick):
-        ts = self._us(tick)
+        ts = self._us(tick, m.get("sub_tick", 0))
+        if self._running is not None:
+            ts = max(ts, self._running[2])     # a slice never ends before it started
         previous = self._close_running(ts)
         if previous is None and m["from_tid"] in self._tracks:
             previous = self._tracks[m["from_tid"]]
@@ -208,7 +214,9 @@ class TraceBuilder:
             "traceEvents": header + self.events,
             "displayTimeUnit": "ms",
             "otherData": {"source": "Phoenix-8086 telemetry capture",
-                          "time resolution": f"one kernel tick ({1000 // self.hz} ms)"},
+                          "time resolution": "context switches: one PIT count (about 0.84 us) "
+                                             "where the kernel reports it; other events: "
+                                             f"one kernel tick ({1000 // self.hz} ms)"},
         }
 
 

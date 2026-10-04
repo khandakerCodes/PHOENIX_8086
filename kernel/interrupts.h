@@ -71,6 +71,23 @@ void irq_bios_leave(void);
 /* Read the 32-bit tick counter atomically (for use outside ISRs) */
 uint32_t irq_ticks(void);
 
+/* PIT input clock counts in one tick (1,193,182 counts per second) */
+#define PIT_TICK_COUNTS     ((uint16_t)(PIT_FREQUENCY / HZ))
+
+/*
+ * PIT counts since the current tick began (tick_count), about 0.84 us
+ * each. Can exceed PIT_TICK_COUNTS when the next tick's interrupt is
+ * already pending. Interrupts must be off.
+ */
+uint16_t timer_counts(void);
+
+/*
+ * Measure timer interrupt latency: from the PIT raising IRQ0 to the
+ * timer handler starting, in PIT counts. Returns the number of samples.
+ */
+void timer_latency_start(void);
+uint16_t timer_latency_stop(uint16_t *min, uint16_t *average, uint16_t *max);
+
 /*
  * ISR C handlers — called from the stubs in isr.S.
  * Each receives the stack pointer of the saved frame and returns

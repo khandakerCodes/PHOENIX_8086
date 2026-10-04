@@ -244,6 +244,12 @@ def run(machine):
     states = {m["state"] for m in machine.telemetry("THREAD_STATE")}
     check("telemetry: state changes", {"BLOCKED", "SLEEPING", "READY"} <= states, str(states))
     check("telemetry: system calls", len(machine.telemetry("SYSCALL")) >= 8)
+    # Switches carry the position within their tick, which never runs backwards
+    stamps = [(m["tick"], m["sub_tick"]) for m in machine.telemetry("CONTEXT_SWITCH")]
+    backwards = [(i, stamps[i - 2:i + 2]) for i in range(1, len(stamps)) if stamps[i] < stamps[i - 1]]
+    check("telemetry: switches carry sub-tick times, in order",
+          stamps and all(0 <= s < 2 * 11931 for _, s in stamps) and not backwards,
+          f"{len(backwards)} of {len(stamps)} go backwards, first: {backwards[:3]}")
     switch = machine.telemetry("CONTEXT_SWITCH")[-1]
     check("telemetry: switch carries the resumed registers",
           switch["regs"]["cs"] == 0x1000 and switch["regs"]["ip"] != 0, str(switch))
@@ -414,11 +420,16 @@ def run(machine):
     text = machine.wait_for(r"kmalloc\+kfree pairs/sec, (under 1|\d+) us each", timeout=20) or ""
     switches = re.search(r"bench: (\d+) context switches/sec", text)
     check("benchmark runs", switches is not None and int(switches.group(1)) > 100, text)
+    text = machine.wait_for(r"timer interrupt latency [^\n]*ticks\)", timeout=20) or ""
+    latency = re.search(r"latency (\d+)-(\d+) us, average (\d+) us \((\d+) ticks\)", text)
+    check("benchmark measures timer interrupt latency",
+          latency is not None and int(latency.group(4)) >= 40 and
+          int(latency.group(1)) <= int(latency.group(3)) <= int(latency.group(2)) < 10_000, text)
     time.sleep(0.5)
     bench = {m["kind"]: m["count"] for m in machine.telemetry("BENCH")}
     check("telemetry: benchmark results",
           switches is not None and bench.get("context_switches") == int(switches.group(1))
-          and "heap_pairs" in bench, str(bench))
+          and "heap_pairs" in bench and "irq_latency_avg_ns" in bench, str(bench))
 
     # 13. A runaway recursion is killed before it damages another stack
     machine.type("overflow")

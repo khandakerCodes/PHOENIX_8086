@@ -131,6 +131,8 @@
             "event.badArgument": "{thread} INT 80h {name} refused: bad argument",
             "event.syscall": "{thread} INT 80h {name}",
             "event.bench": "Benchmark {kind}: {count}/s",
+            "event.latencyAvg": "Timer interrupt latency: {us} µs on average (measured in the emulator)",
+            "event.latencyMax": "Timer interrupt latency: {us} µs at most",
             "state.READY": "READY",
             "state.RUNNING": "RUNNING",
             "state.BLOCKED": "BLOCKED",

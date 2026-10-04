@@ -27,7 +27,7 @@
                         'CONTEXT_SWITCH', 'COUNTERS', 'MEMORY', 'FAULT', 'CONSOLE', 'SYSCALL',
                         'BENCH', 'THREAD_STATS', 'THREAD_FAULT', 'PRIORITY'];
     const THREAD_STATES = ['READY', 'RUNNING', 'BLOCKED', 'SLEEPING', 'TERMINATED'];
-    const BENCH_KINDS = ['context_switches', 'heap_pairs'];
+    const BENCH_KINDS = ['context_switches', 'heap_pairs', 'irq_latency_avg_ns', 'irq_latency_max_ns'];
     const THREAD_FAULT_KINDS = ['kernel_stack', 'program_stack', 'bad_argument'];
     const PRIORITY_REASONS = { 1: 'inherit', 2: 'restore' };
     const REGISTERS = ['ip', 'cs', 'flags', 'sp', 'ax', 'bx', 'cx', 'dx', 'si', 'di', 'bp'];
@@ -102,8 +102,14 @@
             return { tid: p[0] };
         case 'THREAD_STATE':
             return { tid: p[0], state: state(p[1]), priority: p[2] };
-        case 'CONTEXT_SWITCH':
-            return { from_tid: p[0], to_tid: p[1], regs: registers(p, 2) };
+        case 'CONTEXT_SWITCH': {
+            const result = { from_tid: p[0], to_tid: p[1], regs: registers(p, 2) };
+            if (p.length >= 26) {
+                /* Newer kernels: PIT counts since the tick began (about 0.84 us each) */
+                result.sub_tick = u16(p, 24);
+            }
+            return result;
+        }
         case 'COUNTERS':
             return { timer: u32(p, 0), keyboard: u32(p, 4), syscall: u32(p, 8),
                      context_switches: u32(p, 12), drops: u16(p, 16) };

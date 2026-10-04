@@ -100,6 +100,11 @@ class PayloadTest(unittest.TestCase):
         self.assertEqual(message["regs"]["ip"], 0x1000)
         self.assertEqual(message["regs"]["bp"], 0x100A)
 
+    def test_context_switch_sub_tick(self):
+        payload = bytes([0, 1]) + struct.pack("<11H", *range(11)) + struct.pack("<H", 5966)
+        self.assertEqual(self.decode("CONTEXT_SWITCH", payload)["sub_tick"], 5966)
+        self.assertNotIn("sub_tick", self.decode("CONTEXT_SWITCH", payload[:24]))
+
     def test_counters(self):
         message = self.decode("COUNTERS", struct.pack("<4IH", 70000, 2, 3, 4, 5))
         self.assertEqual(message["timer"], 70000)

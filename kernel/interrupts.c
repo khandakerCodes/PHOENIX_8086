@@ -73,6 +73,102 @@ uint32_t irq_ticks(void)
     return now;
 }
 
+/* ── Programmable interval timer ───────────── */
+
+/*
+ * PIT channel 0, low byte then high byte, in `mode`; divisor 0 means
+ * 65536. The kernel uses mode 2 (rate generator): the counter runs
+ * down once per tick, from the divisor to 1, so reading it tells how
+ * far into the tick we are (timer_counts). In the BIOS's mode 3 it
+ * runs down twice per tick, two at a time, and a reading is ambiguous.
+ */
+#define PIT_MODE_RATE       0x34    /* Mode 2 */
+#define PIT_MODE_SQUARE     0x36    /* Mode 3, as the BIOS sets it */
+#define PIT_LATCH_CHANNEL0  0x00
+#define PIC_READ_IRR        0x0A
+
+static void pit_program(uint8_t mode, uint16_t divisor)
+{
+    outb(PIT_COMMAND, mode);
+    outb(PIT_CHANNEL0, (uint8_t)(divisor & 0xFF));
+    outb(PIT_CHANNEL0, (uint8_t)(divisor >> 8));
+}
+
+/* Counts left before the next tick; interrupts must be off */
+static uint16_t pit_read(void)
+{
+    uint8_t low, high;
+
+    outb(PIT_COMMAND, PIT_LATCH_CHANNEL0);
+    low = inb(PIT_CHANNEL0);
+    high = inb(PIT_CHANNEL0);
+    return (uint16_t)low | ((uint16_t)high << 8);
+}
+
+uint16_t timer_counts(void)
+{
+    static uint32_t last_tick;
+    static uint16_t last_counts;
+    uint16_t elapsed = PIT_TICK_COUNTS - pit_read();
+    uint8_t pending;
+
+    /*
+     * If the counter has already wrapped but the tick interrupt is
+     * still waiting (interrupts are off), the reading belongs to the
+     * next tick. Report it as past the end of this one, so that
+     * tick_count and the counts together never go backwards.
+     */
+    outb(PIC1_CMD, PIC_READ_IRR);
+    pending = inb(PIC1_CMD) & 0x01;
+    if (pending && elapsed < PIT_TICK_COUNTS / 2) {
+        elapsed += PIT_TICK_COUNTS;
+    }
+
+    /*
+     * Within one tick the counter only runs down, so a reading below
+     * the last one means it wrapped before the interrupt was raised.
+     * Real hardware raises IRQ0 as it wraps; QEMU can lag (seen in
+     * about one switch in 500).
+     */
+    if (tick_count == last_tick && elapsed < last_counts) {
+        elapsed = (elapsed + PIT_TICK_COUNTS >= last_counts) ? elapsed + PIT_TICK_COUNTS : last_counts;
+    }
+    last_tick = tick_count;
+    last_counts = elapsed;
+    return elapsed;
+}
+
+/* ── Timer interrupt latency (bench) ────────── */
+
+static volatile bool latency_on;
+static volatile uint16_t latency_min, latency_max, latency_samples;
+static volatile uint32_t latency_sum;
+
+void timer_latency_start(void)
+{
+    uint16_t flags = hal_irq_save();
+
+    latency_min = 0xFFFF;
+    latency_max = 0;
+    latency_sum = 0;
+    latency_samples = 0;
+    latency_on = true;
+    hal_irq_restore(flags);
+}
+
+uint16_t timer_latency_stop(uint16_t *min, uint16_t *average, uint16_t *max)
+{
+    uint16_t flags = hal_irq_save();
+    uint16_t samples = latency_samples;
+
+    latency_on = false;
+    *min = samples ? latency_min : 0;
+    *max = latency_max;
+    *average = samples ? (uint16_t)(latency_sum / samples) : 0;
+    hal_irq_restore(flags);
+    return samples;
+}
+
 /* ── Timer ISR C handler ────────────────────── */
 
 /*
@@ -82,6 +178,19 @@ uint32_t irq_ticks(void)
  */
 uint16_t timer_handler(uint16_t sp)
 {
+    /*
+     * The counter reloaded when it raised IRQ0, so its reading now is
+     * how long the interrupt took to reach this handler (bench).
+     */
+    if (latency_on) {
+        uint16_t latency = PIT_TICK_COUNTS - pit_read();
+
+        if (latency < latency_min) latency_min = latency;
+        if (latency > latency_max) latency_max = latency;
+        latency_sum += latency;
+        latency_samples++;
+    }
+
     tick_count++;
     irq_timer_count++;
 
@@ -163,18 +272,10 @@ static void ivt_write(uint8_t vector, const uint16_t *saved)
     entry[1] = saved[1];
 }
 
-static void pit_set_divisor(uint16_t divisor)
-{
-    /* PIT channel 0, mode 3 (square wave); divisor 0 means 65536 */
-    outb(PIT_COMMAND, 0x36);
-    outb(PIT_CHANNEL0, (uint8_t)(divisor & 0xFF));
-    outb(PIT_CHANNEL0, (uint8_t)(divisor >> 8));
-}
-
 /* The kernel's own setup: HZ ticks, our handlers, only the lines we use */
 static void kernel_irq_setup(void)
 {
-    pit_set_divisor((uint16_t)(PIT_FREQUENCY / HZ));
+    pit_program(PIT_MODE_RATE, PIT_TICK_COUNTS);
 
     idt_install(IRQ0_VECTOR, timer_isr);
     idt_install(IRQ1_VECTOR, keyboard_isr);
@@ -217,7 +318,7 @@ void irq_release(uint8_t irq, uint8_t vector)
 void irq_bios_enter(void)
 {
     /* BIOS timing expects its 18.2 Hz tick; its floppy code needs IRQ6 */
-    pit_set_divisor(0);
+    pit_program(PIT_MODE_SQUARE, 0);
     ivt_write(IRQ0_VECTOR, bios_timer_vector);
     ivt_write(IRQ1_VECTOR, bios_keyboard_vector);
     ivt_write(FLOPPY_VECTOR, bios_floppy_vector);
