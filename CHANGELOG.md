@@ -60,6 +60,8 @@ All notable changes to this project are recorded here. The project follows [Sema
 * New telemetry record `THREAD_FAULT` for problems the kernel survives (stack overflows, refused arguments); the dashboard lists them as events, not as a panic.
 * Example program `rogue`, which breaks the rules on purpose.
 * `bridge/trace.py`: converts a capture to the Chrome/Perfetto trace format, with a CPU track, per-thread tracks, flow arrows at context switches and counters.
+* Host-compiled kernel tests (`tests/host/`, `make test-host`): `sync.c`, `ipc.c`, `memory.c` and `fat12.c` built unmodified for the PC under AddressSanitizer and UBSan, on a simulated machine whose threads really block (ucontext). Inheritance chains and the depth limit, allocator invariants under random load, every file on the real floppy read back and compared, and a FAT12 fuzzer. Part of `make test`.
+* `make coverage` (`tools/coverage_report.py`): line coverage of the host-tested files; CI puts it in the job summary.
 * `make size` (`tools/size_report.py`): segment use, largest functions and variables, program sizes; fails when a segment passes 90% of its limit; CI puts the report in the job summary.
 
 ### Changed
@@ -68,6 +70,7 @@ All notable changes to this project are recorded here. The project follows [Sema
 * `phoenix.sh` no longer kills other processes; it reports busy ports and stops.
 
 ### Fixed
+* FAT12 mount trusted the disk's parameter block. Found by the new fuzzer: 128 or more sectors per FAT wrapped a 16-bit size and the FAT was read into a block far too small; 128 sectors per cluster made the cluster size 0, which `fat_read` divided by; and remounting a disk with a bigger FAT overflowed the buffer from the first mount. The driver now checks every size in 32 bits and refuses clusters over 32 KB and FATs over 12 sectors.
 * A program could free any far-memory segment, including another program's code, through the `free` system call.
 * A program could pass any number as a semaphore or mailbox handle, and the kernel would use it as a pointer into its own memory.
 * The dashboard's system-call names stopped at `free`; calls 11h–1Bh now have names too.
