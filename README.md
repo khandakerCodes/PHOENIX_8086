@@ -13,12 +13,12 @@
 </p>
 
 <p align="center">
-  <b><a href="#-quick-start">Quick start</a></b> ·
-  <b><a href="#-your-first-five-minutes">Take the tour</a></b> ·
+  <b><a href="#quick-start">Quick start</a></b> ·
+  <b><a href="#your-first-five-minutes">Take the tour</a></b> ·
   <b><a href="docs/manual.md">User manual</a></b> ·
-  <b><a href="#-how-it-works">How it works</a></b> ·
+  <b><a href="#how-it-works">How it works</a></b> ·
   <b><a href="docs/labs/README.md">Labs</a></b> ·
-  <b><a href="#-contributing">Contribute</a></b>
+  <b><a href="#contributing">Contribute</a></b>
 </p>
 
 ---
@@ -28,7 +28,7 @@
 It is built for people learning how operating systems work, for teachers who want something small enough to show in a lecture, and for anyone who likes old machines.
 
 > [!NOTE]
-> **Status: pre-alpha.** The kernel works and is tested on every change, in emulators. It has not run on real hardware yet. See [Known limitations](#-known-limitations).
+> **Status: pre-alpha.** The kernel works and is tested on every change, in emulators. It has not run on real hardware yet. See [Known limitations](#known-limitations).
 
 <table>
   <tr>
@@ -49,40 +49,41 @@ It is built for people learning how operating systems work, for teachers who wan
   </tr>
 </table>
 
-## 📖 Contents
+## Contents
 
-- [What you get](#-what-you-get)
-- [Quick start](#-quick-start)
-- [Your first five minutes](#-your-first-five-minutes)
-- [Ways to run it](#-ways-to-run-it)
-- [Write your first program](#-write-your-first-program)
-- [How it works](#-how-it-works)
-- [Is it really 8086 code?](#-is-it-really-8086-code)
-- [How it is tested](#-how-it-is-tested)
-- [Glossary](#-glossary)
-- [Known limitations](#-known-limitations)
-- [Documentation](#-documentation)
-- [Roadmap](#-roadmap)
-- [Contributing](#-contributing)
-- [License and credits](#-license-and-credits)
+- [What you get](#what-you-get)
+- [Quick start](#quick-start)
+- [Your first five minutes](#your-first-five-minutes)
+- [Ways to run it](#ways-to-run-it)
+- [Write your first program](#write-your-first-program)
+- [How it works](#how-it-works)
+- [Is it really 8086 code?](#is-it-really-8086-code)
+- [How it is tested](#how-it-is-tested)
+- [Glossary](#glossary)
+- [Known limitations](#known-limitations)
+- [Documentation](#documentation)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License and credits](#license-and-credits)
 
-## ✨ What you get
+## What you get
 
 | | Feature | What it means |
 | --- | --- | --- |
-| 🥾 | **Two-stage bootloader** | The machine starts from a 512-byte boot sector that loads the rest, checks it, and jumps in. No DOS involved. |
-| 🧵 | **Real multitasking** | Several threads share one processor. A timer interrupts 100 times a second and the kernel decides who runs next. |
-| ⚖️ | **A fair scheduler** | Higher priorities go first, equal priorities take turns, and anything kept waiting slowly gains priority so it cannot starve. |
-| 🚦 | **Blocking and messaging** | Semaphores, mutexes and mailboxes let threads wait for each other without wasting processor time. Mutexes use priority inheritance, so a low-priority thread holding a lock cannot hold up a high-priority one for long. |
-| 📞 | **System calls** | Programs ask the kernel for services through `INT 80h`, the same idea Linux used on the PC. |
-| 💾 | **A real file system** | The boot floppy is a standard FAT12 disk. The kernel reads it with its own floppy-controller driver. |
-| 🚀 | **Loadable programs** | Write a C program with the SDK, put it on the disk, and `run` it. Each program gets memory of its own. |
-| 🧯 | **Safety nets** | A runaway thread is stopped before it damages another, whether it is a kernel thread or a program. Bad system-call arguments are refused. A crash shows a panic screen with the processor's registers. |
-| 📊 | **A live dashboard** | A web page shows threads, context switches, registers and memory as they happen, in five languages. |
-| 🌐 | **Runs in a browser** | The whole thing, kernel included, can run inside a web page with nothing installed. |
-| 🔬 | **Honest 8086 code** | Every build is checked for instructions newer than the 8086, and the kernel is tested on an emulated 8086. |
+| ▸ | **Two-stage bootloader** | The machine starts from a 512-byte boot sector that loads the rest, checks it, and jumps in. No DOS involved. |
+| ▸ | **Real multitasking** | Several threads share one processor. A timer interrupts 100 times a second and the kernel decides who runs next. |
+| ▸ | **A fair scheduler** | Higher priorities go first, equal priorities take turns, and anything kept waiting slowly gains priority so it cannot starve. The timer is read to under a microsecond, so every context switch is timed precisely. |
+| ▸ | **Blocking and messaging** | Semaphores, mutexes and mailboxes let threads wait for each other without wasting processor time. Mutexes use priority inheritance, so a low-priority thread holding a lock cannot hold up a high-priority one for long. |
+| ▸ | **System calls** | Programs ask the kernel for services through `INT 80h`, the same idea Linux used on the PC. |
+| ▸ | **A real file system** | The boot floppy is a standard FAT12 disk. The kernel reads it with its own floppy-controller driver. |
+| ▸ | **Loadable programs** | Write a C program with the SDK, put it on the disk, and `run` it. Each program gets memory of its own. |
+| ▸ | **Safety nets** | A runaway thread is stopped before it damages another, whether it is a kernel thread or a program. Bad system-call arguments are refused. A crash shows a panic screen with the processor's registers. |
+| ▸ | **A live dashboard** | A web page shows threads, context switches, registers, stack use and memory as they happen, in five languages. A recorded session can also be opened in [Perfetto](https://ui.perfetto.dev) as a full timeline. |
+| ▸ | **Runs in a browser** | The whole thing, kernel included, can run inside a web page with nothing installed. |
+| ▸ | **Honest 8086 code** | Every build is checked for instructions newer than the 8086, and the kernel is tested on an emulated 8086. |
+| ▸ | **Tested on the PC too** | Core kernel files also compile for an ordinary PC and run there under memory-error checkers, with a fuzzer that feeds the file system thousands of damaged floppies. |
 
-## 🚀 Quick start
+## Quick start
 
 You need Linux on a 64-bit PC. Ubuntu 24.04 is what the project is developed and tested on; Windows users can use WSL2.
 
@@ -113,7 +114,7 @@ Type `help` and press Enter. To make sure everything is healthy, run `make test`
 `make toolchain` downloads compiler packages built for Ubuntu 24.04. On other systems, install `gcc-ia16-elf` yourself from [tkchia/build-ia16](https://github.com/tkchia/build-ia16); the build uses `ia16-elf-gcc` from your `PATH` when there is no `.toolchain/` folder. macOS and other Linux distributions should work but have not been verified. Details are in [docs/building.md](docs/building.md).
 </details>
 
-## 🎒 Your first five minutes
+## Your first five minutes
 
 Everything below is real output from the kernel, trimmed a little. Type the part after `phoenix>`.
 
@@ -209,12 +210,12 @@ The kernel refuses every system call that hands it memory the program does not o
 
 More to try: `stacks`, `memory`, `stats`, `bench`, `selftest`, `cpu`, `keymap de`. Every command is explained in the **[user manual](docs/manual.md)**.
 
-## 🖥️ Ways to run it
+## Ways to run it
 
 | I want to… | Command | Notes |
 | --- | --- | --- |
 | Use it in a window | `make run` | QEMU. Close the window to stop. |
-| Check everything works | `make test` | Builds, checks the instruction set, boots the kernel and types commands into it. |
+| Check everything works | `make test` | Builds, checks the instruction set and the size budget, runs the host-compiled tests, boots the kernel and types commands into it. |
 | Run it on an 8086 | `make test-8086` | Needs `sudo apt install dosbox-x`. Boots the same disk on an emulated 8086. |
 | See the dashboard | `./phoenix.sh` | Needs `pip install -r bridge/requirements.txt`. Then open <http://localhost:8080>. |
 | Run it in a browser | `./tools/build_site.sh` | Then `python3 -m http.server 8080 --directory site`. The kernel runs inside the page. |
@@ -222,18 +223,20 @@ More to try: `stacks`, `memory`, `stats`, `bench`, `selftest`, `cpu`, `keymap de
 | Debug it | `make debug` | QEMU waits for GDB on port 1234. |
 | Study a session in Perfetto | `python3 -m bridge.trace session.jsonl -o session.json` | Converts a capture (from `--capture` or `tools/record_session.py`); open the file at <https://ui.perfetto.dev>. |
 | Check the size budget | `make size` | How full each 64 KB segment is; fails past 90%. |
+| Test kernel code on the PC | `make test-host` | Builds `sync.c`, `ipc.c`, `memory.c` and `fat12.c` for your PC with AddressSanitizer and UBSan and runs their tests and the FAT12 fuzzer. Needs only `cc`. |
+| See what the tests cover | `make coverage` | Line coverage of those files. |
 
 The dashboard always tells you where its data comes from:
 
 | Badge | Meaning |
 | --- | --- |
-| 🟢 **LIVE** | A running kernel, relayed over its serial port |
-| 🟣 **REPLAY** | A recorded session played back |
-| 🔵 **IN BROWSER** | The kernel running in an emulator inside the page |
-| 🟡 **DEMO** | Simulated data, shown only if you press "Run demo" |
-| 🔴 **OFFLINE** | No data source; the panels say so instead of showing made-up numbers |
+| <img alt="LIVE" src="https://img.shields.io/badge/-LIVE-10b981?style=flat-square"> | A running kernel, relayed over its serial port |
+| <img alt="REPLAY" src="https://img.shields.io/badge/-REPLAY-7c3aed?style=flat-square"> | A recorded session played back |
+| <img alt="IN BROWSER" src="https://img.shields.io/badge/-IN%20BROWSER-06b6d4?style=flat-square"> | The kernel running in an emulator inside the page |
+| <img alt="DEMO" src="https://img.shields.io/badge/-DEMO-f59e0b?style=flat-square"> | Simulated data, shown only if you press "Run demo" |
+| <img alt="OFFLINE" src="https://img.shields.io/badge/-OFFLINE-dc2626?style=flat-square"> | No data source; the panels say so instead of showing made-up numbers |
 
-## 🧑‍💻 Write your first program
+## Write your first program
 
 Programs are ordinary C files built with the SDK in `sdk/`. This is `sdk/examples/greet.c`, one of the examples on the disk:
 
@@ -292,7 +295,7 @@ phoenix> run mine.bin
 
 The build compiles your file, packs it into `MINE.BIN`, and copies it onto the floppy image. `sdk/include/phoenix.h` lists everything a program can ask the kernel for: console, time, threads, semaphores, mailboxes, memory and files. There is no C library, so no `printf`; the examples show how to manage without. The guide is [docs/programs.md](docs/programs.md).
 
-## 🔧 How it works
+## How it works
 
 ### From power-on to prompt
 
@@ -382,7 +385,7 @@ stateDiagram-v2
 
 The full story, file by file, is in [docs/architecture.md](docs/architecture.md).
 
-## 🔬 Is it really 8086 code?
+## Is it really 8086 code?
 
 The 8086 has no memory protection, no 32-bit registers, and lacks instructions that every later x86 chip has. It is easy to write code that *claims* to be for the 8086 and quietly is not. Three checks keep this project honest, on every change:
 
@@ -390,28 +393,28 @@ The 8086 has no memory protection, no 32-bit registers, and lacks instructions t
 2. **Dynamic check.** `make test-8086` boots the disk on DOSBox-X configured as an 8086 and runs the self-tests, the threading demos, the programs and the file system there.
 3. **Control.** The kernel's `cpu` command works out which processor it is on, using only 8086 instructions. It answers `8086/8088` on the emulated 8086 and `80286 or later` under QEMU, which shows the two test environments really are different machines.
 
-## 🧪 How it is tested
+## How it is tested
 
 Every push runs all of this on GitHub's servers.
 
 | Suite | What it does | Size |
 | --- | --- | --- |
-| Instruction check | Rejects any non-8086 instruction | 10,417 kernel instructions, plus every example program |
-| Host-compiled kernel tests | Kernel synchronisation, mailboxes, allocators and FAT12 built for the PC with sanitizers; a fuzzer feeds the FAT12 driver thousands of corrupted floppies | 2,300+ checks, 81% line coverage of those files |
+| Instruction check | Rejects any non-8086 instruction | 11,778 kernel instructions, plus every example program |
+| Host-compiled kernel tests | Kernel synchronisation, mailboxes, allocators and FAT12 built for the PC with sanitizers; a fuzzer feeds the FAT12 driver thousands of corrupted floppies | 2,309 checks, 81% line coverage of those files |
 | In-kernel self-test | The kernel tests its own allocators, semaphores, mutexes and priority inheritance, mailboxes, timers, system calls, file system and keyboard layouts | 79 assertions |
 | Size budget | Fails if either 64 KB segment passes 90% full; the report goes in the CI summary | Every push |
-| Integration test | Boots the kernel in QEMU and types commands into it, checking the screen and the telemetry | Over 70 checks across 5 boots |
+| Integration test | Boots the kernel in QEMU and types commands into it, checking the screen and the telemetry | Over 80 checks across 5 boots |
 | 8086 fidelity test | The same on an emulated 8086 | 16 checks |
 | Soak test | Constant churn of threads and programs; fails on any leak, crash or lost record | 90 s per push, 1 hour nightly |
-| Host unit tests | Protocol decoders, bridge, trace export, dashboard logic and page code | 91 tests |
+| Host unit tests | Protocol decoders, bridge, trace export, dashboard logic and page code | 94 tests |
 | Browser test | Opens the dashboard and the in-browser kernel in headless Chromium, with an accessibility audit | Over 30 checks |
 
-Some honest numbers: the kernel and boot loaders are about **8,600 lines** of C and assembly, and the kernel builds to **34 KB**. A 15-minute soak run made 27,611 context switches without a leak or a lost telemetry record.
+Some honest numbers: the kernel and boot loaders are about **8,800 lines** of C and assembly, and the kernel builds to **35 KB**: 40% of its 64 KB code segment. A 15-minute soak run made 27,611 context switches without a leak or a lost telemetry record. The FAT12 fuzzer found three real bugs in the driver on its first run; all are fixed and each has its own test.
 
 > [!IMPORTANT]
 > The `bench` command reports how fast context switches are and how long the timer interrupt takes to arrive, but it measures the *emulator*, not an 8086. Do not quote its numbers as hardware performance. Under QEMU the interrupt latency is especially unrealistic (hundreds of microseconds), because QEMU raises the timer interrupt later than its emulated timer chip wraps.
 
-## 📚 Glossary
+## Glossary
 
 New to operating systems? These are the words this project uses.
 
@@ -495,7 +498,7 @@ The stream of small records the kernel sends over its serial port describing wha
 A program that imitates a computer. QEMU, DOSBox-X and v86 are the three used here.
 </details>
 
-## ⚠️ Known limitations
+## Known limitations
 
 - **No real hardware yet.** Everything runs in emulators. `make test-8086` uses DOSBox-X's 8086 mode, which that project calls experimental; it is not cycle-accurate.
 - **No memory protection.** That is the nature of the 8086. A program has its own memory but nothing stops it writing elsewhere.
@@ -505,7 +508,7 @@ A program that imitates a computer. QEMU, DOSBox-X and v86 are the three used he
 - **Translations need review.** The dashboard's German, French, Spanish and Arabic texts were not written or checked by native speakers.
 - **Interfaces can still change.** The system-call numbers and the telemetry protocol are not frozen before version 1.0.
 
-## 📂 Documentation
+## Documentation
 
 | Document | For |
 | --- | --- |
@@ -530,40 +533,46 @@ A program that imitates a computer. QEMU, DOSBox-X and v86 are the three used he
 | `linker/` | Kernel linker script |
 | `sdk/` | Header, startup code, linker script and builder for programs, with examples |
 | `disk/` | Files copied onto the boot floppy |
-| `tools/` | Toolchain fetcher, image builders, instruction-set check, tests |
-| `bridge/` | Telemetry decoder, capture files, serial-to-WebSocket bridge (Python) |
+| `tools/` | Toolchain fetcher, image builders, instruction-set check, size and coverage reports, tests |
+| `tests/host/` | Kernel code compiled for the PC: a simulated machine, unit tests and the FAT12 fuzzer |
+| `bridge/` | Telemetry decoder, capture files, serial-to-WebSocket bridge, Perfetto trace export (Python) |
 | `dashboard/` | Web dashboard |
 | `docs/` | Everything in the table above |
 </details>
 
-## 🗺️ Roadmap
+## Roadmap
 
 | Version | Theme | Status |
 | --- | --- | --- |
-| 0.2 | Repository, CI, honest docs | ✅ Done |
-| 0.3 | True 8086 code | ✅ Done |
-| 0.4 | Real multitasking | ✅ Done |
-| 0.5 | Truthful dashboard | ✅ Done |
-| 0.6 | Programs from disk | ✅ Done, not yet tagged |
-| 0.9 | Hardening and translations | 🚧 In progress |
-| 1.0 | Public launch, stable interfaces | ⏳ Planned |
-| 1.x | Real hardware, writable file system, more layouts and languages | 💭 Ideas |
+| 0.2 | Repository, CI, honest docs | ✓ Done |
+| 0.3 | True 8086 code | ✓ Done |
+| 0.4 | Real multitasking | ✓ Done |
+| 0.5 | Truthful dashboard | ✓ Done |
+| 0.6 | Programs from disk | ✓ Done, not yet tagged |
+| 0.9 | Hardening and translations | ◐ In progress |
+| 1.0 | Public launch, stable interfaces | ○ Planned |
+| 1.1 | Trust the numbers: host-compiled tests, coverage, sub-tick timing, a cycle-accurate 8088 run | ◐ In progress, ahead of 1.0 |
+| 1.2 | Scheduling lab bench: switchable policies (MLFQS, lottery), fairness and latency panels, an autograder | ○ Planned |
+| 1.3 – 1.5 | Real hardware, a useful shell (pipes, writable FAT12), self-healing services | ○ Planned |
+| 2.0 | Explain everything: cause-and-effect timeline, time-travel debugging, telemetry v2 | ◇ Idea |
 
-The detailed status of every item is in the [implementation plan](implementation_plan.md).
+`✓` done · `◐` in progress · `○` planned · `◇` idea
 
-## 🤝 Contributing
+The detailed status of every item up to 1.0 is in the [implementation plan](implementation_plan.md); everything after it, with the reasoning and a progress log, is in the [upscaling plan](UPSCALING.md).
+
+## Contributing
 
 Contributions are welcome, and the kernel is small enough to understand completely. Good places to start:
 
-- 🌍 Review a dashboard translation if you are a native speaker
-- ⌨️ Add a keyboard layout ([lab 3](docs/labs/03-keyboard-layout.md) shows how)
-- 🖥️ Try the build on macOS or another Linux distribution and report back
-- 🧪 Work through a [lab](docs/labs/README.md) and tell us where it was unclear
-- 🔌 Boot it on a real XT-class machine
+- Review a dashboard translation if you are a native speaker
+- Add a keyboard layout ([lab 3](docs/labs/03-keyboard-layout.md) shows how)
+- Try the build on macOS or another Linux distribution and report back
+- Work through a [lab](docs/labs/README.md) and tell us where it was unclear
+- Boot it on a real XT-class machine
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) first; `make test` must pass before a pull request. This project follows a [code of conduct](CODE_OF_CONDUCT.md). To report a security problem in the host-side tools, see [SECURITY.md](SECURITY.md).
 
-## 📜 License and credits
+## License and credits
 
 Phoenix-8086 is released under the [MIT License](LICENSE).
 
