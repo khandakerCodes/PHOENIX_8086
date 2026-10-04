@@ -7,15 +7,16 @@ A guide to how the system works and where each part lives in the source. For wha
 ```
  BIOS ─► Stage 1 (boot sector) ─► Stage 2 (loader) ─► Kernel
                                                          │
-        ┌───────────────┬───────────────┬────────────────┼───────────────┐
-   Interrupts       Scheduler        Memory          Storage         Telemetry
-   isr.S            scheduler.c      memory.c        disk.c          telemetry.c
-   interrupts.c     thread.c                         fat12.c         serial.c
-   panic.c          sync.c, ipc.c                    exec.c
-        └───────────────┴───────┬───────┴────────────────┴───────────────┘
-                          System calls (syscall.c)
-                                │
-                     Shell and programs (shell.c, sdk/)
+     ┌────────────┬─────────────┬───────────┬────────────┼────────────┬────────────┐
+ Interrupts   Scheduler      Memory      Storage      Console      Telemetry
+ isr.S        scheduler.c    memory.c    disk.c       console.c    telemetry.c
+ interrupts.c thread.c                   floppy.c     ui.c         serial.c
+ panic.c      sync.c, ipc.c              fat12.c      keyboard.c
+                                         exec.c
+     └────────────┴──────┬──────┴───────────┴────────────┴────────────┘
+                   System calls (syscall.c)
+                         │
+              Shell and programs (shell.c, debug.c, sdk/)
 ```
 
 Everything runs in 16-bit real mode with 8086 instructions only. There is no memory protection: the "kernel" and its threads share one address space by convention, not enforcement.
@@ -40,8 +41,8 @@ Kernel threads run with DS = SS = the kernel data segment. A loaded program runs
 
 ## Boot
 
-1. **Stage 1** (`boot/stage1.asm`, one sector) starts with a FAT12 parameter block, sets up a stack, and loads Stage 2 with BIOS `INT 13h`.
-2. **Stage 2** (`boot/stage2.asm`) reads the first kernel sector, checks the image header's magic, works out how many sectors the image needs, loads them to `1000:0000`, verifies a checksum, and jumps to the kernel with the boot drive and memory size in registers.
+1. **Stage 1** (`boot/stage1.asm`, one sector, loaded by the BIOS to `0000:7C00`) starts with a FAT12 parameter block, sets up a stack, and loads Stage 2, the next four sectors, to `0000:7E00` with BIOS `INT 13h`. It passes the boot drive in `DL`.
+2. **Stage 2** (`boot/stage2.asm`) asks the BIOS for the size of conventional memory (`INT 12h`), reads the first kernel sector (LBA 5), checks the image header's magic `PX86`, works out how many sectors the image needs, loads them to `1000:0000`, verifies the 16-bit checksum, and jumps to `1000:0010` with the boot drive in `DL` and the memory size in kilobytes in `CX`.
 3. **Kernel entry** (`kernel/entry.S`) copies the data image to the data segment, zeroes the BSS, sets the segments and stack, and calls `kernel_main`.
 4. **`kernel_main`** (`kernel/kernel_main.c`) brings up the serial port, console, panic traps, memory, keyboard, scheduler, interrupts and file system, creates the shell and telemetry threads, and then becomes the idle thread.
 
@@ -71,9 +72,13 @@ Thread 0 is the boot context itself. It is never created; `sched_init` adopts it
 
 `kernel/scheduler.c`. The timer runs at 100 Hz. The timer chip is in mode 2 (rate generator), so its counter runs down once per tick and reading it (`timer_counts` in `kernel/interrupts.c`) tells how far into the tick the kernel is, to about 0.84 µs; context-switch telemetry and the `bench` interrupt-latency figure use this. During a BIOS disk read the BIOS gets its own mode 3 back.
 
-* The highest effective priority among runnable threads runs.
-* Threads of equal priority take turns, five ticks each.
-* A thread kept waiting gains one effective priority level every ten ticks (aging) and drops back to its base priority when it runs, so nothing starves.
+The scheduler runs whenever an interrupt handler calls `sched_switch`: on every timer tick, every keyboard and floppy interrupt, every yield (`INT 81h`), and after a system call that sleeps, yields or ends the thread. A call that has to wait, such as `sem_wait`, yields from inside the kernel. Each time, it applies these rules:
+
+* Each thread has a base priority (0-255, higher first) and an effective priority, which is what is compared.
+* The runnable thread with the highest effective priority runs. Among equals the search starts after the current thread in TID order, so they take turns (round robin).
+* The running thread keeps the processor until its time slice of five ticks is used up, unless a thread with a strictly higher effective priority is ready.
+* A thread kept waiting in the READY state gains one effective priority level every ten ticks (aging). When it is scheduled its effective priority drops back to its base priority, or to a priority inherited through a mutex if that is higher (see Blocking). So nothing starves.
+* The idle thread (TID 0) runs only when nothing else is runnable, and never ages.
 * On every switch the outgoing thread's kernel stack is checked: its guard word must be intact and its stack pointer must not be within 192 bytes of the bottom. A program thread's own stack is checked the same way, with a 64-byte red zone; its last stack pointer there is kept at the top of its kernel stack. A thread that fails either check is stopped and a `THREAD_FAULT` record is sent. Real mode cannot prevent the overflow; this notices it at the next switch.
 * Every stack is filled with a pattern when its thread is created, so the deepest point it has reached can be found later by counting untouched words from the bottom (`thread_stack_peak`, the `stacks` command, and `THREAD_STATS`).
 
@@ -135,5 +140,6 @@ On the host, `bridge/` decodes the stream and relays it to the dashboard over We
 | Integration test | The shell, scheduling, IPC, programs, panics and telemetry under QEMU | `make test` |
 | 8086 fidelity test | The same kernel on an emulated 8086 | `make test-8086` |
 | Soak test | No leaks or faults under sustained churn | `make soak` |
+| Browser tests | The dashboard and the in-browser kernel in headless Chromium, with an accessibility audit | `node tools/test_dashboard_browser.mjs`, `node tools/test_browser_demo.mjs site` |
 | Size budget | Neither 64 KB segment is more than 90% full; largest functions and variables | `make size` |
 | Host unit tests | Protocol decoders, bridge, dashboard model and page code | part of `make test` |

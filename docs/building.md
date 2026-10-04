@@ -39,7 +39,7 @@ Optional:
 | `make test-host` | Build kernel files (`sync.c`, `ipc.c`, `memory.c`, `fat12.c`) for the host with AddressSanitizer and UBSan and run their unit tests, including a FAT12 fuzzer. Part of `make test`; needs only the host's `cc` |
 | `make coverage` | Line coverage of those files under the host tests (gcov). `COVERAGE_MARKDOWN=file` also writes it as Markdown |
 | `make size` | Report how full the code and data segments are, the largest functions and variables, and program sizes; fail if a segment is over 90% of its limit. `SIZE_MARKDOWN=file` also writes it as Markdown |
-| `make test` | `check`, host unit tests, image check, boot smoke test, integration test in QEMU |
+| `make test` | `check`, `size`, `test-host`, host unit tests (Python and Node.js), image check, boot smoke test, integration test in QEMU |
 | `make test-8086` | Boot and drive the kernel on DOSBox-X as an 8086 |
 | `make soak SOAK_SECONDS=600` | Churn threads, IPC and programs for the given time |
 | `make run` | Boot in a QEMU window |
@@ -48,9 +48,25 @@ Optional:
 | `make dashboard` | Serve the dashboard at http://localhost:8080 |
 | `make clean` | Remove `build/` |
 
-Options: `make TELEMETRY=0` builds a kernel without telemetry (run `make clean` when switching).
+Options (run `make clean` when switching either of them):
+
+| Option | Effect |
+| --- | --- |
+| `TELEMETRY=0` | Build a kernel without telemetry; console text then goes to the serial port as plain text |
+| `CONSOLE=plain` | Show the console as on a CGA even on a VGA: the 16 standard colours and ordinary code-page-437 characters, no custom glyphs. Use it to check how a screen looks on older hardware |
 
 Outputs are in `build/`: `phoenix8086.img` (the floppy image), `kernel.elf` (with symbols), `kernel.bin`, and `programs/`.
+
+## Screenshots
+
+`tools/screenshot.py` boots the image in headless QEMU, types commands, and saves the screen as a PNG. The pictures in the README and the manual are made with it, at twice the native 720 x 400 size:
+
+```sh
+python3 tools/screenshot.py build/phoenix8086.img out.png --scale 2 clear ps memory
+python3 tools/screenshot.py build/phoenix8086.img out.png --scale 2 --serial clear "run clock.bin" stacks
+```
+
+Each argument is a command typed at the prompt; `@2` waits two seconds instead. `--serial` sends each command through the serial input in one go rather than key by key, which matters when a program must still be running when the next command arrives. After changing what a screen looks like, regenerate the pictures that show it (`docs/images/console-*.png`).
 
 ## Running with the dashboard
 
@@ -80,8 +96,11 @@ make all
 node tools/test_browser_demo.mjs site       # needs: npm install v86
 node tools/test_dashboard_browser.mjs       # needs: npm install playwright-core axe-core, and
                                             #   npx playwright-core install chromium-headless-shell
+                                            # screenshots land in build/screenshots/
 python3 -m http.server 8080 --directory site
 ```
+
+To keep these packages out of the repository, install them in another directory and point Node.js at it: `NODE_PATH=/path/to/node_modules node tools/test_dashboard_browser.mjs`. The dashboard pictures in `docs/images/` (`in-browser.png`, `replay-scheduler.png`) are copied from `build/screenshots/`.
 
 The site boots the floppy image in v86, a PC emulator that runs in the browser, and shows it on the dashboard. The `Demo site` GitHub workflow builds and publishes it with GitHub Pages; enable Pages for the repository first (Settings → Pages → Source: GitHub Actions).
 
@@ -92,7 +111,7 @@ Pushing a tag such as `v0.6.0` runs the `Release` workflow: it builds, runs `mak
 ## Debugging
 
 * `make debug`, then in another terminal: `gdb -ex 'target remote :1234' -ex 'set architecture i8086'`. Addresses are segment × 16 + offset: kernel code is at `0x10000` plus the offset shown in `build/kernel.elf`.
-* The shell has `ps`, `memory`, `stats`, `interrupts`, `scheduler` and `registers`.
+* The shell has `ps`, `stacks`, `memory`, `stats`, `interrupts`, `scheduler` and `registers`.
 * `selftest` runs the in-kernel unit tests.
 * A panic prints the registers at the point of failure; look the IP up in `make disasm | less`.
 

@@ -175,10 +175,10 @@ No region may overlap another. The build fails if any image exceeds its region.
 
 ### 4.9 Drivers
 
-* **Console:** direct writes to text video memory; scrolling, colour, cursor.
+* **Console:** direct writes to text video memory; scrolling, colour, cursor. Rows 0-23 scroll and row 24 is a status bar. On a VGA the console loads a colour theme into the palette and UI glyphs into the font; on a CGA it falls back to the standard colours and code-page-437 characters. Screens are drawn with one UI toolkit, and console text sent to telemetry is always standard code page 437.
 * **Keyboard:** scan-code set 1 from port 60h, modifier tracking, **pluggable keymaps** (US first; UK, DE, FR, and others as data tables).
 * **Serial:** polled and buffered UART output for telemetry, optional input channel.
-* **Disk (v0.6):** BIOS-independent floppy access is out of scope; the kernel uses a small real-mode BIOS INT 13h shim with interrupts managed, documented as such.
+* **Disk (v0.6):** a native floppy controller driver (programmed I/O for commands, DMA channel 2 for data, IRQ 6 for completion), so other threads run during a transfer; BIOS `INT 13h` is the fallback when no controller answers, with the timer and keyboard handed back to the BIOS for the duration.
 
 ### 4.10 Storage and programs (v0.6)
 

@@ -8,7 +8,10 @@ what the screen shows as a PNG (QEMU's monitor `screendump`).
 
     screenshot.py IMAGE OUT.png [--wait SECONDS] [--scale N] COMMAND...
 
-A COMMAND of `@N` waits N seconds instead of typing. Used to check the
+A COMMAND of `@N` waits N seconds instead of typing. With --serial the
+commands arrive through the serial input channel all at once instead
+of being typed key by key, which matters when a program must still be
+running when the next command arrives. Used to check the
 console's look while working on it and to make the README pictures.
 """
 
@@ -31,6 +34,7 @@ def main():
     parser.add_argument("commands", nargs="*")
     parser.add_argument("--wait", type=float, default=1.5, help="seconds to wait after each command")
     parser.add_argument("--scale", type=int, default=1, help="enlarge the picture by this factor")
+    parser.add_argument("--serial", action="store_true", help="send commands through the serial input")
     args = parser.parse_intermixed_args()
 
     with tempfile.TemporaryDirectory() as tmp:
@@ -43,7 +47,10 @@ def main():
                 if command.startswith("@"):
                     time.sleep(float(command[1:]))
                     continue
-                machine.type(command)
+                if args.serial:
+                    machine.send_serial(command)
+                else:
+                    machine.type(command)
                 time.sleep(args.wait)
             dump = os.path.join(tmp, "screen.ppm")
             machine.qemu.stdin.write(f"screendump {dump}\n".encode())

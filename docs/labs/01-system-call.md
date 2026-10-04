@@ -34,7 +34,7 @@ At the prompt:
 
 ```
 phoenix> run whoami.bin
-Started whoami.bin as TID=3
+  ✓ Started whoami.bin as TID=3
 I am thread 3
 phoenix> selftest
 ```

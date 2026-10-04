@@ -1,22 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
   <title id="title">Phoenix-8086</title>
   <desc id="desc">Phoenix-8086: a small preemptive operating system kernel for the Intel 8086 that explains itself while it runs.</desc>
+  <!-- Colours: Catppuccin Mocha, the palette the kernel's console uses -->
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0a0e17"/>
-      <stop offset="1" stop-color="#1a2332"/>
+      <stop offset="0" stop-color="#11111b"/>
+      <stop offset="1" stop-color="#1e1e2e"/>
     </linearGradient>
     <linearGradient id="flame" x1="0" y1="1" x2="0" y2="0">
-      <stop offset="0" stop-color="#ef4444"/>
-      <stop offset="0.55" stop-color="#f59e0b"/>
-      <stop offset="1" stop-color="#fde68a"/>
+      <stop offset="0" stop-color="#f38ba8"/>
+      <stop offset="0.55" stop-color="#fab387"/>
+      <stop offset="1" stop-color="#f9e2af"/>
+    </linearGradient>
+    <!-- The boot logo's colours, left to right: mauve, pink, red, peach, yellow -->
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#cba6f7"/>
+      <stop offset="0.3" stop-color="#f5c2e7"/>
+      <stop offset="0.55" stop-color="#f38ba8"/>
+      <stop offset="0.8" stop-color="#fab387"/>
+      <stop offset="1" stop-color="#f9e2af"/>
     </linearGradient>
   </defs>
   <rect width="1200" height="320" rx="18" fill="url(#bg)"/>
 
   <!-- A 40-pin chip, the 8086's package -->
-  <g transform="translate(90 70)">
-    <g fill="#6b7280">
+  <g transform="translate(90 56)">
+    <g fill="#6c7086">
       <rect x="-14" y="14" width="14" height="6"/><rect x="-14" y="34" width="14" height="6"/>
       <rect x="-14" y="54" width="14" height="6"/><rect x="-14" y="74" width="14" height="6"/>
       <rect x="-14" y="94" width="14" height="6"/><rect x="-14" y="114" width="14" height="6"/>
@@ -26,14 +35,38 @@
       <rect x="180" y="94" width="14" height="6"/><rect x="180" y="114" width="14" height="6"/>
       <rect x="180" y="134" width="14" height="6"/><rect x="180" y="154" width="14" height="6"/>
     </g>
-    <rect width="180" height="180" rx="10" fill="#111827" stroke="#3b82f6" stroke-width="2"/>
-    <circle cx="18" cy="18" r="5" fill="#3b82f6"/>
+    <rect width="180" height="180" rx="12" fill="#181825" stroke="#cba6f7" stroke-width="2.5"/>
+    <circle cx="18" cy="18" r="5" fill="#cba6f7"/>
     <!-- Flame rising from the chip -->
     <path d="M90 150 C52 128 58 92 78 72 C76 92 88 98 92 84 C96 62 86 48 98 28 C104 56 132 70 126 104 C122 128 110 142 90 150 Z" fill="url(#flame)"/>
-    <text x="90" y="170" text-anchor="middle" font-family="ui-monospace, Consolas, 'DejaVu Sans Mono', monospace" font-size="15" fill="#9ca3af">8086</text>
+    <text x="90" y="170" text-anchor="middle" font-family="ui-monospace, Consolas, 'DejaVu Sans Mono', monospace" font-size="15" fill="#a6adc8">8086</text>
   </g>
 
-  <text x="320" y="138" font-family="ui-monospace, Consolas, 'DejaVu Sans Mono', monospace" font-size="78" font-weight="700" fill="#60a5fa">Phoenix-8086</text>
-  <text x="322" y="188" font-family="system-ui, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="27" fill="#e5e7eb">A tiny operating system kernel that explains itself while it runs.</text>
-  <text x="322" y="234" textLength="820" lengthAdjust="spacingAndGlyphs" font-family="ui-monospace, Consolas, 'DejaVu Sans Mono', monospace" font-size="19" fill="#10b981">phoenix&gt; <tspan fill="#e5e7eb">boots from a floppy · runs real threads · 8086 code only</tspan></text>
+  <text x="320" y="122" font-family="ui-monospace, Consolas, 'DejaVu Sans Mono', monospace" font-size="78" font-weight="700" fill="url(#brand)">Phoenix-8086</text>
+  <text x="322" y="170" font-family="system-ui, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="27" fill="#cdd6f4">A tiny operating system kernel that explains itself while it runs.</text>
+
+  <!-- The shell prompt as the console draws it: a pill ending in a powerline arrow -->
+  <g transform="translate(322 194)">
+    <path d="M14 0 H118 L134 16 L118 32 H14 A16 16 0 0 1 14 0 Z" fill="#cba6f7"/>
+    <text x="66" y="22" text-anchor="middle" font-family="ui-monospace, Consolas, 'DejaVu Sans Mono', monospace" font-size="19" font-weight="700" fill="#11111b">phoenix</text>
+    <text x="150" y="22" font-family="ui-monospace, Consolas, 'DejaVu Sans Mono', monospace" font-size="19" fill="#cdd6f4">boots from a floppy <tspan fill="#6c7086">·</tspan> runs real threads <tspan fill="#6c7086">·</tspan> 8086 code only</text>
+  </g>
+
+  <!-- A status bar along the bottom, as on the kernel's screen -->
+  <g font-family="ui-monospace, Consolas, 'DejaVu Sans Mono', monospace" font-size="15">
+    <path d="M0 270 H1200 V302 A18 18 0 0 1 1182 320 H18 A18 18 0 0 1 0 302 Z" fill="#313244"/>
+    <path d="M30 278 H128 L140 290 L128 302 H30 A12 12 0 0 1 30 278 Z" fill="#cba6f7"/>
+    <text x="80" y="295" text-anchor="middle" font-weight="700" fill="#11111b">PHOENIX</text>
+    <text x="158" y="295" fill="#a6adc8">up <tspan fill="#cdd6f4">00:00:42</tspan>  <tspan fill="#6c7086">│</tspan>  threads <tspan fill="#cdd6f4">5</tspan>  <tspan fill="#6c7086">│</tspan>  free <tspan fill="#cdd6f4">446K</tspan>  <tspan fill="#6c7086">│</tspan>  load</text>
+    <g fill="#a6e3a1">
+      <rect x="552" y="296" width="9" height="4"/><rect x="563" y="292" width="9" height="8"/>
+      <rect x="574" y="288" width="9" height="12"/><rect x="585" y="294" width="9" height="6"/>
+    </g>
+    <g fill="#f9e2af"><rect x="596" y="284" width="9" height="16"/></g>
+    <g fill="#f38ba8"><rect x="607" y="281" width="9" height="19"/></g>
+    <g fill="#a6e3a1"><rect x="618" y="290" width="9" height="10"/><rect x="629" y="296" width="9" height="4"/></g>
+    <text x="648" y="295" fill="#a6e3a1">37%</text>
+    <path d="M1070 290 L1082 278 H1170 V302 H1082 Z" fill="#89b4fa"/>
+    <text x="1126" y="295" text-anchor="middle" font-weight="700" fill="#11111b">8086</text>
+  </g>
 </svg>

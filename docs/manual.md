@@ -7,7 +7,7 @@ For how the kernel works inside, read the [architecture guide](architecture.md).
 **Contents**
 
 1. [Before you start](#1-before-you-start)
-2. [Starting and stopping](#2-starting-and-stopping)
+2. [Starting and stopping](#2-starting-and-stopping), including [the screen](#the-screen)
 3. [The shell](#3-the-shell)
 4. [Command reference](#4-command-reference)
 5. [Guided demos](#5-guided-demos)
@@ -124,6 +124,8 @@ Words used below:
 | `about` | Shows the version, thread count and uptime |
 | `reboot` | Restarts the machine |
 
+<p align="center"><img src="images/console-help.png" alt="The help panel: every command in two grouped columns" width="720"></p>
+
 ### Threads
 
 | Command | What it does |
@@ -171,6 +173,8 @@ phoenix> stacks
  ╰────────────────────────────────────────────────────────────────────────────╯
 ```
 
+<p align="center"><img src="images/console-stacks.png" alt="The stacks panel while clock.bin runs, with its program stack in the last column" width="720"></p>
+
 Every stack is filled with a known pattern when its thread starts, so the kernel can tell how far down a thread has ever reached. A thread running a program has a second stack in the program's memory, shown in the last column. A stack that comes within 192 bytes of its end (64 for a program stack) is treated as overflowing and its thread is stopped. The figures only grow: run `selftest` and then `stacks` again, and the shell's number goes up.
 
 Three threads are always there: `idle` (runs when nothing else does), `shell`, and `telemetry` (reports to the dashboard).
@@ -208,6 +212,8 @@ phoenix> memory
  │ Far free:      446 KB     ━─────────────────────────────   0% used         │
  ╰────────────────────────────────────────────────────────────────────────────╯
 ```
+
+<p align="center"><img src="images/console-memory.png" alt="The memory map panel with heap and far-memory meters" width="720"></p>
 
 Addresses are written `segment:offset`. The **near heap** is the kernel's own small pool of memory. The **far arena** is the rest of the machine's memory, which programs are loaded into. If "Far free" is lower after a program has finished than before it started, something leaked.
 
@@ -403,6 +409,8 @@ Then open <http://localhost:8080>. The script starts three things: QEMU with the
 
 ### Reading the page
 
+<p align="center"><img src="images/replay-scheduler.png" alt="The dashboard's scheduler view replaying a recorded session" width="900"></p>
+
 | Area | What it shows |
 | --- | --- |
 | **Top bar** | Uptime, ticks, timer rate, context switches, thread count, and the health of the telemetry link |
@@ -412,10 +420,10 @@ Then open <http://localhost:8080>. The script starts three things: QEMU with the
 | **Boot Timeline** tab | The boot stages the kernel reported |
 | **Scheduler View** tab | Who ran when, over the last three seconds, and each thread's share |
 | **Context Switch** tab | The most recent switch: from which thread to which |
-| **Console** tab | The kernel's screen, with a box to type commands into |
+| **Console** tab | The kernel's console text, with a box to type commands into. Panels and marks appear in ordinary code-page-437 characters (`■` for a dot, `√` for a check); the colours, the prompt pill and the status bar exist only on the kernel's own screen |
 | **Registers** (right) | The registers the most recently resumed thread started with |
 | **Memory Map** (right) | The kernel's actual memory layout, with usage bars |
-| **Thread Inspector** (right) | Details of the thread you clicked |
+| **Thread Inspector** (right) | Details of the thread you clicked, including how deep its stacks have been used |
 | **Counters and events** (bottom) | Interrupt counts and a log of what happened |
 
 "Telemetry: clean" means no records were damaged, lost or dropped. If the kernel's buffer overflows (the `bench` command does this), the **Dropped** counter says how many records were lost; the page never fills the gap with invented data.
@@ -532,11 +540,15 @@ If you think you have found a bug, the [contributing guide](../CONTRIBUTING.md) 
 ## 12. Quick reference card
 
 ```
+SCREEN              ✓ success   ✗ failure   ● information   ━━── meter
+                    status bar: uptime | threads | free memory | load | CPU
+
 STARTING            make run            boot in a window
                     make test           build and test everything
                     ./phoenix.sh        kernel + dashboard
 
 THREADS             ps                  list threads
+                    stacks              deepest stack use
                     create              start a demo thread
                     kill <tid>          stop a thread
                     nice <tid> <pri>    change priority

@@ -208,6 +208,7 @@ Nine tracks that can progress independently. Effort: **S** about a weekend, **M*
 
 | Date | Done | Notes |
 | --- | --- | --- |
+| 2026-10-04 | Documentation pass | README rewritten to a reference standard (specification table, precise definitions, gallery); every console and dashboard picture regenerated from real runs; manual, architecture, build and contributing guides and the specification brought in line with the code. Browser tests run locally for the first time: 43 checks pass with the new console |
 | 2026-10-04 | Console redesign (I7) | Theme, custom glyphs, UI toolkit, status bar; every screen redrawn. +4.6 KB of kernel image, code segment now 49% full. The CGA fallback is previewed with `make CONSOLE=plain`, but not yet run on DOSBox-X's CGA here; CI's 8086 test covers it |
 | 2026-10-04 | A6 | PIT in mode 2; sub-tick switch times in telemetry and the trace export; interrupt latency in `bench`. +650 bytes of kernel code. Needs the 8086 (DOSBox-X) test in CI to confirm mode 2 there |
 | 2026-10-04 | G1, G6, C6; G4 started | Host tests: 48 synchronisation, 27 allocator and 2,200+ FAT12 checks under ASan and UBSan, 81% line coverage. The FAT12 fuzzer found three real bugs in mount, all fixed. Cost: +80 bytes of kernel code for the checks |
