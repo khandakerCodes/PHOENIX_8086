@@ -130,6 +130,7 @@ On the host, `bridge/` decodes the stream and relays it to the dashboard over We
 | --- | --- | --- |
 | Instruction-set check | No instruction newer than the 8086 in the kernel or the example programs | `make check` |
 | In-kernel self-test | Allocators, semaphores, mailboxes, sleep, system calls, layouts, file system, loader | `selftest` at the shell |
+| Host-compiled kernel tests | `sync.c`, `ipc.c`, `memory.c` and `fat12.c` built unmodified for the host (`tests/host/`), under AddressSanitizer and UBSan: inheritance chains, allocator invariants under random load, every file on the real floppy image, and a FAT12 fuzzer | `make test-host`, `make coverage` |
 | Integration test | The shell, scheduling, IPC, programs, panics and telemetry under QEMU | `make test` |
 | 8086 fidelity test | The same kernel on an emulated 8086 | `make test-8086` |
 | Soak test | No leaks or faults under sustained churn | `make soak` |

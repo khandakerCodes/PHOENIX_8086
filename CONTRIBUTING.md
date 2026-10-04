@@ -4,7 +4,7 @@ Thanks for your interest. The project is pre-alpha; the [implementation plan](im
 
 ## Before you open a pull request
 
-1. Build and test: `make test` must pass. It checks that the kernel contains only 8086 instructions, boots the image in QEMU, and drives the shell.
+1. Build and test: `make test` must pass. It checks that the kernel contains only 8086 instructions, runs the host-compiled kernel tests under sanitizers, boots the image in QEMU, and drives the shell. If you change `sync.c`, `ipc.c`, `memory.c` or `fat12.c`, add a case to `tests/host/` too: it is much quicker to debug there than on the target.
 2. Keep the build free of compiler warnings.
 3. If you add or change kernel behaviour, add a check for it: an assertion in `kernel/selftest.c` for logic, or a step in `tools/integration_test.py` for behaviour visible at the shell.
 4. If you change a system call or the memory layout, update `docs/syscalls.md` or `include/layout.h` in the same change. `boot/stage2.asm` carries its own copy of the load segment and header offsets.

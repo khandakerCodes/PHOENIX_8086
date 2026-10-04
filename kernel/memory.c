@@ -225,6 +225,17 @@ uint16_t far_free_paras(void)
     return total;
 }
 
+/* Make `size` bytes at `start` the whole near heap: one free block */
+static void heap_init(void *start, uint16_t size)
+{
+    total_heap_size = size;
+    total_allocated = 0;
+
+    free_list = (free_node_t *)start;
+    free_list->size = size;
+    free_list->next = NULL;
+}
+
 /* ── Public API ─────────────────────────────── */
 
 void mem_init(void)
@@ -237,14 +248,7 @@ void mem_init(void)
 
     heap_start = align_up((uint16_t)&_kernel_end, ALIGN);
     heap_end   = KERNEL_STACK_TOP + 2 - KERNEL_STACK_SIZE;
-
-    total_heap_size = heap_end - heap_start;
-    total_allocated = 0;
-
-    /* Initialize the free list with one large block */
-    free_list = (free_node_t *)heap_start;
-    free_list->size = total_heap_size;
-    free_list->next = NULL;
+    heap_init((void *)heap_start, heap_end - heap_start);
 
     far_init();
 }

@@ -397,6 +397,7 @@ Every push runs all of this on GitHub's servers.
 | Suite | What it does | Size |
 | --- | --- | --- |
 | Instruction check | Rejects any non-8086 instruction | 10,417 kernel instructions, plus every example program |
+| Host-compiled kernel tests | Kernel synchronisation, mailboxes, allocators and FAT12 built for the PC with sanitizers; a fuzzer feeds the FAT12 driver thousands of corrupted floppies | 2,300+ checks, 81% line coverage of those files |
 | In-kernel self-test | The kernel tests its own allocators, semaphores, mutexes and priority inheritance, mailboxes, timers, system calls, file system and keyboard layouts | 79 assertions |
 | Size budget | Fails if either 64 KB segment passes 90% full; the report goes in the CI summary | Every push |
 | Integration test | Boots the kernel in QEMU and types commands into it, checking the screen and the telemetry | Over 70 checks across 5 boots |

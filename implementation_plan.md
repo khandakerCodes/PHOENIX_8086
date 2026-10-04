@@ -140,7 +140,7 @@ Goal: preemptive multitasking that actually runs threads. This is the largest ph
 - [/] `bench`: context-switch cost and allocator cost done; IRQ latency not measured (needs sub-tick timing from the PIT counter)
 
 **Tests added in this phase**
-- [/] Unit tests: done as an in-kernel `selftest` command (heap, far arena, semaphore, mutex, mailbox, sleep, system calls) so they run against the real 16-bit code; host-compiled tests and scheduler-selection tests not yet
+- [/] Unit tests: done as an in-kernel `selftest` command (heap, far arena, semaphore, mutex, mailbox, sleep, system calls) so they run against the real 16-bit code; host-compiled tests of synchronisation, allocators and FAT12 added later (`tests/host/`, `UPSCALING.md` G1); scheduler-selection tests not yet
 - [x] Integration tests (`tools/integration_test.py`, run by `make test`): every shell command, scheduling, IPC, system calls, programs, stack-overflow detection, panic and divide-error screens, reboot
 
 **Exit test:** integration suite green; `ps` shows ≥4 threads with growing CPU ticks while the shell stays responsive. *(2026-10-03: suite green on QEMU with idle, shell and three demo threads running together.)*
@@ -188,7 +188,7 @@ Goal: run separately built programs from disk.
 - [x] Soak test with thread, IPC and program churn (`make soak`); 90 seconds in CI on every push, one hour nightly (`.github/workflows/soak.yml`). A 15-minute run passed locally: 122 cycles, 27,611 context switches, no leaks, faults or lost telemetry
 - [ ] The nightly one-hour run has not executed yet (it starts on its schedule once pushed)
 - [/] Every subsystem has a design page — one architecture guide covers them all (`docs/architecture.md`); no per-subsystem pages
-- [ ] Coverage report for host unit tests
+- [x] Coverage report for host unit tests: `make coverage` (`UPSCALING.md` G6)
 - [x] Pluggable keymaps: US, UK, DE, FR; AltGr and Caps Lock; `keymap` command
 - [/] Dashboard locale files (en, de, fr, es, ar), language switcher, right-to-left support — done, tested for consistency, and the right-to-left layout checked in a browser; translations not reviewed by native speakers. Accessibility: an automated axe audit (WCAG 2 A/AA) passes on every view and runs in CI; not tried with a real screen reader
 - [x] `docs/<lang>/` structure and translation guide (`docs/translating.md`); no translated documents yet
