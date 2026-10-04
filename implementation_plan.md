@@ -137,10 +137,10 @@ Goal: preemptive multitasking that actually runs threads. This is the largest ph
 - [x] Exception vectors 0/1/3/4 → panic with the live frame; `kernel_panic()` captures registers through INT 82h; fault record sent to telemetry (fixes B12)
 - [x] Stack red zone: a thread is killed when its stack pointer gets within 192 bytes of the stack bottom, before it can reach the neighbouring stack
 - [x] Shell runs as a thread; commands added: `ipc`, `syscall`, `nice`, `sleep`, `bench`, `selftest`, `overflow`, `divzero`
-- [/] `bench`: context-switch cost and allocator cost done; IRQ latency not measured (needs sub-tick timing from the PIT counter)
+- [x] `bench`: context-switch cost, allocator cost, and timer interrupt latency from the PIT counter (`UPSCALING.md` A6)
 
 **Tests added in this phase**
-- [/] Unit tests: done as an in-kernel `selftest` command (heap, far arena, semaphore, mutex, mailbox, sleep, system calls) so they run against the real 16-bit code; host-compiled tests and scheduler-selection tests not yet
+- [/] Unit tests: done as an in-kernel `selftest` command (heap, far arena, semaphore, mutex, mailbox, sleep, system calls) so they run against the real 16-bit code; host-compiled tests of synchronisation, allocators and FAT12 added later (`tests/host/`, `UPSCALING.md` G1); scheduler-selection tests not yet
 - [x] Integration tests (`tools/integration_test.py`, run by `make test`): every shell command, scheduling, IPC, system calls, programs, stack-overflow detection, panic and divide-error screens, reboot
 
 **Exit test:** integration suite green; `ps` shows ≥4 threads with growing CPU ticks while the shell stays responsive. *(2026-10-03: suite green on QEMU with idle, shell and three demo threads running together.)*
@@ -176,7 +176,7 @@ Goal: run separately built programs from disk.
 - [x] `sdk/`: header, startup code, linker script, `mkprog.py`, three example programs; `docs/programs.md`
 - [x] Tests: independent image and program-file check (`tools/test_image.py`), file and loader assertions in `selftest`, programs run in the QEMU integration test and on the emulated 8086
 - [x] Programs get their own code and data segments (data, bss and thread stacks; up to about 56 KB). The interrupt stubs switch to a per-thread kernel stack when a program is interrupted; system calls read pointer arguments through the caller's DS; load-time relocation is gone (file format `PXE2`). Verified on QEMU and the emulated 8086, and under the soak test
-- [ ] Detect overflow of a program's own stack (kernel stacks are checked)
+- [x] Detect overflow of a program's own stack: guard word and red zone checked at every switch, like kernel stacks (`UPSCALING.md` B1)
 - [x] Native floppy driver (`kernel/floppy.c`: controller, DMA channel 2, IRQ6), so disk reads do not pause the scheduler; chosen at boot when a controller answers, with the BIOS as fallback. Native on QEMU and v86; DOSBox-X falls back to the BIOS, so the 8086 test covers the BIOS path. Not tried on real hardware
 - [ ] Subdirectories, long file names, and writing
 - [x] `thread_create` for programs: a program's threads share its memory, which is freed when the last one ends (`sdk/examples/threads.c`)
@@ -188,7 +188,7 @@ Goal: run separately built programs from disk.
 - [x] Soak test with thread, IPC and program churn (`make soak`); 90 seconds in CI on every push, one hour nightly (`.github/workflows/soak.yml`). A 15-minute run passed locally: 122 cycles, 27,611 context switches, no leaks, faults or lost telemetry
 - [ ] The nightly one-hour run has not executed yet (it starts on its schedule once pushed)
 - [/] Every subsystem has a design page — one architecture guide covers them all (`docs/architecture.md`); no per-subsystem pages
-- [ ] Coverage report for host unit tests
+- [x] Coverage report for host unit tests: `make coverage` (`UPSCALING.md` G6)
 - [x] Pluggable keymaps: US, UK, DE, FR; AltGr and Caps Lock; `keymap` command
 - [/] Dashboard locale files (en, de, fr, es, ar), language switcher, right-to-left support — done, tested for consistency, and the right-to-left layout checked in a browser; translations not reviewed by native speakers. Accessibility: an automated axe audit (WCAG 2 A/AA) passes on every view and runs in CI; not tried with a real screen reader
 - [x] `docs/<lang>/` structure and translation guide (`docs/translating.md`); no translated documents yet

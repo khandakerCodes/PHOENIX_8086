@@ -12,6 +12,9 @@
 #   make kernel    — Compile kernel
 #   make image     — Create bootable floppy image
 #   make check     — Verify the kernel uses 8086 instructions only
+#   make size      — Report segment use and fail if a segment is over budget
+#   make test-host — Kernel code compiled for the host, with sanitizers
+#   make coverage  — Line coverage of the host-tested kernel files
 #   make test      — check + headless boot and shell integration tests in QEMU
 #   make test-8086 — Boot and drive the kernel on an emulated 8086 (needs DOSBox-X)
 #   make soak      — Churn threads, IPC and programs for SOAK_SECONDS (default 120)
@@ -39,6 +42,7 @@ CC      = $(CROSS)gcc
 LD      = $(CROSS)ld
 OBJCOPY = $(CROSS)objcopy
 OBJDUMP = $(CROSS)objdump
+NM      = $(CROSS)nm
 PYTHON  = python3
 QEMU    = qemu-system-i386
 
@@ -111,7 +115,7 @@ KERNEL_BIN = $(BUILD_DIR)/kernel.bin
 FLOPPY_IMG = $(BUILD_DIR)/phoenix8086.img
 
 # Example programs built with the SDK (sdk/examples/NAME.c → NAME.BIN)
-PROGRAM_NAMES = hello primes clock threads where greet
+PROGRAM_NAMES = hello primes clock threads where greet rogue
 PROGRAM_DIR   = $(BUILD_DIR)/programs
 PROGRAMS      = $(foreach name,$(PROGRAM_NAMES),$(PROGRAM_DIR)/$(shell echo $(name) | tr a-z A-Z).BIN)
 
@@ -119,7 +123,7 @@ PROGRAMS      = $(foreach name,$(PROGRAM_NAMES),$(PROGRAM_DIR)/$(shell echo $(na
 DISK_FILES = disk/README.TXT $(PROGRAMS)
 
 # ── Phony targets ──────────────────────────────
-.PHONY: all toolchain boot kernel image check test test-8086 soak disasm run debug dashboard clean
+.PHONY: all toolchain boot kernel image check size test-host coverage test test-8086 soak disasm run debug dashboard clean
 
 # ── Default target ──────────────────────────────
 all: image
@@ -206,12 +210,67 @@ check: $(KERNEL_ELF) $(PROGRAMS)
 	    $(PYTHON) tools/check8086.py $(OBJDUMP) $(PROGRAM_DIR)/$$name.elf --start 0 || exit 1; \
 	done
 
+# ── Size report and budget (tools/size_report.py) ──
+# SIZE_MARKDOWN=file also writes the report as Markdown (CI: the job summary)
+size: $(KERNEL_BIN) $(PROGRAMS)
+	$(PYTHON) tools/size_report.py $(NM) $(KERNEL_BIN) $(KERNEL_ELF) $(PROGRAMS) \
+	    $(if $(SIZE_MARKDOWN),--markdown $(SIZE_MARKDOWN))
+
 # ── Disassembly, for looking up an address from a panic ──
 disasm: $(KERNEL_ELF)
 	@$(OBJDUMP) -d -mi8086 $(KERNEL_ELF)
 
+# ── Host-compiled kernel tests (tests/host/) ────
+# Kernel files built unmodified for the host against a simulated
+# machine (tests/host/machine.c), under AddressSanitizer and UBSan.
+HOST_CC     ?= cc
+HOST_DIR     = $(BUILD_DIR)/host
+HOST_COMMON  = -std=gnu11 -g -Wall -Wextra -Wno-unused-parameter \
+               -DPHOENIX_HOST -DCONFIG_TELEMETRY=0 -include tests/host/host.h -Iinclude -Ikernel
+HOST_CFLAGS  = $(HOST_COMMON) -O1 -fno-omit-frame-pointer \
+               -fsanitize=address,undefined -fno-sanitize-recover=all
+HOST_HEADERS = $(wildcard tests/host/*.h include/*.h kernel/*.h)
+
+# test name → its sources (memory.c is #included by its test)
+HOST_SRC_sync   = tests/host/test_sync.c tests/host/machine.c kernel/sync.c kernel/ipc.c
+HOST_SRC_memory = tests/host/test_memory.c tests/host/machine.c
+HOST_SRC_fat12  = tests/host/test_fat12.c tests/host/machine.c kernel/fat12.c kernel/sync.c
+HOST_TESTS      = sync memory fat12
+
+# The heap aligns blocks to 4 bytes, enough on the 8086; on the host its
+# header holds an 8-byte pointer. x86 does not mind, so neither does UBSan.
+HOST_FLAGS_memory = -fno-sanitize=alignment
+
+$(HOST_DIR) $(BUILD_DIR)/coverage:
+	mkdir -p $@
+
+define HOST_TEST_RULE
+$(HOST_DIR)/test_$(1): $$(HOST_SRC_$(1)) kernel/memory.c $(HOST_HEADERS) | $(HOST_DIR)
+	$$(HOST_CC) $$(HOST_CFLAGS) $$(HOST_FLAGS_$(1)) -o $$@ $$(HOST_SRC_$(1))
+endef
+$(foreach t,$(HOST_TESTS),$(eval $(call HOST_TEST_RULE,$(t))))
+
+# test_fat12 reads the real floppy image and compares every file on it
+test-host: $(foreach t,$(HOST_TESTS),$(HOST_DIR)/test_$(t)) $(FLOPPY_IMG)
+	@echo "=== Host-compiled kernel tests ==="
+	$(HOST_DIR)/test_sync
+	$(HOST_DIR)/test_memory
+	$(HOST_DIR)/test_fat12 $(FLOPPY_IMG) $(DISK_FILES)
+
+# Line coverage of the same tests (gcov), without sanitizers
+coverage: $(FLOPPY_IMG) | $(BUILD_DIR)/coverage
+	@for t in $(HOST_TESTS); do \
+	    case $$t in sync) src="$(HOST_SRC_sync)";; memory) src="$(HOST_SRC_memory)";; fat12) src="$(HOST_SRC_fat12)";; esac; \
+	    $(HOST_CC) $(HOST_COMMON) -O0 --coverage -o $(BUILD_DIR)/coverage/test_$$t $$src || exit 1; \
+	done
+	rm -f $(BUILD_DIR)/coverage/*.gcda
+	cd $(BUILD_DIR)/coverage && ./test_sync >/dev/null && ./test_memory >/dev/null && \
+	    ./test_fat12 ../../$(FLOPPY_IMG) $(addprefix ../../,$(DISK_FILES)) >/dev/null
+	$(PYTHON) tools/coverage_report.py $(BUILD_DIR)/coverage kernel/sync.c kernel/ipc.c kernel/memory.c kernel/fat12.c \
+	    $(if $(COVERAGE_MARKDOWN),--markdown $(COVERAGE_MARKDOWN))
+
 # ── Automated tests ─────────────────────────────
-test: check $(FLOPPY_IMG)
+test: check size test-host $(FLOPPY_IMG)
 	$(PYTHON) -m unittest discover -q -b -s bridge -t .
 	@if command -v node >/dev/null; then node --test dashboard/test/*.test.js; \
 	 else echo "  node not found: skipping dashboard model tests"; fi

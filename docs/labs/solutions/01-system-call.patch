@@ -1,13 +1,13 @@
 diff --git a/Makefile b/Makefile
-index 1010146..802f9a3 100644
+index 2ddace8..e53db57 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -111,7 +111,7 @@ KERNEL_BIN = $(BUILD_DIR)/kernel.bin
+@@ -113,7 +113,7 @@ KERNEL_BIN = $(BUILD_DIR)/kernel.bin
  FLOPPY_IMG = $(BUILD_DIR)/phoenix8086.img
  
  # Example programs built with the SDK (sdk/examples/NAME.c → NAME.BIN)
--PROGRAM_NAMES = hello primes clock threads where greet
-+PROGRAM_NAMES = hello primes clock threads where greet whoami
+-PROGRAM_NAMES = hello primes clock threads where greet rogue
++PROGRAM_NAMES = hello primes clock threads where greet rogue whoami
  PROGRAM_DIR   = $(BUILD_DIR)/programs
  PROGRAMS      = $(foreach name,$(PROGRAM_NAMES),$(PROGRAM_DIR)/$(shell echo $(name) | tr a-z A-Z).BIN)
  
@@ -24,10 +24,10 @@ index dab7af9..e0821b9 100644
  | 19h | `read` | BX = handle, CX = length, DX = buffer pointer | AX = bytes read | 0 at end of file; may stop the scheduler briefly (see docs/programs.md) |
  | 1Ah | `close` | BX = handle | — | Files are also closed when their thread ends |
 diff --git a/kernel/selftest.c b/kernel/selftest.c
-index b0a2005..d747367 100644
+index ba025bd..7a55743 100644
 --- a/kernel/selftest.c
 +++ b/kernel/selftest.c
-@@ -197,6 +197,9 @@ static void test_syscalls(void)
+@@ -292,6 +292,9 @@ static void test_syscalls(void)
      expect((uint16_t)sys_call(SYS_AX(0x7F, 0), 0, 0, 0) == SYS_ERROR,
             "syscall: unknown call returns error");
  
@@ -38,10 +38,10 @@ index b0a2005..d747367 100644
      expect(seg != SYS_ERROR && seg >= FAR_ARENA_SEG, "syscall: alloc");
      sys_call(SYS_AX(SYS_FREE, 0), seg, 0, 0);
 diff --git a/kernel/syscall.c b/kernel/syscall.c
-index d010f57..f04944c 100644
+index 473b89f..aea6f95 100644
 --- a/kernel/syscall.c
 +++ b/kernel/syscall.c
-@@ -275,6 +275,10 @@ bool syscall_dispatch(frame_t *frame)
+@@ -419,6 +419,10 @@ bool syscall_dispatch(frame_t *frame)
          }
          break;
  
@@ -51,9 +51,9 @@ index d010f57..f04944c 100644
 +
      case SYS_OPEN:
          /* BX = offset of the file name */
-         copy_name(frame, frame->bx, name);
+         if (!copy_name(frame, frame->bx, name)) {
 diff --git a/kernel/syscall.h b/kernel/syscall.h
-index f6d7c8e..f1be1e0 100644
+index 5ea9aae..d72172b 100644
 --- a/kernel/syscall.h
 +++ b/kernel/syscall.h
 @@ -35,6 +35,7 @@

@@ -41,8 +41,16 @@ uint16_t hal_cpu_class(void);
 /* Current code segment */
 uint16_t hal_get_cs(void);
 
-/* Build a far pointer from segment:offset */
+/* Store `value` in `count` words starting at segment:offset */
+void hal_fill_words(uint16_t segment, uint16_t offset, uint16_t count, uint16_t value);
+
+/* How many of `count` words at segment:offset equal `value` before the first that does not */
+uint16_t hal_count_words(uint16_t segment, uint16_t offset, uint16_t count, uint16_t value);
+
+/* Build a far pointer from segment:offset (host tests supply their own) */
+#ifndef MK_FP
 #define MK_FP(seg, off) \
     ((void __far *)(((uint32_t)(uint16_t)(seg) << 16) | (uint16_t)(off)))
+#endif
 
 #endif /* PHOENIX_HAL_H */

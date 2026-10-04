@@ -25,9 +25,11 @@
 
     const TYPE_NAMES = ['HELLO', 'BOOT_STAGE', 'THREAD_CREATE', 'THREAD_EXIT', 'THREAD_STATE',
                         'CONTEXT_SWITCH', 'COUNTERS', 'MEMORY', 'FAULT', 'CONSOLE', 'SYSCALL',
-                        'BENCH', 'THREAD_STATS'];
+                        'BENCH', 'THREAD_STATS', 'THREAD_FAULT', 'PRIORITY'];
     const THREAD_STATES = ['READY', 'RUNNING', 'BLOCKED', 'SLEEPING', 'TERMINATED'];
-    const BENCH_KINDS = ['context_switches', 'heap_pairs'];
+    const BENCH_KINDS = ['context_switches', 'heap_pairs', 'irq_latency_avg_ns', 'irq_latency_max_ns'];
+    const THREAD_FAULT_KINDS = ['kernel_stack', 'program_stack', 'bad_argument'];
+    const PRIORITY_REASONS = { 1: 'inherit', 2: 'restore' };
     const REGISTERS = ['ip', 'cs', 'flags', 'sp', 'ax', 'bx', 'cx', 'dx', 'si', 'di', 'bp'];
 
     /* Code page 437, upper half: the PC text-mode character set */
@@ -82,7 +84,8 @@
     /* Minimum payload length per type; shorter frames are rejected */
     const MIN_LENGTH = { HELLO: 18, BOOT_STAGE: 1, THREAD_CREATE: 14, THREAD_EXIT: 1, THREAD_STATE: 3,
                          CONTEXT_SWITCH: 24, COUNTERS: 18, MEMORY: 8, FAULT: 23, CONSOLE: 0,
-                         SYSCALL: 2, BENCH: 5, THREAD_STATS: 25 };
+                         SYSCALL: 2, BENCH: 5, THREAD_STATS: 25, THREAD_FAULT: 4,
+                         PRIORITY: 4 };
 
     function decodePayload(type, p) {
         switch (type) {
@@ -99,8 +102,14 @@
             return { tid: p[0] };
         case 'THREAD_STATE':
             return { tid: p[0], state: state(p[1]), priority: p[2] };
-        case 'CONTEXT_SWITCH':
-            return { from_tid: p[0], to_tid: p[1], regs: registers(p, 2) };
+        case 'CONTEXT_SWITCH': {
+            const result = { from_tid: p[0], to_tid: p[1], regs: registers(p, 2) };
+            if (p.length >= 26) {
+                /* Newer kernels: PIT counts since the tick began (about 0.84 us each) */
+                result.sub_tick = u16(p, 24);
+            }
+            return result;
+        }
         case 'COUNTERS':
             return { timer: u32(p, 0), keyboard: u32(p, 4), syscall: u32(p, 8),
                      context_switches: u32(p, 12), drops: u16(p, 16) };
@@ -116,9 +125,25 @@
         case 'BENCH':
             return { kind: p[0] < BENCH_KINDS.length ? BENCH_KINDS[p[0]] : 'UNKNOWN_' + p[0],
                      count: u32(p, 1) };
-        case 'THREAD_STATS':
-            return { tid: p[0], state: state(p[1]), priority: p[2], cpu_ticks: u32(p, 3),
-                     sp: u16(p, 7), stack_base: u16(p, 9), stack_size: u16(p, 11), name: name(p, 13) };
+        case 'THREAD_STATS': {
+            const stats = { tid: p[0], state: state(p[1]), priority: p[2], cpu_ticks: u32(p, 3),
+                            sp: u16(p, 7), stack_base: u16(p, 9), stack_size: u16(p, 11),
+                            name: name(p, 13) };
+            if (p.length >= 29) {
+                /* Newer kernels append the deepest stack use so far */
+                stats.stack_peak = u16(p, 25);
+                stats.program_stack_peak = u16(p, 27);
+            }
+            return stats;
+        }
+        case 'PRIORITY':
+            return { tid: p[0], effective: p[1],
+                     reason: PRIORITY_REASONS[p[2]] || 'UNKNOWN_' + p[2],
+                     cause: p[3] === 0xFF ? null : p[3] };
+        case 'THREAD_FAULT':
+            return { tid: p[0],
+                     kind: p[1] < THREAD_FAULT_KINDS.length ? THREAD_FAULT_KINDS[p[1]] : 'UNKNOWN_' + p[1],
+                     detail: u16(p, 2) };
         default:
             return { data: Array.from(p) };
         }

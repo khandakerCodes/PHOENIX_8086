@@ -49,7 +49,8 @@ A program can start more threads in its own code with `px_thread_create` (see `s
 ### Limits
 
 * There is no memory protection in real mode. A program has its own segments, but nothing stops it writing outside them.
-* At most four threads per program, each with a 2 KB stack. An overflow of a program's stack is not detected (an overflow of a kernel stack is).
+* At most four threads per program, each with a 2 KB stack. An overflow is noticed at the next thread switch, once the stack pointer is within 64 bytes of the bottom or the guard word there has been overwritten, and the thread is stopped. Real mode cannot prevent the writes themselves: a fast enough runaway can damage the data below its stack before it is caught. `stacks` at the shell shows how deep each stack has been.
+* System call arguments are checked: pointers must lie in the program's own data, and handles must be ones the kernel gave out (see [Argument checks](syscalls.md#argument-checks)). `sdk/examples/rogue.c` shows each check failing.
 * One object cannot exceed 32,767 bytes with this compiler.
 * **Compiler pitfall:** `ia16-elf-gcc` 6.3 at `-Os` can drop the store when a 32-bit function result is narrowed to a byte, and can push the wrong value when a byte is extracted from a 32-bit value inside a call's argument list. The SDK's wrappers avoid both. In your own code, assign such a value to a 16-bit variable first.
 * Far memory from `px_alloc` belongs to the thread that allocated it.

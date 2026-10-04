@@ -57,6 +57,12 @@
  */
 bool syscall_dispatch(frame_t *frame);
 
+/*
+ * Free the semaphores and mailboxes a program created and did not
+ * destroy (called when its last thread ends, before it is freed)
+ */
+void syscall_program_ended(program_t *program);
+
 /* Close every file a thread left open (called when the thread ends) */
 void file_close_owned(int tid);
 

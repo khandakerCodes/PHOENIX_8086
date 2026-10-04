@@ -160,6 +160,13 @@ def run(machine):
     text = machine.wait_for(r"Thread List.*phoenix> ") or ""
     check("exited threads are reaped", "demo-" not in text and "shell" in text, text)
 
+    # Deepest stack use, measured from the fill pattern laid down at creation
+    machine.type("stacks")
+    text = machine.wait_for(r"Stack Use.*phoenix> ") or ""
+    shell = re.search(r"\s1\s+shell\s+(\d+) of 2048", text)
+    check("stacks: the shell's deepest stack use is measured",
+          shell is not None and 100 < int(shell.group(1)) < 2048 - 192, text)
+
     # 5. Mailbox IPC with blocking receive and sleeping sender
     machine.type("ipc")
     text = machine.wait_for(r"\[ipc done\]") or ""
@@ -227,6 +234,9 @@ def run(machine):
           hello["code_seg"] == 0x1000 and hello["data_seg"] == 0x2000 and hello["hz"] == 100, str(hello))
     names = {m["name"] for m in machine.telemetry("THREAD_STATS")}
     check("telemetry: thread statistics", {"idle", "shell", "telemetry"} <= names, str(names))
+    peaks = {m["name"]: m.get("stack_peak") for m in machine.telemetry("THREAD_STATS")}
+    check("telemetry: stack peaks for every thread",
+          all(isinstance(p, int) and 0 < p <= 2048 for p in peaks.values()), str(peaks))
     created = {m["name"] for m in machine.telemetry("THREAD_CREATE")}
     check("telemetry: thread creation", {"demo-A", "consumer", "syscall"} <= created, str(created))
     exits = len(machine.telemetry("THREAD_EXIT"))
@@ -234,6 +244,12 @@ def run(machine):
     states = {m["state"] for m in machine.telemetry("THREAD_STATE")}
     check("telemetry: state changes", {"BLOCKED", "SLEEPING", "READY"} <= states, str(states))
     check("telemetry: system calls", len(machine.telemetry("SYSCALL")) >= 8)
+    # Switches carry the position within their tick, which never runs backwards
+    stamps = [(m["tick"], m["sub_tick"]) for m in machine.telemetry("CONTEXT_SWITCH")]
+    backwards = [(i, stamps[i - 2:i + 2]) for i in range(1, len(stamps)) if stamps[i] < stamps[i - 1]]
+    check("telemetry: switches carry sub-tick times, in order",
+          stamps and all(0 <= s < 2 * 11931 for _, s in stamps) and not backwards,
+          f"{len(backwards)} of {len(stamps)} go backwards, first: {backwards[:3]}")
     switch = machine.telemetry("CONTEXT_SWITCH")[-1]
     check("telemetry: switch carries the resumed registers",
           switch["regs"]["cs"] == 0x1000 and switch["regs"]["ip"] != 0, str(switch))
@@ -315,6 +331,25 @@ def run(machine):
     machine.type("run missing.bin")
     check("a missing program is reported", machine.wait_for(r"file not found") is not None)
 
+    # A program that misbehaves on purpose: every bad argument is refused, and
+    # its own stack overflow is caught; its memory is still given back (checked below)
+    machine.type("run rogue.bin")
+    text = machine.wait_for(r"rogue: \d+ of \d+ bad calls refused\n", timeout=30) or ""
+    refused = re.search(r"rogue: (\d+) of (\d+) bad calls refused", text)
+    check("program: rogue's bad system-call arguments are all refused",
+          refused is not None and refused.group(1) == refused.group(2) and int(refused.group(2)) >= 9
+          and "NOT refused" not in text, text)
+    text = machine.wait_for(r"PROGRAM STACK OVERFLOW: Thread \d+ \(rogue\)", timeout=30) or ""
+    check("program: rogue's own stack overflow is caught", text != "")
+    check("program: rogue is stopped before running past its stack",
+          "still running, which should not happen" not in machine.output())
+    time.sleep(0.5)
+    faults = machine.telemetry("THREAD_FAULT")
+    kinds = [f["kind"] for f in faults]
+    check("telemetry: refused calls and the overflow are reported as thread faults",
+          kinds.count("bad_argument") >= 9 and kinds.count("program_stack") == 1, str(faults))
+    check("telemetry: a thread fault is not a panic", not machine.telemetry("FAULT"))
+
     time.sleep(1.0)
     machine.type("memory")
     text = machine.wait_for(r"Far free:\s+\d+ KB.*phoenix> ") or ""
@@ -331,6 +366,11 @@ def run(machine):
     result = re.search(r"selftest: (\d+) passed, (\d+) failed", text)
     check("kernel self-tests pass",
           result is not None and int(result.group(1)) >= 70 and result.group(2) == "0", text)
+    time.sleep(0.5)
+    loans = machine.telemetry("PRIORITY")
+    check("telemetry: priority inheritance is reported, lent and given back",
+          any(m["reason"] == "inherit" and m["effective"] == 8 for m in loans) and
+          any(m["reason"] == "restore" and m["effective"] == 2 for m in loans), str(loans))
 
     # The remaining informational commands
     machine.type("about")
@@ -380,11 +420,16 @@ def run(machine):
     text = machine.wait_for(r"kmalloc\+kfree pairs/sec, (under 1|\d+) us each", timeout=20) or ""
     switches = re.search(r"bench: (\d+) context switches/sec", text)
     check("benchmark runs", switches is not None and int(switches.group(1)) > 100, text)
+    text = machine.wait_for(r"timer interrupt latency [^\n]*ticks\)", timeout=20) or ""
+    latency = re.search(r"latency (\d+)-(\d+) us, average (\d+) us \((\d+) ticks\)", text)
+    check("benchmark measures timer interrupt latency",
+          latency is not None and int(latency.group(4)) >= 40 and
+          int(latency.group(1)) <= int(latency.group(3)) <= int(latency.group(2)) < 10_000, text)
     time.sleep(0.5)
     bench = {m["kind"]: m["count"] for m in machine.telemetry("BENCH")}
     check("telemetry: benchmark results",
           switches is not None and bench.get("context_switches") == int(switches.group(1))
-          and "heap_pairs" in bench, str(bench))
+          and "heap_pairs" in bench and "irq_latency_avg_ns" in bench, str(bench))
 
     # 13. A runaway recursion is killed before it damages another stack
     machine.type("overflow")

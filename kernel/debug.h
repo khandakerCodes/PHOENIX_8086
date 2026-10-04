@@ -21,6 +21,9 @@ void debug_dump_stack(int tid);
 void debug_thread_list(void);
 
 /* Print interrupt counters */
+/* Deepest use of every thread's stacks */
+void debug_stack_list(void);
+
 void debug_irq_counts(void);
 
 /* Print the scheduler ready queue */

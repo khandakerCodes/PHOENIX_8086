@@ -27,6 +27,14 @@
 #define FAT12_BAD           0xFF7   /* Values from here up end a chain */
 #define FAT12_MAX_CLUSTERS  4084
 
+/*
+ * Largest values the driver accepts. A cluster of 64 sectors is 32 KB,
+ * the most a 16-bit byte count holds; FAT12 needs at most 6,129 bytes
+ * of FAT ((4084 + 2) * 1.5), which is 12 sectors.
+ */
+#define MAX_SECTORS_PER_CLUSTER 64
+#define MAX_SECTORS_PER_FAT     12
+
 /* ── Volume state ───────────────────────────── */
 
 static bool     mounted;
@@ -36,6 +44,7 @@ static uint16_t root_lba;
 static uint16_t data_lba;
 static uint16_t cluster_count;
 static uint8_t *fat;                /* The first FAT, loaded whole */
+static uint16_t fat_sectors;        /* Size of that buffer in sectors */
 
 static uint8_t  sector[DISK_SECTOR_SIZE];
 static mutex_t  lock;
@@ -93,14 +102,26 @@ bool fat_mount(void)
     total               = get16(&sector[19]);
     sectors_per_fat     = get16(&sector[22]);
 
+    /*
+     * The parameter block comes off a disk and may be nonsense. Every
+     * size below is checked before it is used, in 32 bits where a 16-bit
+     * product could wrap. Found by the host fuzzer (tests/host/).
+     */
     if (sectors_per_cluster == 0 || fats == 0 || root_entries == 0 ||
         sectors_per_fat == 0 || total == 0) goto done;
+    if (sectors_per_cluster > MAX_SECTORS_PER_CLUSTER) goto done;   /* cluster_bytes is 16-bit */
+    if (sectors_per_fat > MAX_SECTORS_PER_FAT) goto done;           /* more than FAT12 can use */
 
     disk_set_geometry(get16(&sector[24]), get16(&sector[26]));
 
-    root_lba = reserved + fats * sectors_per_fat;
-    data_lba = root_lba + (root_entries + DIR_ENTRIES_PER_SECTOR - 1) / DIR_ENTRIES_PER_SECTOR;
-    if (data_lba >= total) goto done;
+    {
+        uint32_t root = (uint32_t)reserved + (uint32_t)fats * sectors_per_fat;
+        uint32_t data = root + (root_entries + DIR_ENTRIES_PER_SECTOR - 1) / DIR_ENTRIES_PER_SECTOR;
+
+        if (data >= total) goto done;
+        root_lba = (uint16_t)root;
+        data_lba = (uint16_t)data;
+    }
 
     cluster_count = (total - data_lba) / sectors_per_cluster;
     if (cluster_count > FAT12_MAX_CLUSTERS) goto done;      /* That would be FAT16 */
@@ -108,9 +129,15 @@ bool fat_mount(void)
     /* The FAT must be able to describe every cluster */
     if ((uint32_t)sectors_per_fat * DISK_SECTOR_SIZE < ((uint32_t)cluster_count + 2) * 3 / 2 + 1) goto done;
 
+    /* A disk mounted later may have a bigger FAT than the buffer from the first mount */
+    if (fat != NULL && fat_sectors < sectors_per_fat) {
+        kfree(fat);
+        fat = NULL;
+    }
     if (fat == NULL) {
         fat = kmalloc(sectors_per_fat * DISK_SECTOR_SIZE);
         if (fat == NULL) goto done;
+        fat_sectors = sectors_per_fat;
     }
     for (i = 0; i < sectors_per_fat; i++) {
         if (!disk_read_sector(reserved + i, fat + i * DISK_SECTOR_SIZE)) goto done;

@@ -13,6 +13,15 @@
 
 #include "layout.h"
 
+#ifdef PHOENIX_HOST
+/*
+ * Host-compiled unit tests (tests/host/). `long` is 64 bits on a
+ * 64-bit host, so the fixed-width types come from the C library.
+ */
+#include <stddef.h>
+#include <stdint.h>
+#include <stdbool.h>
+#else
 /* Exact-width integer types */
 typedef unsigned char       uint8_t;
 typedef signed char         int8_t;
@@ -31,6 +40,7 @@ typedef uint8_t             bool;
 
 /* Null pointer */
 #define NULL                ((void *)0)
+#endif
 
 /* Thread states */
 #define THREAD_READY        0

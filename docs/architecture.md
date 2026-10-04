@@ -69,16 +69,19 @@ Thread 0 is the boot context itself. It is never created; `sched_init` adopts it
 
 ### Scheduling
 
-`kernel/scheduler.c`. The timer runs at 100 Hz.
+`kernel/scheduler.c`. The timer runs at 100 Hz. The timer chip is in mode 2 (rate generator), so its counter runs down once per tick and reading it (`timer_counts` in `kernel/interrupts.c`) tells how far into the tick the kernel is, to about 0.84 µs; context-switch telemetry and the `bench` interrupt-latency figure use this. During a BIOS disk read the BIOS gets its own mode 3 back.
 
 * The highest effective priority among runnable threads runs.
 * Threads of equal priority take turns, five ticks each.
 * A thread kept waiting gains one effective priority level every ten ticks (aging) and drops back to its base priority when it runs, so nothing starves.
-* On every switch the outgoing thread's kernel stack is checked: its guard word must be intact and its stack pointer must not be within 192 bytes of the bottom. Otherwise the thread is killed.
+* On every switch the outgoing thread's kernel stack is checked: its guard word must be intact and its stack pointer must not be within 192 bytes of the bottom. A program thread's own stack is checked the same way, with a 64-byte red zone; its last stack pointer there is kept at the top of its kernel stack. A thread that fails either check is stopped and a `THREAD_FAULT` record is sent. Real mode cannot prevent the overflow; this notices it at the next switch.
+* Every stack is filled with a pattern when its thread is created, so the deepest point it has reached can be found later by counting untouched words from the bottom (`thread_stack_peak`, the `stacks` command, and `THREAD_STATS`).
 
 ### Blocking
 
 `kernel/sync.c`, `kernel/ipc.c`. A semaphore keeps a queue of waiting thread IDs. `sem_wait` on an unavailable semaphore marks the thread blocked and yields (`INT 81h`); `sem_signal` makes the oldest waiter ready. `sem_wait_timeout` gives up after a number of ticks. Mutexes, mailboxes and the keyboard buffer are built on semaphores. Critical sections use `hal_irq_save` / `hal_irq_restore`, which nest and work inside interrupt handlers.
+
+Mutexes use **priority inheritance**. A thread that blocks on a mutex lends its effective priority to the owner, and on along the chain if the owner is waiting for another mutex (up to four levels). The loan is kept in the TCB's `inherited` field, which the scheduler keeps when it drops an aging boost. As in FreeRTOS, an owner keeps what it inherited until it has released every mutex it holds, then yields so the thread it stood in for can run. Aging alone would let the owner back in after roughly 40–50 ticks; with inheritance the waiting thread is held up only for the critical section. The self-test measures exactly that.
 
 ## Interrupts
 
@@ -92,7 +95,7 @@ Thread 0 is the boot context itself. It is never created; `sched_init` adopts it
 | 81h | Yield | The scheduler |
 | 82h | `kernel_panic()` | Captures registers for the panic screen |
 
-A system call handler runs on the calling thread's own stack, so a call that must wait simply calls the blocking kernel function; the thread is switched out mid-call and finishes when woken.
+A system call handler runs on the calling thread's own stack, so a call that must wait simply calls the blocking kernel function; the thread is switched out mid-call and finishes when woken. Arguments from a program are checked first: pointers against its own data segment, entry points against its code, handles against a table of the objects the kernel handed out, segments to free against their owner (see [Argument checks](syscalls.md#argument-checks)).
 
 ## Memory management
 
@@ -127,7 +130,9 @@ On the host, `bridge/` decodes the stream and relays it to the dashboard over We
 | --- | --- | --- |
 | Instruction-set check | No instruction newer than the 8086 in the kernel or the example programs | `make check` |
 | In-kernel self-test | Allocators, semaphores, mailboxes, sleep, system calls, layouts, file system, loader | `selftest` at the shell |
+| Host-compiled kernel tests | `sync.c`, `ipc.c`, `memory.c` and `fat12.c` built unmodified for the host (`tests/host/`), under AddressSanitizer and UBSan: inheritance chains, allocator invariants under random load, every file on the real floppy image, and a FAT12 fuzzer | `make test-host`, `make coverage` |
 | Integration test | The shell, scheduling, IPC, programs, panics and telemetry under QEMU | `make test` |
 | 8086 fidelity test | The same kernel on an emulated 8086 | `make test-8086` |
 | Soak test | No leaks or faults under sustained churn | `make soak` |
+| Size budget | Neither 64 KB segment is more than 90% full; largest functions and variables | `make size` |
 | Host unit tests | Protocol decoders, bridge, dashboard model and page code | part of `make test` |

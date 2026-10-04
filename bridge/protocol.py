@@ -39,11 +39,16 @@ TYPE_NAMES = {
     0x0A: "SYSCALL",
     0x0B: "BENCH",
     0x0C: "THREAD_STATS",
+    0x0D: "THREAD_FAULT",
+    0x0E: "PRIORITY",
 }
 TYPE_IDS = {name: number for number, name in TYPE_NAMES.items()}
 
 THREAD_STATES = ["READY", "RUNNING", "BLOCKED", "SLEEPING", "TERMINATED"]
-BENCH_KINDS = ["context_switches", "heap_pairs"]
+BENCH_KINDS = ["context_switches", "heap_pairs", "irq_latency_avg_ns", "irq_latency_max_ns"]
+PIT_HZ = 1193182        # PIT counts per second, the unit of CONTEXT_SWITCH sub_tick
+THREAD_FAULT_KINDS = ["kernel_stack", "program_stack", "bad_argument"]
+PRIORITY_REASONS = {1: "inherit", 2: "restore"}
 
 REGISTERS = ("ip", "cs", "flags", "sp", "ax", "bx", "cx", "dx", "si", "di", "bp")
 
@@ -84,7 +89,11 @@ def decode_payload(type_name, p):
     if type_name == "THREAD_STATE":
         return {"tid": p[0], "state": _state(p[1]), "priority": p[2]}
     if type_name == "CONTEXT_SWITCH":
-        return {"from_tid": p[0], "to_tid": p[1], "regs": _registers(p, 2)}
+        switch = {"from_tid": p[0], "to_tid": p[1], "regs": _registers(p, 2)}
+        if len(p) >= 26:
+            # Newer kernels: PIT counts since the tick began (about 0.84 us each)
+            (switch["sub_tick"],) = struct.unpack_from("<H", p, 24)
+        return switch
     if type_name == "COUNTERS":
         timer, keyboard, syscall, switches, drops = struct.unpack_from("<4IH", p)
         return {"timer": timer, "keyboard": keyboard, "syscall": syscall,
@@ -107,9 +116,22 @@ def decode_payload(type_name, p):
                 "count": count}
     if type_name == "THREAD_STATS":
         tid, state, priority, cpu_ticks, sp, stack_base, stack_size = struct.unpack_from("<3BI3H", p)
-        return {"tid": tid, "state": _state(state), "priority": priority,
-                "cpu_ticks": cpu_ticks, "sp": sp, "stack_base": stack_base,
-                "stack_size": stack_size, "name": _name(p[13:25])}
+        stats = {"tid": tid, "state": _state(state), "priority": priority,
+                 "cpu_ticks": cpu_ticks, "sp": sp, "stack_base": stack_base,
+                 "stack_size": stack_size, "name": _name(p[13:25])}
+        if len(p) >= 29:
+            # Newer kernels append the deepest stack use so far (program stack 0 for kernel threads)
+            stats["stack_peak"], stats["program_stack_peak"] = struct.unpack_from("<2H", p, 25)
+        return stats
+    if type_name == "PRIORITY":
+        return {"tid": p[0], "effective": p[1],
+                "reason": PRIORITY_REASONS.get(p[2], f"UNKNOWN_{p[2]}"),
+                "cause": None if p[3] == 0xFF else p[3]}
+    if type_name == "THREAD_FAULT":
+        tid, kind, detail = struct.unpack_from("<BBH", p)
+        return {"tid": tid,
+                "kind": THREAD_FAULT_KINDS[kind] if kind < len(THREAD_FAULT_KINDS) else f"UNKNOWN_{kind}",
+                "detail": detail}
     return {"data": list(p)}
 
 

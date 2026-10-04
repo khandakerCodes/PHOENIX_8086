@@ -140,6 +140,49 @@ void debug_thread_list(void)
     }
 }
 
+/* Print "<used> of <size>" padded to a column */
+static void print_usage(uint16_t used, uint16_t size)
+{
+    con_print_dec(used);
+    con_print(" of ");
+    con_print_dec(size);
+}
+
+void debug_stack_list(void)
+{
+    int i;
+    tcb_t *tcb;
+    uint16_t kernel, program;
+
+    con_println("=== Stack Use (deepest so far, bytes) ===");
+    con_println("  TID  Name          Kernel stack    Program stack");
+    con_println("  ---  ----          ------------    -------------");
+
+    for (i = 0; i < MAX_THREADS; i++) {
+        tcb = thread_get_tcb(i);
+        if (!tcb || !thread_stack_peak(i, &kernel, &program)) {
+            continue;
+        }
+
+        con_print("  ");
+        con_print_dec(tcb->tid);
+        con_print(tcb->tid < 10 ? "    " : "   ");
+        con_print(tcb->name);
+        {
+            int len = 0;
+            const char *p = tcb->name;
+            while (*p) { len++; p++; }
+            while (len < 14) { con_putchar(' '); len++; }
+        }
+        print_usage(kernel, tcb->stack_size);
+        if (tcb->program) {
+            con_print("    ");
+            print_usage(program, PROG_STACK_SIZE);
+        }
+        con_putchar('\n');
+    }
+}
+
 void debug_irq_counts(void)
 {
     con_println("=== Interrupt Counters ===");

@@ -96,6 +96,9 @@ static int create(uint16_t segment, uint16_t entry, uint16_t argument, uint8_t p
     tcb->wait_ticks     = 0;
     tcb->sleep_until    = 0;
     tcb->wait_sem       = NULL;
+    tcb->wait_mutex     = NULL;
+    tcb->inherited      = 0;
+    tcb->mutexes_held   = 0;
     tcb->wait_timed     = false;
     tcb->wait_timed_out = false;
     tcb->cpu_ticks      = 0;
@@ -117,8 +120,20 @@ static int create(uint16_t segment, uint16_t entry, uint16_t argument, uint8_t p
         tcb->name[2] = '\0';
     }
 
-    /* Write stack guard value at the bottom of the stack */
+    /*
+     * Mark the whole stack as unused, so its deepest use can be measured
+     * later (thread_stack_peak), then write the guard at the bottom.
+     */
+    hal_fill_words(KERNEL_DATA_SEG, stack_base, THREAD_STACK_SIZE / 2, STACK_FILL_WORD);
     *(uint16_t *)stack_base = STACK_GUARD_VALUE;
+
+    /* A program thread's own stack gets the same treatment */
+    if (program) {
+        uint16_t bottom = PROG_STACK_BOTTOM(program, stack);
+
+        hal_fill_words(program->data_segment, bottom, PROG_STACK_SIZE / 2, STACK_FILL_WORD);
+        *(uint16_t __far *)MK_FP(program->data_segment, bottom) = STACK_GUARD_VALUE;
+    }
 
     /*
      * Build the context the ISR stub resumes the first time this
@@ -213,6 +228,7 @@ void thread_terminate(int tid)
         tcb->program = NULL;
         program->stacks_in_use &= (uint8_t)~(1 << tcb->program_stack);
         if (--program->threads == 0) {
+            syscall_program_ended(program);
             far_free(program->code_segment);
             far_free(program->data_segment);
             kfree(program);
@@ -320,7 +336,8 @@ bool thread_set_priority(int tid, uint8_t priority)
     flags = hal_irq_save();
     if (tcb_table[tid].active) {
         tcb_table[tid].priority     = priority;
-        tcb_table[tid].eff_priority = priority;
+        tcb_table[tid].eff_priority = priority > tcb_table[tid].inherited
+                                    ? priority : tcb_table[tid].inherited;
         telemetry_thread_state((uint8_t)tid);
         ok = true;
     }
@@ -342,6 +359,41 @@ tcb_t *thread_get_tcb(int tid)
 {
     if (tid < 0 || tid >= MAX_THREADS) return NULL;
     return &tcb_table[tid];
+}
+
+/*
+ * Bytes of a stack that have ever been used. Stacks are filled with
+ * STACK_FILL_WORD when created; counting the untouched words up from
+ * the bottom (word 0 is the guard) finds the deepest point reached,
+ * even if a buffer higher up was never written.
+ */
+static uint16_t stack_depth(uint16_t segment, uint16_t bottom, uint16_t size)
+{
+    uint16_t untouched = hal_count_words(segment, bottom + 2, size / 2 - 1, STACK_FILL_WORD);
+
+    return size - 2 - untouched * 2;
+}
+
+bool thread_stack_peak(int tid, uint16_t *kernel, uint16_t *program)
+{
+    tcb_t *tcb;
+    uint16_t flags;
+    bool ok = false;
+
+    if (tid < 0 || tid >= MAX_THREADS) return false;
+    tcb = &tcb_table[tid];
+
+    flags = hal_irq_save();
+    if (tcb->active) {
+        *kernel = stack_depth(KERNEL_DATA_SEG, tcb->stack_base, tcb->stack_size);
+        *program = tcb->program
+            ? stack_depth(tcb->program->data_segment,
+                          PROG_STACK_BOTTOM(tcb->program, tcb->program_stack), PROG_STACK_SIZE)
+            : 0;
+        ok = true;
+    }
+    hal_irq_restore(flags);
+    return ok;
 }
 
 int thread_current_tid(void)

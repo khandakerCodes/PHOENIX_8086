@@ -39,6 +39,17 @@
 #define TEL_SYSCALL             0x0A
 #define TEL_BENCH               0x0B
 #define TEL_THREAD_STATS        0x0C
+#define TEL_THREAD_FAULT        0x0D
+#define TEL_PRIORITY            0x0E
+
+/* PRIORITY reasons */
+#define TEL_PRIO_INHERIT        1   /* Raised by a thread waiting on a mutex it holds */
+#define TEL_PRIO_RESTORE        2   /* Back to its own priority after releasing its mutexes */
+
+/* THREAD_FAULT kinds: a thread did something wrong, but the kernel carries on */
+#define TEL_TFAULT_KERNEL_STACK  0   /* Kernel stack overflow; the thread was stopped */
+#define TEL_TFAULT_PROGRAM_STACK 1   /* Program stack overflow; the thread was stopped */
+#define TEL_TFAULT_BAD_ARGUMENT  2   /* A system call argument was refused; the call failed */
 
 /* Largest record payload */
 #define TEL_MAX_PAYLOAD         64
@@ -46,6 +57,8 @@
 /* Benchmark kinds */
 #define TEL_BENCH_SWITCHES      0
 #define TEL_BENCH_HEAP          1
+#define TEL_BENCH_IRQ_AVG_NS    2   /* Timer interrupt latency, average, in nanoseconds */
+#define TEL_BENCH_IRQ_MAX_NS    3   /* ... and the longest */
 
 #if CONFIG_TELEMETRY
 
@@ -63,6 +76,8 @@ void telemetry_thread_state(uint8_t tid);
 void telemetry_context_switch(uint8_t from_tid, uint8_t to_tid, uint16_t to_sp);
 void telemetry_syscall(uint8_t tid, uint8_t func);
 void telemetry_fault(uint8_t tid, const frame_t *frame, uint16_t sp, const char *reason);
+void telemetry_thread_fault(uint8_t tid, uint8_t kind, uint16_t detail);
+void telemetry_priority(uint8_t tid, uint8_t effective, uint8_t reason, uint8_t cause);
 void telemetry_bench(uint8_t kind, uint32_t count);
 void telemetry_console_char(char c);
 
@@ -82,6 +97,10 @@ static inline void telemetry_context_switch(uint8_t from_tid, uint8_t to_tid, ui
 static inline void telemetry_syscall(uint8_t tid, uint8_t func) { (void)tid; (void)func; }
 static inline void telemetry_fault(uint8_t tid, const frame_t *frame, uint16_t sp, const char *reason)
 { (void)tid; (void)frame; (void)sp; (void)reason; }
+static inline void telemetry_thread_fault(uint8_t tid, uint8_t kind, uint16_t detail)
+{ (void)tid; (void)kind; (void)detail; }
+static inline void telemetry_priority(uint8_t tid, uint8_t effective, uint8_t reason, uint8_t cause)
+{ (void)tid; (void)effective; (void)reason; (void)cause; }
 static inline void telemetry_bench(uint8_t kind, uint32_t count) { (void)kind; (void)count; }
 static inline void telemetry_flush(void) {}
 

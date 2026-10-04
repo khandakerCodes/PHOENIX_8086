@@ -49,6 +49,13 @@ uint16_t far_alloc_owned(uint16_t paragraphs, uint8_t owner);
 /* Free every block a thread still owns (called when the thread ends) */
 void far_free_owned(int tid);
 
+/*
+ * The owner of a block returned by far_alloc or far_alloc_owned
+ * (FAR_NO_OWNER for far_alloc). Returns false if `segment` is not the
+ * start of an allocated block.
+ */
+bool far_owner(uint16_t segment, uint8_t *owner);
+
 /* Free a block returned by far_alloc */
 void far_free(uint16_t segment);
 

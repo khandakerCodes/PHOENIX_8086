@@ -26,6 +26,8 @@
 #include "kernel.h"
 #include "sync.h"
 #include "floppy.h"
+#include "hal.h"
+#include "telemetry.h"
 
 /* ── External TCB table (defined in thread.c) ─ */
 extern tcb_t tcb_table[MAX_THREADS];
@@ -89,32 +91,61 @@ static void age_ready_threads(void)
 
 /* ── Stack guard check ──────────────────────── */
 
+/* Report a stack overflow and stop the thread; the caller switches away */
+static void stack_overflow(int tid, uint8_t kind, uint16_t sp)
+{
+    con_set_color(VGA_WHITE, VGA_RED);
+    con_print(kind == TEL_TFAULT_PROGRAM_STACK ? "\n!!! PROGRAM STACK OVERFLOW: Thread "
+                                               : "\n!!! STACK OVERFLOW: Thread ");
+    con_print_dec(tid);
+    con_print(" (");
+    con_print(tcb_table[tid].name);
+    con_println(") !!!");
+    con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
+
+    telemetry_thread_fault((uint8_t)tid, kind, sp);
+    thread_terminate(tid);
+}
+
 /*
- * Two checks: the guard word at the bottom of the stack must be
- * intact, and the saved stack pointer must not have entered the red
- * zone just above it. The red zone catches an overflow before it
- * reaches the neighbouring stack.
+ * Two checks per stack: the guard word at the bottom must be intact,
+ * and the stack pointer must not have entered the red zone just above
+ * it. The red zone catches an overflow before it reaches the
+ * neighbouring stack.
+ *
+ * A program thread has a second stack in its program's data segment.
+ * Its last stack pointer there is kept at the top of the thread's
+ * kernel stack (user_context_t), whether the thread was interrupted in
+ * the program or is in the middle of a system call. Real mode cannot
+ * stop the overflow from happening; this notices it at the next switch.
  */
 static void check_stack_guard(int tid, uint16_t sp)
 {
+    tcb_t *tcb;
     uint16_t *guard;
+
     if (tid < 0 || tid >= MAX_THREADS) return;
-    if (!tcb_table[tid].active) return;
+    tcb = &tcb_table[tid];
+    if (!tcb->active) return;
 
-    guard = (uint16_t *)tcb_table[tid].stack_base;
-    if (*guard != STACK_GUARD_VALUE ||
-        sp < tcb_table[tid].stack_base + STACK_RED_ZONE) {
-        /* Stack overflow detected! */
-        con_set_color(VGA_WHITE, VGA_RED);
-        con_print("\n!!! STACK OVERFLOW: Thread ");
-        con_print_dec(tid);
-        con_print(" (");
-        con_print(tcb_table[tid].name);
-        con_println(") !!!");
-        con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
+    guard = (uint16_t *)tcb->stack_base;
+    if (*guard != STACK_GUARD_VALUE || sp < tcb->stack_base + STACK_RED_ZONE) {
+        stack_overflow(tid, TEL_TFAULT_KERNEL_STACK, sp);
+        return;
+    }
 
-        /* Terminate the offending thread; the caller switches away */
-        thread_terminate(tid);
+    if (tcb->program) {
+        const program_t *program = tcb->program;
+        const user_context_t *user =
+            (const user_context_t *)(tcb->stack_base + tcb->stack_size) - 1;
+        uint16_t bottom = PROG_STACK_BOTTOM(program, tcb->program_stack);
+        uint16_t user_guard = *(const uint16_t __far *)MK_FP(program->data_segment, bottom);
+
+        if (user_guard != STACK_GUARD_VALUE ||
+            user->user_sp < bottom + PROG_STACK_RED_ZONE ||
+            user->user_sp > bottom + PROG_STACK_SIZE) {
+            stack_overflow(tid, TEL_TFAULT_PROGRAM_STACK, user->user_sp);
+        }
     }
 }
 
@@ -192,6 +223,17 @@ void sched_init(void)
     }
     idle->name[i] = '\0';
 
+    /*
+     * This stack is in use right now, so only the part well below the
+     * stack pointer can be marked unused (see thread_stack_peak).
+     */
+    {
+        uint16_t sp;
+
+        __asm__ __volatile__("movw %%sp, %0" : "=r"(sp));
+        hal_fill_words(KERNEL_DATA_SEG, idle->stack_base,
+                       (sp - 32 - idle->stack_base) / 2, STACK_FILL_WORD);
+    }
     *(uint16_t *)idle->stack_base = STACK_GUARD_VALUE;
 
     current_thread = 0;
@@ -256,7 +298,8 @@ uint16_t sched_switch(uint16_t sp)
     }
 
     next->state          = THREAD_RUNNING;
-    next->eff_priority   = next->priority;   /* Aging boost is spent */
+    /* The aging boost is spent; an inherited priority is not (sync.c) */
+    next->eff_priority   = next->priority > next->inherited ? next->priority : next->inherited;
     next->wait_ticks     = 0;
     next->slice_left     = TIME_SLICE_TICKS;
     next->last_scheduled = tick_count;

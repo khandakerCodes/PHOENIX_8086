@@ -36,6 +36,9 @@ Optional:
 | --- | --- |
 | `make` / `make all` | Build the boot sectors, kernel, example programs and floppy image |
 | `make check` | Fail if the kernel or a program contains a non-8086 instruction |
+| `make test-host` | Build kernel files (`sync.c`, `ipc.c`, `memory.c`, `fat12.c`) for the host with AddressSanitizer and UBSan and run their unit tests, including a FAT12 fuzzer. Part of `make test`; needs only the host's `cc` |
+| `make coverage` | Line coverage of those files under the host tests (gcov). `COVERAGE_MARKDOWN=file` also writes it as Markdown |
+| `make size` | Report how full the code and data segments are, the largest functions and variables, and program sizes; fail if a segment is over 90% of its limit. `SIZE_MARKDOWN=file` also writes it as Markdown |
 | `make test` | `check`, host unit tests, image check, boot smoke test, integration test in QEMU |
 | `make test-8086` | Boot and drive the kernel on DOSBox-X as an 8086 |
 | `make soak SOAK_SECONDS=600` | Churn threads, IPC and programs for the given time |
