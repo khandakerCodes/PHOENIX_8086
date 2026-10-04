@@ -1,8 +1,8 @@
 diff --git a/kernel/scheduler.c b/kernel/scheduler.c
-index b20675a..ccf7a2d 100644
+index 798a7f1..5efd155 100644
 --- a/kernel/scheduler.c
 +++ b/kernel/scheduler.c
-@@ -64,29 +64,6 @@ static void check_sleep_queue(void)
+@@ -66,29 +66,6 @@ static void check_sleep_queue(void)
      }
  }
  
@@ -31,8 +31,8 @@ index b20675a..ccf7a2d 100644
 -
  /* ── Stack guard check ──────────────────────── */
  
- /*
-@@ -127,42 +104,30 @@ static bool is_runnable(int tid)
+ /* Report a stack overflow and stop the thread; the caller switches away */
+@@ -158,42 +135,30 @@ static bool is_runnable(int tid)
      return tid == current_thread && tcb_table[tid].state == THREAD_RUNNING;
  }
  
@@ -90,7 +90,7 @@ index b20675a..ccf7a2d 100644
  }
  
  /* ── Public API ─────────────────────────────── */
-@@ -217,8 +182,6 @@ void sched_tick(void)
+@@ -259,8 +224,6 @@ void sched_tick(void)
      /* Stop the floppy motor once the drive has been idle for a while */
      floppy_tick();
  

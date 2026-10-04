@@ -83,10 +83,24 @@ typedef struct {
 typedef struct program {
     uint16_t code_segment;
     uint16_t data_segment;
+    uint16_t text_size;     /* Bytes of code; entry points must lie below this */
+    uint16_t data_limit;    /* Bytes of the data segment in use (data, bss and stacks) */
     uint16_t stack_area;    /* Offset of the first thread stack in the data segment */
     uint8_t  threads;       /* Threads currently running in this program */
     uint8_t  stacks_in_use; /* Bit n set: stack n belongs to a thread */
 } program_t;
+
+/* Offset of the lowest byte of stack n in the program's data segment */
+#define PROG_STACK_BOTTOM(program, n) \
+    ((program)->stack_area + (uint16_t)(n) * PROG_STACK_SIZE)
+
+/*
+ * A program thread is stopped when its stack pointer comes this close
+ * to the bottom of its stack. Only interrupt frames (24 bytes) are ever
+ * pushed on a program's stack by the kernel, so this can be smaller
+ * than the kernel's own red zone.
+ */
+#define PROG_STACK_RED_ZONE 64
 
 /* FLAGS bits used by the kernel */
 #define FLAGS_CF            0x0001
@@ -113,6 +127,9 @@ typedef struct {
     uint8_t  wait_ticks;    /* Ticks spent READY since the last aging step */
     uint32_t sleep_until;   /* Wake tick for SLEEPING threads */
     void    *wait_sem;      /* Semaphore this thread is blocked on, or NULL */
+    void    *wait_mutex;    /* Mutex it is waiting for, or NULL (priority inheritance) */
+    uint8_t  inherited;     /* Priority lent by a thread waiting on a mutex it holds, 0 if none */
+    uint8_t  mutexes_held;  /* Mutexes it owns; inheritance ends when this drops to 0 */
     bool     wait_timed;    /* The wait ends at sleep_until even without a signal */
     bool     wait_timed_out;/* Set when that happened */
 
@@ -122,7 +139,6 @@ typedef struct {
     uint16_t stack_size;    /* Size of the stack in bytes */
     uint32_t cpu_ticks;     /* CPU time consumed (in timer ticks) */
     uint32_t last_scheduled;/* Tick when last scheduled */
-
     /* Loaded program this thread runs in, or NULL for a kernel thread */
     struct program *program;
     uint8_t  program_stack; /* Which of the program's stacks this thread uses */
@@ -134,5 +150,12 @@ typedef struct {
 
 /* Stack guard magic value */
 #define STACK_GUARD_VALUE   0xAAAA
+
+/*
+ * Every new stack is filled with this word, so the part a thread has
+ * never touched can be told from the part it has used. It differs from
+ * the guard so the guard is never mistaken for unused space.
+ */
+#define STACK_FILL_WORD     0xA5A5
 
 #endif /* PHOENIX_TCB_H */

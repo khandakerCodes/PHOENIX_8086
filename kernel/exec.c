@@ -157,6 +157,8 @@ int exec_program(const char *name, uint8_t *error)
 
     program->code_segment  = code_segment;
     program->data_segment  = data_segment;
+    program->text_size     = header.text_size;
+    program->data_limit    = stack_area + PROG_MAX_THREADS * PROG_STACK_SIZE;
     program->stack_area    = stack_area;
     program->threads       = 0;
     program->stacks_in_use = 0;

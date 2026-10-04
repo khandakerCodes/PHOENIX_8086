@@ -484,7 +484,13 @@
                 : hex16(thread.stackBase) + '–' + hex16(thread.stackBase + thread.stackSize - 1)],
             ['inspector.stackUsed', used === null ? NO_DATA
                 : t('inspector.stackUsedValue', { used: used, size: thread.stackSize })],
+            ['inspector.stackPeak', thread.stackPeak === null ? NO_DATA
+                : t('inspector.stackPeakValue', { used: thread.stackPeak, size: thread.stackSize })],
         ];
+        if (thread.programStackPeak !== null) {
+            fields.push(['inspector.programStackPeak',
+                         t('inspector.bytes', { used: thread.programStackPeak })]);
+        }
         fields.forEach(function (field) {
             const row = el('div', 'inspector-field');
             row.appendChild(el('span', 'inspector-field__label', t(field[0])));

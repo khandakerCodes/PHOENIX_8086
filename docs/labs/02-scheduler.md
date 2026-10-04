@@ -65,7 +65,7 @@ Then repeat the Part 1 measurement and compare the shares with the baseline.
 ## Questions
 
 1. `select_next_thread` scans starting *after* the current thread. What would change if it always scanned from thread 1?
-2. Why does `sched_switch` reset `eff_priority` to the base priority when a thread is chosen?
+2. Why does `sched_switch` reset `eff_priority` to the base priority when a thread is chosen? Why does it keep a priority *inherited* through a mutex (`kernel/sync.c`) but drop the aging boost?
 3. The telemetry thread has priority 12, above the shell. What goes wrong on the dashboard if you give it priority 1 and then start three demo threads? (Try it, and watch the "Dropped" counter.)
 4. For your policy: can a thread starve? Argue it, then try to construct a case.
 

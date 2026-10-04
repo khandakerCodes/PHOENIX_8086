@@ -188,3 +188,28 @@ test('unknown and malformed messages are ignored', () => {
     assert.strictEqual(model.received, 0);
     assert.strictEqual(model.tick, 0);
 });
+
+test('a thread fault is an event, not a panic, and stack peaks reach the thread', () => {
+    const model = Model.create();
+    Model.apply(model, { type: 'THREAD_CREATE', tick: 1, tid: 4, priority: 5, name: 'rogue' });
+    Model.apply(model, { type: 'THREAD_STATS', tick: 2, tid: 4, state: 'READY', priority: 5,
+                         cpu_ticks: 3, sp: 0x9000, stack_base: 0x8800, stack_size: 2048,
+                         name: 'rogue', stack_peak: 120, program_stack_peak: 1980 });
+    assert.strictEqual(model.threads[4].stackPeak, 120);
+    assert.strictEqual(model.threads[4].programStackPeak, 1980);
+
+    Model.apply(model, { type: 'THREAD_FAULT', tick: 3, tid: 4, kind: 'bad_argument', detail: 0x0B });
+    Model.apply(model, { type: 'THREAD_FAULT', tick: 4, tid: 4, kind: 'program_stack', detail: 0x0812 });
+    assert.strictEqual(model.fault, null);
+    assert.deepStrictEqual(model.events.slice(0, 2).map((e) => [e.kind, e.key, e.params.name]),
+                           [['fault', 'event.programStackOverflow', undefined],
+                            ['fault', 'event.badArgument', 'sem_signal']]);
+});
+
+test('priority inheritance shows as events naming the lender', () => {
+    const model = Model.create();
+    Model.apply(model, { type: 'PRIORITY', tick: 5, tid: 3, effective: 8, reason: 'inherit', cause: 5 });
+    Model.apply(model, { type: 'PRIORITY', tick: 9, tid: 3, effective: 2, reason: 'restore', cause: null });
+    assert.deepStrictEqual(model.events.map((e) => [e.key, e.params.priority, e.params.from]),
+                           [['event.restore', 2, undefined], ['event.inherit', 8, 5]]);
+});

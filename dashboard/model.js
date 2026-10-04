@@ -28,7 +28,15 @@
         0x04: 'thread_create', 0x05: 'thread_exit', 0x06: 'yield', 0x07: 'sleep',
         0x08: 'ticks', 0x09: 'sem_create', 0x0A: 'sem_wait', 0x0B: 'sem_signal',
         0x0C: 'mbox_create', 0x0D: 'mbox_send', 0x0E: 'mbox_recv',
-        0x0F: 'alloc', 0x10: 'free',
+        0x0F: 'alloc', 0x10: 'free', 0x11: 'sem_destroy', 0x12: 'mbox_destroy',
+        0x18: 'open', 0x19: 'read', 0x1A: 'close', 0x1B: 'exec',
+    };
+
+    /* THREAD_FAULT kinds → event message keys */
+    const THREAD_FAULT_EVENTS = {
+        kernel_stack: 'event.stackOverflow',
+        program_stack: 'event.programStackOverflow',
+        bad_argument: 'event.badArgument',
     };
 
     function create() {
@@ -59,7 +67,7 @@
             model.threads[tid] = {
                 tid: tid, name: null, state: null, priority: null,
                 cpuTicks: null, sp: null, stackBase: null, stackSize: null,
-                exited: false,
+                stackPeak: null, programStackPeak: null, exited: false,
             };
         }
         return model.threads[tid];
@@ -123,7 +131,8 @@
         THREAD_CREATE: function (model, m) {
             model.threads[m.tid] = {
                 tid: m.tid, name: m.name, state: 'READY', priority: m.priority,
-                cpuTicks: 0, sp: null, stackBase: null, stackSize: null, exited: false,
+                cpuTicks: 0, sp: null, stackBase: null, stackSize: null,
+                stackPeak: null, programStackPeak: null, exited: false,
             };
             addEvent(model, 'info', m.tick, 'event.created', { tid: m.tid, priority: m.priority }, m.tid);
         },
@@ -205,6 +214,26 @@
             addEvent(model, 'fault', m.tick, 'event.panic', { reason: m.reason }, m.tid);
         },
 
+        PRIORITY: function (model, m) {
+            if (m.reason === 'inherit') {
+                addEvent(model, 'info', m.tick, 'event.inherit',
+                         { tid: m.tid, priority: m.effective, from: m.cause }, m.tid);
+            } else if (m.reason === 'restore') {
+                addEvent(model, 'info', m.tick, 'event.restore',
+                         { tid: m.tid, priority: m.effective }, m.tid);
+            }
+        },
+
+        THREAD_FAULT: function (model, m) {
+            const key = THREAD_FAULT_EVENTS[m.kind];
+            if (!key) return;
+            const params = { tid: m.tid };
+            if (m.kind === 'bad_argument') {
+                params.name = SYSCALL_NAMES[m.detail] || ('0x' + m.detail.toString(16));
+            }
+            addEvent(model, 'fault', m.tick, key, params, m.tid);
+        },
+
         CONSOLE: function (model, m) {
             appendConsole(model, m.text);
         },
@@ -229,6 +258,10 @@
             t.sp = m.sp;
             t.stackBase = m.stack_base;
             t.stackSize = m.stack_size;
+            if (m.stack_peak !== undefined) {
+                t.stackPeak = m.stack_peak;
+                t.programStackPeak = m.program_stack_peak || null;  /* 0: a kernel thread */
+            }
             t.exited = false;
             if (m.state === 'RUNNING' && model.current === null) {
                 model.current = m.tid;

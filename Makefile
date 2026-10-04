@@ -111,7 +111,7 @@ KERNEL_BIN = $(BUILD_DIR)/kernel.bin
 FLOPPY_IMG = $(BUILD_DIR)/phoenix8086.img
 
 # Example programs built with the SDK (sdk/examples/NAME.c → NAME.BIN)
-PROGRAM_NAMES = hello primes clock threads where greet
+PROGRAM_NAMES = hello primes clock threads where greet rogue
 PROGRAM_DIR   = $(BUILD_DIR)/programs
 PROGRAMS      = $(foreach name,$(PROGRAM_NAMES),$(PROGRAM_DIR)/$(shell echo $(name) | tr a-z A-Z).BIN)
 
