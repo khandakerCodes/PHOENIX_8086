@@ -62,6 +62,8 @@ All notable changes to this project are recorded here. The project follows [Sema
 * `bridge/trace.py`: converts a capture to the Chrome/Perfetto trace format, with a CPU track, per-thread tracks, flow arrows at context switches and counters.
 * Host-compiled kernel tests (`tests/host/`, `make test-host`): `sync.c`, `ipc.c`, `memory.c` and `fat12.c` built unmodified for the PC under AddressSanitizer and UBSan, on a simulated machine whose threads really block (ucontext). Inheritance chains and the depth limit, allocator invariants under random load, every file on the real floppy read back and compared, and a FAT12 fuzzer. Part of `make test`.
 * `make coverage` (`tools/coverage_report.py`): line coverage of the host-tested files; CI puts it in the job summary.
+* A modern console. On a VGA the kernel loads the Catppuccin Mocha palette, turns blinking off for 16 background colours, and adds 20 glyphs to the font (rounded corners, pill ends, powerline arrows, a meter bar, sparkline levels, check and cross marks); on a CGA the same code falls back to the standard colours and code-page-437 characters (`make CONSOLE=plain` shows that look on a VGA). A UI toolkit (`kernel/ui.c`) draws every screen: a logo and checklist at boot, a powerline prompt, titled panels with rounded corners for `help`, `ps`, `stacks`, `memory`, `ls`, `stats`, `interrupts`, `scheduler`, `registers` and `about`, colour-coded thread states, meters, and a crash report for panics. A status bar on the bottom row shows uptime, threads, free memory, an eight-second load sparkline and the detected processor, updated every second. Telemetry still carries plain text, with the prompt as `phoenix> `.
+* `tools/screenshot.py`: boots the image, types commands and saves the screen as a PNG; the README and manual pictures are made with it.
 * Sub-tick time: the timer chip runs in mode 2, so its counter tells how far into a tick the kernel is (about 0.84 µs). Context-switch telemetry carries it, so the Perfetto export shows real slice durations, and `bench` measures timer interrupt latency.
 * `make size` (`tools/size_report.py`): segment use, largest functions and variables, program sizes; fails when a segment passes 90% of its limit; CI puts the report in the job summary.
 
@@ -71,6 +73,7 @@ All notable changes to this project are recorded here. The project follows [Sema
 * `phoenix.sh` no longer kills other processes; it reports busy ports and stops.
 
 ### Fixed
+* A line that filled the screen's full width left an empty line after it; the console now wraps when the next character arrives, as terminals do.
 * FAT12 mount trusted the disk's parameter block. Found by the new fuzzer: 128 or more sectors per FAT wrapped a 16-bit size and the FAT was read into a block far too small; 128 sectors per cluster made the cluster size 0, which `fat_read` divided by; and remounting a disk with a bigger FAT overflowed the buffer from the first mount. The driver now checks every size in 32 bits and refuses clusters over 32 KB and FATs over 12 sectors.
 * A program could free any far-memory segment, including another program's code, through the `free` system call.
 * A program could pass any number as a semaphore or mailbox handle, and the kernel would use it as a pointer into its own memory.

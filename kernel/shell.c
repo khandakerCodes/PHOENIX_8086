@@ -26,10 +26,10 @@
 #include "fat12.h"
 #include "exec.h"
 #include "disk.h"
+#include "ui.h"
 
 /* ── Constants ──────────────────────────────── */
 #define CMD_BUF_SIZE    64
-#define PROMPT          "phoenix> "
 
 /* ── String utilities ───────────────────────── */
 
@@ -73,9 +73,9 @@ static void demo_thread_a(void)
 {
     int i;
     for (i = 0; i < 20; i++) {
-        con_set_color(VGA_LIGHT_GREEN, VGA_BLACK);
+        con_set_color(TH_GREEN, TH_BASE);
         con_print("[A]");
-        con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
+        con_set_color(TH_TEXT, TH_BASE);
 
         demo_spin();
     }
@@ -86,9 +86,9 @@ static void demo_thread_b(void)
 {
     int i;
     for (i = 0; i < 20; i++) {
-        con_set_color(VGA_LIGHT_CYAN, VGA_BLACK);
+        con_set_color(TH_SKY, TH_BASE);
         con_print("[B]");
-        con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
+        con_set_color(TH_TEXT, TH_BASE);
 
         demo_spin();
     }
@@ -99,9 +99,9 @@ static void demo_thread_c(void)
 {
     int i;
     for (i = 0; i < 20; i++) {
-        con_set_color(VGA_YELLOW, VGA_BLACK);
+        con_set_color(TH_YELLOW, TH_BASE);
         con_print("[C]");
-        con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
+        con_set_color(TH_TEXT, TH_BASE);
 
         demo_spin();
     }
@@ -196,70 +196,129 @@ static void bench_yielder(void)
 
 /* ── Command handlers ───────────────────────── */
 
+/*
+ * The help screen: two columns of grouped commands. A line with no
+ * description is a group heading.
+ */
+typedef struct {
+    const char *name;
+    const char *what;
+} help_line_t;
+
+static const help_line_t help_left[] = {
+    { "THREADS", NULL },
+    { "ps  threads", "list threads" },
+    { "stacks", "deepest stack use" },
+    { "create", "start a demo thread" },
+    { "kill <tid>", "stop a thread" },
+    { "nice <tid> <p>", "change a priority" },
+    { "sleep <ticks>", "pause the shell" },
+    { "", "" },
+    { "LOOK INSIDE", NULL },
+    { "memory", "memory map" },
+    { "stats", "runtime statistics" },
+    { "interrupts", "interrupt counters" },
+    { "registers", "processor registers" },
+    { "scheduler", "who runs next" },
+    { "ticks  uptime", "time since boot" },
+    { "cpu  about", "processor, version" },
+};
+
+static const help_line_t help_right[] = {
+    { "FILES AND PROGRAMS", NULL },
+    { "ls", "list the boot disk" },
+    { "cat <file>", "print a text file" },
+    { "run <file>", "run a program" },
+    { "disk <driver>", "native or bios" },
+    { "", "" },
+    { "DEMOS", NULL },
+    { "ipc  syscall", "messages, INT 80h" },
+    { "bench  selftest", "measure, self-check" },
+    { "overflow", "catch a runaway" },
+    { "", "" },
+    { "SYSTEM", NULL },
+    { "keymap [name]", "keyboard layout" },
+    { "clear  reboot", "screen, restart" },
+    { "panic  divzero", "halt on purpose" },
+    { "", "" },
+};
+
+#define HELP_RIGHT_COL  41
+#define HELP_WHAT_GAP   16
+
+static void help_cell(const help_line_t *line, uint8_t col)
+{
+    ui_pad_to(col);
+    if (line->what == NULL) {
+        ui_text(TH_TEAL, line->name);
+    } else if (line->name[0] != '\0') {
+        ui_text(TH_MAUVE, line->name);
+        con_putchar(' ');
+        ui_pad_to((uint8_t)(col + HELP_WHAT_GAP));
+        ui_text(TH_SUBTEXT, line->what);
+    }
+}
+
 static void cmd_help(void)
 {
-    con_set_color(VGA_LIGHT_CYAN, VGA_BLACK);
-    con_println("=== Phoenix-8086 Shell Commands ===");
-    con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
-    con_println("  help       - Show this help");
-    con_println("  threads    - List active threads");
-    con_println("  ps         - Alias for 'threads'");
-    con_println("  stacks     - Deepest stack use of each thread");
-    con_println("  memory     - Show memory map");
-    con_println("  ticks      - Show tick counter");
-    con_println("  uptime     - Show system uptime");
-    con_println("  stats      - Show runtime statistics");
-    con_println("  interrupts - Show interrupt counters");
-    con_println("  registers  - Dump CPU registers");
-    con_println("  scheduler  - Show scheduler queue");
-    con_println("  clear      - Clear screen");
-    con_println("  create     - Create a demo thread");
-    con_println("  ipc        - Mailbox producer/consumer demo");
-    con_println("  syscall    - INT 80h system call demo");
-    con_println("  kill <tid> - Kill a thread");
-    con_println("  nice <tid> <pri> - Set thread priority");
-    con_println("  sleep <ticks>    - Put the shell to sleep");
-    con_println("  bench      - Measure context switch and heap cost");
-    con_println("  selftest   - Run kernel self-tests");
-    con_println("  overflow   - Stack overflow detection demo");
-    con_println("  divzero    - Trigger a divide error");
-    con_println("  panic      - Trigger kernel panic");
-    con_println("  reboot     - Reboot the system");
-    con_println("  ls         - List files on the boot disk");
-    con_println("  cat <file> - Print a text file");
-    con_println("  run <file> - Load and run a program");
-    con_println("  disk [native|bios] - Show or choose the disk driver");
-    con_println("  keymap [name]    - Show or set the keyboard layout");
-    con_println("  cpu        - Identify the processor");
-    con_println("  about      - About Phoenix-8086");
+    uint8_t i;
+
+    ui_panel_open("Shell Commands", TH_MAUVE, "Phoenix-8086 " PHOENIX_VERSION);
+    for (i = 0; i < sizeof(help_left) / sizeof(help_left[0]); i++) {
+        ui_row();
+        help_cell(&help_left[i], UI_TEXT_LEFT);
+        help_cell(&help_right[i], HELP_RIGHT_COL);
+        ui_row_end();
+    }
+    ui_panel_close();
 }
 
 static void cmd_about(void)
 {
-    con_set_color(VGA_LIGHT_RED, VGA_BLACK);
-    con_println("");
-    con_println("  ____  _                      _         ___   ___   ___   __");
-    con_println(" |  _ \\| |__   ___   ___ _ __ (_)_  __  ( _ ) / _ \\ ( _ ) / /_");
-    con_println(" | |_) | '_ \\ / _ \\ / _ \\ '_ \\| \\ \\/ /  / _ \\| | | |/ _ \\| '_ \\");
-    con_println(" |  __/| | | | (_) |  __/ | | | |>  <  | (_) | |_| | (_) | (_) |");
-    con_println(" |_|   |_| |_|\\___/ \\___|_| |_|_/_/\\_\\  \\___/ \\___/ \\___/ \\___/");
-    con_println("");
-    con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
-    con_println("  Version " PHOENIX_VERSION);
-    con_println("  A Bare-Metal Preemptive Microkernel for the Intel 8086");
-    con_println("  Designed for educational demonstration and systems study");
-    con_println("");
-    con_print("  Threads: ");
-    con_print_dec(thread_count());
-    con_print("  |  Uptime: ");
-    con_print_dec(stats_uptime_seconds());
-    con_print("s  |  Ticks: ");
-    con_print_dec((uint16_t)irq_ticks());
-    con_println("");
+    con_putchar('\n');
+    ui_logo(5);
+    con_putchar('\n');
+    ui_panel_open("About", TH_MAUVE, NULL);
+    ui_row();
+    ui_kv("Version:", 12, TH_TEXT, PHOENIX_VERSION);
+    ui_row_end();
+    ui_row();
+    ui_kv("Kernel:", 12, TH_TEXT, "a preemptive teaching kernel for the Intel 8086");
+    ui_row_end();
+    ui_row();
+    ui_text(TH_SUBTEXT, "Threads: ");
+    ui_pad_to(UI_TEXT_LEFT + 12);
+    ui_num((uint32_t)thread_count(), 1, TH_TEXT);
+    ui_row_end();
+    ui_row();
+    ui_text(TH_SUBTEXT, "Uptime: ");
+    ui_pad_to(UI_TEXT_LEFT + 12);
+    ui_num(stats_uptime_seconds(), 1, TH_TEXT);
+    ui_text(TH_TEXT, "s");
+    ui_row_end();
+    ui_row();
+    ui_kv("Source:", 12, TH_BLUE, "github.com/khandakerCodes/PHOENIX_8086");
+    ui_row_end();
+    ui_panel_close();
+}
+
+/* Start a result line: "  ✓ " or "  ✗ " */
+static void result(bool ok)
+{
+    con_print("  ");
+    ui_mark(ok);
+}
+
+/* Start an information line: "  ● " */
+static void info(void)
+{
+    con_print("  ");
+    ui_dot(TH_BLUE, "");
 }
 
 static void report_created(int tid)
 {
+    result(tid >= 0);
     if (tid >= 0) {
         con_print("Created thread TID=");
         con_print_dec(tid);
@@ -313,15 +372,18 @@ static void cmd_nice(const char *arg)
     while (*arg == ' ') arg++;
 
     if (*arg == '\0') {
+        result(false);
         con_println("Usage: nice <tid> <priority>");
         return;
     }
     pri = str_to_int(arg);
 
     if (pri > 255 || !thread_set_priority(tid, (uint8_t)pri)) {
+        result(false);
         con_println("nice: no such thread or bad priority");
         return;
     }
+    result(true);
     con_print("Thread ");
     con_print_dec(tid);
     con_print(" priority set to ");
@@ -334,6 +396,7 @@ static void cmd_sleep(const char *arg)
     uint32_t start = irq_ticks();
 
     thread_sleep((uint16_t)str_to_int(arg));
+    result(true);
     con_print("Slept ");
     con_print_dec((uint16_t)(irq_ticks() - start));
     con_println(" ticks");
@@ -368,6 +431,7 @@ static void bench_report(uint8_t kind, uint32_t count, const char *what)
 
     telemetry_bench(kind, count);
 
+    info();
     con_print("bench: ");
     print_u32(count);
     con_putchar(' ');
@@ -393,6 +457,7 @@ static void cmd_bench(void)
     if (thread_create(bench_yielder, 8, "bench-1") < 0 ||
         thread_create(bench_yielder, 8, "bench-2") < 0) {
         bench_stop = true;
+        result(false);
         con_println("bench: no free thread slots");
         return;
     }
@@ -424,6 +489,7 @@ static void cmd_bench(void)
 
         telemetry_bench(TEL_BENCH_IRQ_AVG_NS, counts_to_ns(average));
         telemetry_bench(TEL_BENCH_IRQ_MAX_NS, counts_to_ns(max));
+        info();
         con_print("bench: timer interrupt latency ");
         print_u32(counts_to_ns(min) / 1000);
         con_print("-");
@@ -436,30 +502,51 @@ static void cmd_bench(void)
     }
 }
 
+/* True if a file name ends in .BIN, the extension programs use */
+static bool is_program(const char *name)
+{
+    while (*name && *name != '.') name++;
+    return str_eq(name, ".BIN");
+}
+
 static void cmd_ls(void)
 {
     fat_dirent_t entry;
     uint16_t index = 0;
     uint16_t count = 0;
+    uint32_t total = 0;
 
     if (!fat_mounted()) {
+        result(false);
         con_println("No file system mounted");
         return;
     }
 
+    ui_panel_open("Boot Disk", TH_BLUE, "FAT12, root directory");
     while (fat_next(&index, &entry)) {
-        int len = 0;
+        bool program = is_program(entry.name);
 
-        con_print("  ");
-        con_print(entry.name);
-        while (entry.name[len]) len++;
-        while (len++ < 14) con_putchar(' ');
-        print_u32(entry.size);
-        con_println(" bytes");
+        ui_row();
+        ui_dot(program ? TH_MAUVE : TH_TEAL, "");
+        ui_text(program ? TH_TEXT : TH_SUBTEXT, entry.name);
+        ui_pad_to(20);
+        ui_num(entry.size, 7, TH_TEXT);
+        ui_text(TH_OVERLAY, " bytes");
+        ui_pad_to(36);
+        ui_text(TH_OVERLAY, program ? "program, try: run " : "text, try: cat ");
+        ui_text(TH_OVERLAY, entry.name);
+        ui_row_end();
         count++;
+        total += entry.size;
     }
-    con_print_dec(count);
-    con_println(" file(s)");
+    ui_row_rule();
+    ui_row();
+    ui_num(count, 1, TH_TEXT);
+    ui_text(TH_SUBTEXT, " file(s), ");
+    ui_num(total, 1, TH_TEXT);
+    ui_text(TH_SUBTEXT, " bytes");
+    ui_row_end();
+    ui_panel_close();
 }
 
 static void cmd_cat(const char *name)
@@ -469,10 +556,12 @@ static void cmd_cat(const char *name)
     uint16_t got, i;
 
     if (name[0] == '\0') {
+        result(false);
         con_println("Usage: cat <file>");
         return;
     }
     if (!fat_open(name, &file)) {
+        result(false);
         con_print("File not found: ");
         con_println(name);
         return;
@@ -493,18 +582,21 @@ static void cmd_run(const char *name)
     int tid;
 
     if (name[0] == '\0') {
+        result(false);
         con_println("Usage: run <file>");
         return;
     }
 
     tid = exec_program(name, &error);
     if (tid < 0) {
+        result(false);
         con_print("Cannot run ");
         con_print(name);
         con_print(": ");
         con_println(exec_error_text(error));
         return;
     }
+    result(true);
     con_print("Started ");
     con_print(name);
     con_print(" as TID=");
@@ -519,20 +611,29 @@ static void cmd_keymap(const char *name)
 
     if (name[0] != '\0') {
         if (!kb_set_keymap(name)) {
+            result(false);
             con_print("Unknown keymap: ");
             con_println(name);
             return;
         }
+        result(true);
         con_print("Keymap: ");
         con_println(kb_keymap_name());
         return;
     }
 
     for (i = 0; kb_keymap_info(i, &layout, &description); i++) {
-        con_print(str_eq(layout, kb_keymap_name()) ? "* " : "  ");
-        con_print(layout);
+        bool current = str_eq(layout, kb_keymap_name());
+
         con_print("  ");
-        con_println(description);
+        ui_dot(current ? TH_GREEN : TH_SURFACE2, "");
+        ui_text(current ? TH_TEXT : TH_SUBTEXT, layout);
+        ui_pad_to(10);
+        ui_text(TH_SUBTEXT, description);
+        if (current) {
+            ui_text(TH_GREEN, "  (in use)");
+        }
+        con_putchar('\n');
     }
 }
 
@@ -540,12 +641,15 @@ static void cmd_disk(const char *arg)
 {
     if (str_eq(arg, "native") || str_eq(arg, "bios")) {
         if (!disk_select(str_eq(arg, "native") ? DISK_NATIVE : DISK_BIOS)) {
+            result(false);
             con_println("No floppy controller answered; still using the BIOS");
         }
     } else if (arg[0] != '\0') {
+        result(false);
         con_println("Usage: disk [native|bios]");
         return;
     }
+    info();
     con_print("Disk: ");
     con_println(disk_driver_name());
 }
@@ -556,6 +660,7 @@ static void cmd_cpu(void)
         "8086/8088", "80186 or V20/V30", "80286 or later"
     };
 
+    info();
     con_print("CPU: ");
     con_println(names[hal_cpu_class()]);
 }
@@ -573,24 +678,28 @@ static void cmd_kill(const char *arg)
     int tid;
 
     if (arg[0] == '\0') {
+        result(false);
         con_println("Usage: kill <tid>");
         return;
     }
 
     tid = str_to_int(arg);
     if (tid == 0) {
+        result(false);
         con_println("Cannot kill idle thread");
         return;
     }
 
     tcb_t *tcb = thread_get_tcb(tid);
     if (!tcb || !tcb->active) {
+        result(false);
         con_print("Thread ");
         con_print_dec(tid);
         con_println(" not found");
         return;
     }
 
+    result(true);
     con_print("Killing thread ");
     con_print_dec(tid);
     con_print(" (");
@@ -601,6 +710,7 @@ static void cmd_kill(const char *arg)
 
 static void cmd_reboot(void)
 {
+    info();
     con_println("Rebooting...");
     telemetry_flush();      /* the telemetry thread will not get another turn */
 
@@ -635,11 +745,13 @@ static void process_command(char *cmd)
     } else if (str_eq(cmd, "memory")) {
         mem_print_map();
     } else if (str_eq(cmd, "ticks")) {
+        info();
         con_print("Ticks: ");
         con_print_dec((uint16_t)irq_ticks());
         con_putchar('\n');
     } else if (str_eq(cmd, "uptime")) {
         uint16_t up = stats_uptime_seconds();
+        info();
         con_print("Uptime: ");
         con_print_dec(up / 60);
         con_print("m ");
@@ -694,9 +806,14 @@ static void process_command(char *cmd)
     } else if (str_eq(cmd, "about")) {
         cmd_about();
     } else if (cmd[0] != '\0') {
+        result(false);
         con_print("Unknown command: ");
         con_println(cmd);
-        con_println("Type 'help' for available commands.");
+        con_print("    ");
+        ui_text(TH_SUBTEXT, "Type ");
+        ui_text(TH_MAUVE, "help");
+        ui_text(TH_SUBTEXT, " for the list.");
+        con_putchar('\n');
     }
 }
 
@@ -706,19 +823,26 @@ void shell_run(void)
     int pos;
     char c;
 
-    /* Print welcome banner */
-    con_set_color(VGA_LIGHT_GREEN, VGA_BLACK);
+    /* Welcome line */
+    con_print("  ");
+    ui_text(TH_SUBTEXT, "Type ");
+    ui_text(TH_MAUVE, "help");
+    ui_text(TH_SUBTEXT, " for the commands, or try ");
+    ui_text(TH_MAUVE, "ps");
+    ui_text(TH_SUBTEXT, ", ");
+    ui_text(TH_MAUVE, "stacks");
+    ui_text(TH_SUBTEXT, " and ");
+    ui_text(TH_MAUVE, "run hello.bin");
+    ui_text(TH_SUBTEXT, ".");
     con_println("");
-    con_println("Phoenix-8086 Kernel Shell");
-    con_println("Type 'help' for available commands.");
-    con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
     con_println("");
 
     for (;;) {
-        /* Print prompt */
-        con_set_color(VGA_LIGHT_BLUE, VGA_BLACK);
-        con_print(PROMPT);
-        con_set_color(VGA_LIGHT_GRAY, VGA_BLACK);
+        /* A blank line before each prompt unless the screen is already at a fresh line */
+        if (con_get_col() != 0) {
+            con_putchar('\n');
+        }
+        ui_prompt();
 
         /* Read command line */
         pos = 0;

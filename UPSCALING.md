@@ -198,6 +198,7 @@ Nine tracks that can progress independently. Effort: **S** about a weekend, **M*
   | 09 Stack guard | B1, B3 | Detecting what hardware cannot prevent |
 - [ ] **I3. Guided tours in the dashboard** (M). Scripted walkthroughs over a recorded capture ("follow one key press from the keyboard to the shell"), highlighting the timeline, registers and source together. Translatable through the existing i18n system.
 - [ ] **I4. Architecture Decision Records** (S). `docs/adr/` with one short page per significant choice (true 8086, register frame on the stack, telemetry thread, detection-not-protection). Records the *why* for future contributors; the decisions in the implementation plan's §2 are the first entries.
+- [x] **I7. A modern console** (M). *Not in the first version of this plan; added at the maintainer's request.* Modern terminal UIs share a design language: titled panels with rounded borders (Lip Gloss, Ratatui), thick-line meters and sparklines (btop), a powerline prompt and a status bar (Starship, tmux), and a coherent palette (Catppuccin). *Done:* `kernel/ui.c` draws all of it in 80x25 text mode. On a VGA the palette and 20 glyphs are loaded into the hardware; a CGA falls back to standard colours and CP437. Telemetry keeps plain text, so the dashboard and tests are unaffected.
 - [ ] **I5. Documentation site** (S). The open Phase 5 item: generate a site from `docs/` alongside the in-browser demo on GitHub Pages.
 - [ ] **I6. Dev container** (S). The open Phase 0 item, now also carrying MartyPC, the fuzzers and the GDB helpers.
 
@@ -207,6 +208,7 @@ Nine tracks that can progress independently. Effort: **S** about a weekend, **M*
 
 | Date | Done | Notes |
 | --- | --- | --- |
+| 2026-10-04 | Console redesign (I7) | Theme, custom glyphs, UI toolkit, status bar; every screen redrawn. +4.6 KB of kernel image, code segment now 49% full. The CGA fallback is previewed with `make CONSOLE=plain`, but not yet run on DOSBox-X's CGA here; CI's 8086 test covers it |
 | 2026-10-04 | A6 | PIT in mode 2; sub-tick switch times in telemetry and the trace export; interrupt latency in `bench`. +650 bytes of kernel code. Needs the 8086 (DOSBox-X) test in CI to confirm mode 2 there |
 | 2026-10-04 | G1, G6, C6; G4 started | Host tests: 48 synchronisation, 27 allocator and 2,200+ FAT12 checks under ASan and UBSan, 81% line coverage. The FAT12 fuzzer found three real bugs in mount, all fixed. Cost: +80 bytes of kernel code for the checks |
 | 2026-10-04 | A1, B1, B2, E2, G3; G7 started | +2.4 KB code (26,032 bytes, 40% of the segment), +0.6 KB data for all five. 79 self-test assertions (was 75), 91 host tests (was 74), new integration checks for `stacks`, `rogue.bin` and the telemetry records. Lab solution patches 1 and 2 regenerated and re-tested. Not run here: the DOSBox-X 8086 test (not installed on this machine) and the browser tests; CI runs both |

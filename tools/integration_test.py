@@ -214,7 +214,7 @@ def run(machine):
     # 8. Counters are real
     machine.type("stats")
     text = machine.wait_for(r"Runtime Statistics.*phoenix> ") or ""
-    switches = re.search(r"Context switches: (\d+)", text)
+    switches = re.search(r"Context switches:\s+(\d+)", text)
     syscalls = re.search(r"System calls:\s+(\d+)", text)
     check("context switches counted", switches is not None and int(switches.group(1)) > 20, text)
     check("system calls counted", syscalls is not None and int(syscalls.group(1)) >= 8, text)
@@ -314,7 +314,7 @@ def run(machine):
 
     # Both disk drivers: the kernel's own floppy driver and the BIOS fallback
     check("the native floppy driver was chosen at boot",
-          "[INIT] Disk... native floppy driver" in machine.output(), machine.output()[:900])
+          re.search(r"Disk \W+ native floppy driver", machine.output()) is not None, machine.output()[:1500])
     machine.type("disk bios")
     check("switch to the BIOS disk driver", machine.wait_for(r"Disk: BIOS INT 13h") is not None)
     machine.type("run primes.bin")
@@ -374,11 +374,11 @@ def run(machine):
 
     # The remaining informational commands
     machine.type("about")
-    check("about command", machine.wait_for(r"Version [\w.-]+.*Threads: \d+.*Uptime: \d+s") is not None)
+    check("about command", machine.wait_for(r"Version:?\s+[\w.-]+.*Threads:\s+\d+.*Uptime:\s+\d+s") is not None)
     machine.type("uptime")
     check("uptime command", machine.wait_for(r"Uptime: \d+m \d+s") is not None)
     machine.type("interrupts")
-    text = machine.wait_for(r"Interrupt Counters.*Context Switches: \d+") or ""
+    text = machine.wait_for(r"Interrupt Counters.*Context Switches:\s+\d+") or ""
     timer = re.search(r"Timer \(IRQ0\):\s+(\d+)", text)
     keyboard = re.search(r"Keyboard \(IRQ1\):\s+(\d+)", text)
     check("interrupts command", timer is not None and int(timer.group(1)) > 100 and

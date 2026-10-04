@@ -19,7 +19,7 @@ import time
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from bridge.protocol import Decoder  # noqa: E402
 
-EXPECTED = [b"Phoenix-8086 Microkernel", b"Interrupt system... OK", b"boot complete"]
+EXPECTED = [b"a preemptive kernel for the Intel 8086", b"timer 100 Hz, keyboard, INT 80h", b"boot complete"]
 TIMEOUT = 20
 
 

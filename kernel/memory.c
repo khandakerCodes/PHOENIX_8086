@@ -15,6 +15,7 @@
 #include "console.h"
 #include "kernel.h"
 #include "hal.h"
+#include "ui.h"
 
 /* ── Free list node ─────────────────────────── */
 typedef struct free_node {
@@ -385,59 +386,79 @@ void mem_get_layout(mem_layout_t *layout)
 }
 
 /* Print "ssss:oooo" */
+/* Map table columns */
+#define MAP_ADDRESS     19
+#define MAP_NOTE        52
+
 static void print_seg_off(uint16_t seg, uint16_t off)
 {
-    con_print_hex(seg);
-    con_putchar(':');
-    con_print_hex(off);
+    ui_hex(seg, TH_TEXT);
+    ui_text(TH_OVERLAY, ":");
+    ui_hex(off, TH_TEXT);
+}
+
+/* One region: name, segment:offset start, the last offset or segment, and a note */
+static void region(const char *name, uint16_t seg, uint16_t off, const char *dash, uint16_t last,
+                   bool last_is_segment, const char *note)
+{
+    ui_row();
+    ui_text(TH_SUBTEXT, name);
+    ui_pad_to(MAP_ADDRESS);
+    print_seg_off(seg, off);
+    if (dash) {
+        ui_text(TH_OVERLAY, dash);
+        if (last_is_segment) {
+            print_seg_off(last, 0);
+        } else {
+            ui_hex(last, TH_TEXT);
+        }
+    }
+    if (note) {
+        ui_pad_to(MAP_NOTE);
+        ui_text(TH_OVERLAY, note);
+    }
+    ui_row_end();
+}
+
+/* "Label:  N unit" and a meter of how much is in use */
+static void usage(const char *label, uint32_t value, const char *unit, uint32_t used, uint32_t total)
+{
+    uint8_t share = total ? (uint8_t)(used * 100 / total) : 0;
+
+    ui_row();
+    ui_text(TH_SUBTEXT, label);
+    ui_pad_to(15);
+    ui_num(value, 6, TH_TEXT);
+    con_putchar(' ');
+    ui_text(TH_SUBTEXT, unit);
+    if (total) {
+        ui_pad_to(MAP_ADDRESS + 10);
+        ui_meter(used, total, 30, share > 85 ? TH_RED : share > 60 ? TH_YELLOW : TH_TEAL);
+        ui_num(share, 4, TH_TEXT);
+        ui_text(TH_SUBTEXT, "% used");
+    }
+    ui_row_end();
 }
 
 void mem_print_map(void)
 {
-    con_println("=== Memory Map ===");
+    char note[24];
+    uint16_t heap_free = mem_free(), heap_used = mem_used();
+    uint16_t far_total = far_end - far_start, far_left = far_free_paras();
 
-    con_println("  IVT:           0x0000:0x0000 - 0x03FF");
-    con_println("  BIOS Data:     0x0000:0x0400 - 0x04FF");
-    con_println("  Bootloader:    0x0000:0x7C00  (512 bytes)");
-    con_println("  Stage 2:       0x0000:0x7E00  (2048 bytes)");
-
-    con_print("  Kernel Code:   ");
-    print_seg_off(hal_get_cs(), 0);
-    con_putchar('\n');
-
-    con_print("  Kernel Data:   ");
-    print_seg_off(KERNEL_DATA_SEG, 0);
-    con_print("  (data+BSS end ");
-    con_print_hex(heap_start);
-    con_println(")");
-
-    con_print("  Near Heap:     ");
-    print_seg_off(KERNEL_DATA_SEG, heap_start);
-    con_print(" - ");
-    con_print_hex(heap_end - 1);
-    con_putchar('\n');
-
-    con_print("  Kernel Stack:  ");
-    print_seg_off(KERNEL_DATA_SEG, heap_end);
-    con_print(" - ");
-    con_print_hex(KERNEL_STACK_TOP + 1);
-    con_putchar('\n');
-
-    con_print("  Far Arena:     ");
-    print_seg_off(far_start, 0);
-    con_print(" - ");
-    print_seg_off(far_end, 0);
-    con_putchar('\n');
-
-    con_print("\n  Heap free:  ");
-    con_print_dec(mem_free());
-    con_println(" bytes");
-
-    con_print("  Heap used:  ");
-    con_print_dec(mem_used());
-    con_println(" bytes");
-
-    con_print("  Far free:   ");
-    con_print_dec(far_free_paras() / 64);
-    con_println(" KB");
+    ui_panel_open("Memory Map", TH_TEAL, ui_format(mem_kb, " KB of memory", note, sizeof(note)));
+    region("IVT", 0x0000, 0x0000, " - ", 0x03FF, false, "interrupt vectors");
+    region("BIOS Data", 0x0000, 0x0400, " - ", 0x04FF, false, NULL);
+    region("Bootloader", 0x0000, 0x7C00, NULL, 0, false, "stage 1, 512 bytes");
+    region("Stage 2", 0x0000, 0x7E00, NULL, 0, false, "2048 bytes");
+    region("Kernel Code", hal_get_cs(), 0, NULL, 0, false, "64 KB segment");
+    region("Kernel Data", KERNEL_DATA_SEG, 0, " - ", heap_start - 1, false, "data and BSS");
+    region("Near Heap", KERNEL_DATA_SEG, heap_start, " - ", heap_end - 1, false, "kmalloc");
+    region("Kernel Stack", KERNEL_DATA_SEG, heap_end, " - ", KERNEL_STACK_TOP + 1, false, NULL);
+    region("Far Arena", far_start, 0, " - ", far_end, true, "programs, far_alloc");
+    ui_row_rule();
+    usage("Heap free:", heap_free, "bytes", heap_used, (uint32_t)heap_free + heap_used);
+    usage("Heap used:", heap_used, "bytes", 0, 0);
+    usage("Far free:", far_left / 64, "KB", far_total - far_left, far_total);
+    ui_panel_close();
 }
